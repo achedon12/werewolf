@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  nickname  String?  @unique
+  avatar    String?  // URL de l'avatar
+  bio       String?  @default("")
+  victories Int      @default(0)
+  games     Game[]   @relation("UserGames")
+  wins      Game[]   @relation("GameWinners")
+  verified  Boolean  @default(false)
+  role      String? @default("user") // "user" ou "admin"
+  createdAt DateTime @default(now())
+}
+
+model Player {
+  id      String  @id @default(cuid())
+  name    String?
+  role    String?
+  gameId  String?
+  game    Game?   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+}
+
+model Game {
+  id       String   @id @default(cuid())
+  phase    String   @default("Nuit")
+  state    String   @default("En attente")
+  players  Player[]
+  users    User[]   @relation("UserGames")
+  winners  User[]  @relation("GameWinners")
+  createdAt DateTime @default(now())
+}
