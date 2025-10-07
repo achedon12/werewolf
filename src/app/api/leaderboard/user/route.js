@@ -14,6 +14,10 @@ export async function GET(req) {
     let payload;
     try {
         payload = jwt.verify(token, JWT_SECRET);
+
+        if (!payload || !payload.id) {
+            return NextResponse.json({ error: "Token invalide" }, { status: 401 });
+        }
     } catch {
         return NextResponse.json({ error: "Token invalide" }, { status: 401 });
     }

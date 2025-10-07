@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Player" ADD COLUMN     "isAdmin" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "isAlive" BOOLEAN NOT NULL DEFAULT true;

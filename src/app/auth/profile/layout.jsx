@@ -2,7 +2,6 @@
 import { useEffect } from "react";
 import { useAuth } from "../../AuthProvider";
 import { useRouter, usePathname } from "next/navigation";
-import { toast } from 'react-toastify';
 
 const ProfileLayout = ({ children }) => {
     const router = useRouter();

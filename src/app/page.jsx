@@ -1,7 +1,5 @@
 'use client';
 import {useEffect, useState} from "react";
-import {useRouter, useSearchParams} from 'next/navigation';
-
 
 const Home = () => {
 
@@ -9,14 +7,11 @@ const Home = () => {
     const [playersOnline, setPlayersOnline] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [roomId, setRoomId] = useState('');
-    const router = useRouter();
-    const searchParams = useSearchParams();
 
 
     useEffect(() => {
         setLoading(true);
-        fetch('/api/games')
+        fetch('/api/game/list')
             .then(res => res.json())
             .then(data => {
                 setGameCount(data.games.length);
@@ -27,13 +22,6 @@ const Home = () => {
             })
             .finally(() => setLoading(false));
     }, []);
-
-    useEffect(() => {
-        const gameParam = searchParams.get('game');
-        if (gameParam) {
-            setRoomId(gameParam);
-        }
-    }, [searchParams]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-gray-900">
@@ -61,7 +49,7 @@ const Home = () => {
                         <div className="card-body items-center text-center">
                             <div className="text-3xl mb-4">👥</div>
                             <h3 className="card-title text-white mb-2">Multijoueur</h3>
-                            <p className="text-gray-300">Jusqu'à 16 joueurs par partie</p>
+                            <p className="text-gray-300">Jusqu'à 18 joueurs par partie</p>
                         </div>
                     </div>
 

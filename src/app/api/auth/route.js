@@ -40,7 +40,7 @@ export async function POST(req) {
         if (!user || !(await bcrypt.compare(password, user.password)))
             return NextResponse.json({error: "Identifiants invalides"}, {status: 401});
         const token = jwt.sign({id: user.id}, JWT_SECRET, {expiresIn: "7d"});
-        return NextResponse.json({user: {id: user.id, email: user.email, name: user.name}, token});
+        return NextResponse.json({user, token});
     }
 
     return NextResponse.json({error: "Action inconnue"}, {status: 400});

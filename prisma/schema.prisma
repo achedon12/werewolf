@@ -29,22 +29,39 @@ model User {
   verified  Boolean  @default(false)
   role      String? @default("user") // "user" ou "admin"
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+  players   Player[]
 }
 
 model Player {
   id      String  @id @default(cuid())
-  name    String?
+  userId  String?
+  user    User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   role    String?
   gameId  String?
+  isAlive Boolean @default(true)
+  isAdmin Boolean @default(false)
   game    Game?   @relation(fields: [gameId], references: [id], onDelete: Cascade)
 }
 
 model Game {
   id       String   @id @default(cuid())
+  name     String
+  type     String   @default("classic")
+  configuration String   @default("{}")
   phase    String   @default("Nuit")
   state    String   @default("En attente")
   players  Player[]
   users    User[]   @relation("UserGames")
   winners  User[]  @relation("GameWinners")
+  createdAt DateTime @default(now())
+  gameLog GameLog[]
+}
+
+model GameLog {
+  id        String   @id @default(cuid())
+  gameId    String
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  message   String
   createdAt DateTime @default(now())
 }

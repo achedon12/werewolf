@@ -11,6 +11,8 @@ const authContext = createContext({
     register: async () => false,
     logout: async () => {},
     setUser: () => {},
+    setPlayer: () => {},
+    setGame: () => {}
 });
 
 export const useAuth = () => {
@@ -21,6 +23,8 @@ export function AuthProvider({children}) {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [player, setPlayer] = useState(null);
+    const [game, setGame] = useState(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -33,9 +37,31 @@ export function AuthProvider({children}) {
         setLoading(false);
     }, []);
 
+    useEffect(() => {
+        const handleStorageChange = (event) => {
+            if (event.key === "user") {
+                const newUser = event.newValue ? JSON.parse(event.newValue) : null;
+                setUser(newUser);
+            }
+            if (event.key === "token") {
+                setToken(event.newValue);
+            }
+        };
+
+        window.addEventListener("storage", handleStorageChange);
+
+        return () => {
+            window.removeEventListener("storage", handleStorageChange);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!loading && !user) {
+            router.push("/auth");
+        }
+    }, [loading, user, router]);
+
     const login = async (email, password) => {
-        console.log("Attempting to log in with", email)
-        console.log("Password:", password)
         const res = await fetch("/api/auth", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -74,13 +100,15 @@ export function AuthProvider({children}) {
         router.push("/auth");
         setUser(null);
         setToken(null);
+        setPlayer(null);
+        setGame(null);
         localStorage.removeItem("user");
         localStorage.removeItem("token");
         setLoading(false)
     };
 
     return (
-        <authContext.Provider value={{ user, token, loading, login, register, logout, setUser }}>
+        <authContext.Provider value={{ user, token, loading, game, player, login, register, logout, setUser, setPlayer, setGame }}>
             {children}
         </authContext.Provider>
     );

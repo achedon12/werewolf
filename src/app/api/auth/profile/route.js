@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
-
 export async function GET(req) {
     const authHeader = req.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -15,6 +14,10 @@ export async function GET(req) {
     let payload;
     try {
         payload = jwt.verify(token, JWT_SECRET);
+
+        if (!payload || !payload.id) {
+            return NextResponse.json({ error: "Token invalide" }, { status: 401 });
+        }
     } catch {
         return NextResponse.json({ error: "Token invalide" }, { status: 401 });
     }

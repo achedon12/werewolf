@@ -1,4 +1,5 @@
 import {PrismaClient} from '@/generated/prisma';
+import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
@@ -16,5 +17,5 @@ export async function GET() {
 
     const playersOnline = games.reduce((acc, game) => acc + game.players.length, 0);
 
-    return Response.json({games, playersOnline});
+    return NextResponse.json({games, playersOnline});
 }

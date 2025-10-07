@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import {useState} from 'react';
-import {useRouter} from 'next/navigation';
+import {useEffect, useState} from 'react';
+import {useRouter, useSearchParams} from 'next/navigation';
 import {useAuth} from "@/app/AuthProvider";
-import { toast } from 'react-toastify';
+import {toast} from 'react-toastify';
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,7 +12,16 @@ export default function Header() {
     const [roomId, setRoomId] = useState('');
     const [error, setError] = useState(null);
     const isAuthenticated = useAuth()
+    const searchParams = useSearchParams();
     const router = useRouter();
+    const {token} = useAuth()
+
+    useEffect(() => {
+        const gameParam = searchParams.get('game');
+        if (gameParam) {
+            setRoomId(gameParam);
+        }
+    }, [searchParams]);
 
     const handleJoinById = async () => {
         if (!isAuthenticated.user) {
@@ -25,7 +34,13 @@ export default function Header() {
         }
         setError(null);
         try {
-            const res = await fetch(`/api/games/${roomId.trim()}`);
+            const res = await fetch(`/api/game/${roomId.trim()}/join`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
             if (res.ok) {
                 setShowJoinModal(false);
                 router.push(`/game/${roomId.trim()}`);
@@ -44,7 +59,7 @@ export default function Header() {
         }
         setError(null);
         try {
-            const res = await fetch('/api/games');
+            const res = await fetch('/api/game/list');
             const data = await res.json();
             const game = data.games.find(g => g.state === 'En attente');
             if (game) {
@@ -172,7 +187,7 @@ export default function Header() {
 
                         <div className="avatar">
                             <button onClick={redirectLogin}
-                                className="w-10 rounded-full bg-base-300 flex items-center justify-center text-base-content">
+                                    className="w-10 rounded-full bg-base-300 flex items-center justify-center text-base-content">
                                 <span className="text-sm">👤</span>
                             </button>
                         </div>
