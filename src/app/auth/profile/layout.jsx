@@ -12,7 +12,6 @@ const ProfileLayout = ({ children }) => {
     useEffect(() => {
         if (loading) return;
         if ((!user || !token) && pathname !== '/auth') {
-            toast.error("Vous devez être connecté pour accéder à cette page.");
             router.push('/auth');
         }
     }, [user, token, loading, router, pathname]);

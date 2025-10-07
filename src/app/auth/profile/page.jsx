@@ -3,12 +3,14 @@
 import {useEffect, useState} from 'react';
 import Image from 'next/image';
 import {formatDate} from "@/utils/Date";
+import {useAuth} from "@/app/AuthProvider";
 
 export default function ProfilePage() {
     const [user, setUser] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [rank, setRank] = useState(null);
+    const {logout} = useAuth();
 
     const [formData, setFormData] = useState({
         name: '',
@@ -118,7 +120,7 @@ export default function ProfilePage() {
                         </div>
 
                         <p className="text-gray-600 dark:text-gray-300">@{user?.nickname}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{user?.bio}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{user?.bio || 'Aucune bio disponible.'}</p>
 
                         <div
                             className="stats shadow mt-6 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-slate-900 dark:to-blue-950">
@@ -129,7 +131,16 @@ export default function ProfilePage() {
                             </div>
                         </div>
                     </div>
+                    <div className="mt-4 text-center mb-4 px-4 w-full">
+                        <button
+                            className="btn btn-outline btn-error w-full"
+                            onClick={logout}
+                        >
+                            🚪 Se déconnecter
+                        </button>
+                    </div>
                 </div>
+
             </div>
 
             <div className="lg:col-span-2 space-y-6">

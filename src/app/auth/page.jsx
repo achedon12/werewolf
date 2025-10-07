@@ -40,7 +40,7 @@ const AuthPage = () => {
             setState({ error: 'Les mots de passe ne correspondent pas' });
             return;
         }
-        const ok = await register(registerData.email, registerData.password, registerData.name);
+        const ok = await register(registerData.email, registerData.password, registerData.name, registerData.nickname);
         setState(ok ? { success: true, message: 'Compte créé avec succès!' } : { error: 'Erreur lors de l\'inscription' });
     };
 

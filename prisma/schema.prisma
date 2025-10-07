@@ -25,6 +25,7 @@ model User {
   victories Int      @default(0)
   games     Game[]   @relation("UserGames")
   wins      Game[]   @relation("GameWinners")
+  verificationToken String?
   verified  Boolean  @default(false)
   role      String? @default("user") // "user" ou "admin"
   createdAt DateTime @default(now())

@@ -52,11 +52,11 @@ export function AuthProvider({children}) {
         return false;
     };
 
-    const register = async (email, password, name) => {
+    const register = async (email, password, name, nickname) => {
         const res = await fetch("/api/auth", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "register", email, password, name }),
+            body: JSON.stringify({ action: "register", email, password, name, nickname }),
         });
         const data = await res.json();
         if (res.ok) {
@@ -69,12 +69,14 @@ export function AuthProvider({children}) {
         return false;
     };
 
-    const logout = () => {
+    const logout = async () => {
+        setLoading(true)
+        router.push("/auth");
         setUser(null);
         setToken(null);
         localStorage.removeItem("user");
         localStorage.removeItem("token");
-        router.push("/");
+        setLoading(false)
     };
 
     return (
