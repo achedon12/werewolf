@@ -224,22 +224,15 @@ app.prepare().then(() => {
                     }
                 });
 
-                // Rejoindre le nouveau canal
                 socket.join(channelRoom);
                 roomData.channels[channelType].add(socket.id);
                 roomData.lastActivity = new Date();
-
-                socket.emit("channel-joined", {
-                    channel: channelType,
-                    message: `Vous avez rejoint le canal ${channelType}`
-                });
 
             } catch (error) {
                 console.error("❌ Erreur join-channel:", error);
             }
         });
 
-        // Envoyer un message dans un canal
         socket.on("send-chat", async (data) => {
             try {
                 const {gameId, message, channel = "general"} = data;
@@ -252,7 +245,6 @@ app.prepare().then(() => {
                 const roomData = gameRooms.get(gameId);
                 if (!roomData) return;
 
-                // Vérifier que le joueur est dans le canal
                 if (!roomData.channels[channel].has(socket.id)) {
                     socket.emit("chat-error", {
                         error: "Vous n'êtes pas dans ce canal"
@@ -260,7 +252,6 @@ app.prepare().then(() => {
                     return;
                 }
 
-                // Vérifier les permissions spécifiques
                 if (channel === "werewolves" && playerInfo.role !== "Loup-Garou") {
                     socket.emit("chat-error", {
                         error: "Accès refusé au canal des loups"
@@ -278,14 +269,11 @@ app.prepare().then(() => {
                     type: "player"
                 };
 
-                // Émettre le message au canal cible
                 const channelRoom = `game-${gameId}-${channel}`;
                 io.to(channelRoom).emit("chat-message", messageData);
 
-                // Mettre à jour l'activité de la room
                 roomData.lastActivity = new Date();
 
-                // Ajouter l'action de chat à l'historique seulement pour le canal général
                 if (channel === "general") {
                     addGameAction(gameId, {
                         type: "chat_message",

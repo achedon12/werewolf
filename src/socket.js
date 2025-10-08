@@ -1,4 +1,3 @@
-// Dans votre fichier socket.js
 import { io } from 'socket.io-client';
 
 const URL = process.env.NODE_ENV === 'production'
@@ -10,16 +9,4 @@ export const socket = io(URL, {
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
-});
-
-socket.on('connect', () => {
-    console.log('Socket.IO connected:', socket.id);
-});
-
-socket.on('disconnect', (reason) => {
-    console.log('Socket.IO disconnected:', reason);
-});
-
-socket.on('connect_error', (error) => {
-    console.error('Socket.IO connection error:', error);
 });
