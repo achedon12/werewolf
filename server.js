@@ -559,7 +559,10 @@ app.prepare().then(() => {
                 setImmediate(async () => {
                     io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
                     io.to(`game-${gameId}`).emit("howl");
-                    io.to(`game-${gameId}`).emit("ambiant");
+                    io.to(`game-${gameId}`).emit("ambiant-settings", {
+                        themeEnabled: true,
+                        soundsEnabled: true
+                    });
                     // io.in(`game-${gameId}`).emit("game-update", {state: roomData.state, phase: roomData.phase});
                     // if (startAction) {
                     //     io.in(`game-${gameId}`).emit("new-action", startAction);

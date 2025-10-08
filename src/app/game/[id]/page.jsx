@@ -7,6 +7,7 @@ import GameInformation from "@/components/game/Information";
 import GameChat from "@/components/game/chat/Chat";
 import GameActions from "@/components/game/actions/Actions";
 import GameHeader from "@/components/game/Header";
+import AmbientForest from "@/components/game/AmbientForest";
 
 const GamePage = ({params}) => {
     const {id} = use(params);
@@ -24,7 +25,10 @@ const GamePage = ({params}) => {
     const [currentPlayer, setCurrentPlayer] = useState(null);
     const [history, setHistory] = useState([]);
     const [hasJoin, setHasJoin] = useState(false);
-    const [ambiant, setAmbiant] = useState(false);
+    const [ambientThemeEnabled, setAmbientThemeEnabled] = useState(false);
+    const [ambientSoundsEnabled, setAmbientSoundsEnabled] = useState(false);
+    const [currentAmbientSound, setCurrentAmbientSound] = useState(null);
+    const ambientSoundRef = useRef(null);
     const {user, token} = useAuth();
     const chatContainerRef = useRef(null);
 
@@ -32,6 +36,11 @@ const GamePage = ({params}) => {
         if (!id || !socket) return;
 
         const userFromLocalStorage = JSON.parse(localStorage.getItem('user'));
+
+        const savedTheme = userFromLocalStorage.ambientThemeEnabled;
+        const savedSounds = userFromLocalStorage.ambientSoundsEnabled;
+        setAmbientThemeEnabled(savedTheme);
+        setAmbientSoundsEnabled(savedSounds);
 
         if (hasJoin) return;
 
@@ -153,14 +162,17 @@ const GamePage = ({params}) => {
             audio.play().catch(e => console.error("Erreur de lecture audio:", e));
         }
 
-        const handleAmbient = () => {
-
-        }
+        const handleAmbientSettings = (settings) => {
+            if (settings) {
+                setAmbientThemeEnabled(settings.themeEnabled || false);
+                setAmbientSoundsEnabled(settings.soundsEnabled || false);
+            }
+        };
 
         socket.on("game-update", handleGameUpdate);
         socket.on("game-history", handleGameHistory);
         socket.on("howl", handleHowl);
-        socket.on("ambient", handleAmbient);
+        socket.on("ambient-settings", handleAmbientSettings);
         socket.on("available-channels", handleAvailableChannels);
         socket.on("chat-message", handleChatMessage);
         socket.on("new-action", handleNewAction);
@@ -187,7 +199,7 @@ const GamePage = ({params}) => {
             socket.off("channel-joined", handleChannelJoined);
             socket.off("chat-error", handleChatError);
             socket.off("howl", handleHowl);
-            socket.off("ambiant", handleAmbient);
+            socket.off("ambient-settings", handleAmbientSettings);
             socket.emit("leave-game", id, userFromLocalStorage);
         };
     }, [id, socket]);
@@ -199,8 +211,70 @@ const GamePage = ({params}) => {
     }, [chatMessages, currentChannel]);
 
     useEffect(() => {
-        console.log("Historique mis à jour:", history);
-    }, [history]);
+        const initializeAmbientSound = () => {
+            if (!ambientSoundRef.current) {
+                setCurrentAmbientSound('/sounds/ambiance.mp3');
+                ambientSoundRef.current = new Audio('/sounds/ambiance.mp3');
+                ambientSoundRef.current.loop = true;
+                ambientSoundRef.current.volume = 0.3;
+            }
+        };
+
+        if (ambientSoundsEnabled) {
+            initializeAmbientSound();
+            playAmbientSound();
+        } else {
+            stopAmbientSound();
+        }
+
+        return () => {
+            stopAmbientSound();
+        };
+    }, [ambientSoundsEnabled]);
+
+    const playAmbientSound = () => {
+        if (ambientSoundRef.current && ambientSoundsEnabled) {
+            ambientSoundRef.current.play().catch(e => {
+                console.error("Erreur lecture son ambiance:", e);
+            });
+        }
+    };
+
+    const stopAmbientSound = () => {
+        if (ambientSoundRef.current) {
+            ambientSoundRef.current.pause();
+            ambientSoundRef.current.currentTime = 0;
+        }
+    };
+
+    const toggleAmbientTheme = () => {
+        const newValue = !ambientThemeEnabled;
+        setAmbientThemeEnabled(newValue);
+        // localStorage.setItem('ambientThemeEnabled', newValue.toString());
+        // socket.emit("ambient-settings-update", {
+        //     gameId: id,
+        //     themeEnabled: newValue,
+        //     soundsEnabled: ambientSoundsEnabled
+        // });
+    };
+
+    const toggleAmbientSounds = () => {
+        const newValue = !ambientSoundsEnabled;
+        setAmbientSoundsEnabled(newValue);
+        // localStorage.setItem('ambientSoundsEnabled', newValue.toString());
+        //
+        if (newValue) {
+            playAmbientSound();
+        } else {
+            stopAmbientSound();
+        }
+        //
+        // socket.emit("ambient-settings-update", {
+        //     gameId: id,
+        //     themeEnabled: ambientThemeEnabled,
+        //     soundsEnabled: newValue
+        // });
+    };
 
     const switchChannel = (channel) => {
         if (!channel || channel === currentChannel) return;
@@ -268,10 +342,38 @@ const GamePage = ({params}) => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
             <GameHeader game={game} players={players} configuration={configuration} creator={creator}/>
 
-            <div className="container mx-auto px-4 py-8">
+            {ambientThemeEnabled && <AmbientForest />}
+
+            <div className="absolute top-4 right-4 z-20 flex gap-2">
+                <button
+                    onClick={toggleAmbientTheme}
+                    className={`p-2 rounded-lg backdrop-blur-sm border transition-all ${
+                        ambientThemeEnabled
+                            ? 'bg-green-500/20 border-green-500/50 text-green-300'
+                            : 'bg-gray-500/20 border-gray-500/50 text-gray-300'
+                    }`}
+                    title="Thème forêt"
+                >
+                    🌲
+                </button>
+                <button
+                    onClick={toggleAmbientSounds}
+                    className={`p-2 rounded-lg backdrop-blur-sm border transition-all ${
+                        ambientSoundsEnabled
+                            ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
+                            : 'bg-gray-500/20 border-gray-500/50 text-gray-300'
+                    }`}
+                    title="Sons d'ambiance"
+                >
+                    🎵
+                </button>
+            </div>
+
+
+            <div className="relative z-10 container mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
                     <GameActions
