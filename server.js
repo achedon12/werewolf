@@ -109,13 +109,6 @@ app.prepare().then(() => {
                 userData.isAlive = true;
                 userData.online = true;
 
-                /*const previousRooms = Array.from(socket.rooms);
-                previousRooms.forEach(room => {
-                    if (room.startsWith('game-')) {
-                        socket.leave(room);
-                    }
-                });*/
-
                 let roomData = gameRooms.get(gameId);
                 if (!roomData) {
                     roomData = createGameRoom(gameId);
@@ -124,6 +117,27 @@ app.prepare().then(() => {
                 roomData.lastActivity = new Date();
 
                 const mainRoom = `game-${gameId}`;
+
+                const existingEntry = Array.from(roomData.players.entries()).find(
+                    ([sid, p]) => p && p.id && userData.id && p.id === userData.id
+                );
+                if (existingEntry) {
+                    const [oldSid] = existingEntry;
+                    if (oldSid !== socket.id) {
+                        roomData.players.delete(oldSid);
+                        connectedPlayers.delete(oldSid);
+                        const oldSocket = io.sockets.sockets.get(oldSid);
+                        if (oldSocket) {
+                            oldSocket.leave(mainRoom);
+                            CHANNEL_TYPES.forEach(ch => oldSocket.leave(`game-${gameId}-${ch}`));
+                            try {
+                                oldSocket.emit("force-disconnect", {reason: "duplicate_session"});
+                            } catch (e) {
+                            }
+                        }
+                    }
+                }
+
                 socket.join(mainRoom);
 
                 connectedPlayers.set(socket.id, {
@@ -150,9 +164,7 @@ app.prepare().then(() => {
                     phase: "connection",
                 });
 
-                setImmediate(() => {
-                    const clientsInRoom = io.sockets.adapter.rooms.get(mainRoom);
-
+                setImmediate(async () => {
                     io.in(mainRoom).emit("game-history", getGameHistory(gameId));
                     io.in(mainRoom).emit("players-update", {
                         players: Array.from(roomData.players.values())
@@ -161,9 +173,11 @@ app.prepare().then(() => {
                     const availableChannels = {
                         general: true,
                         werewolves: playerRole === "Loup-Garou",
-                        vote: roomData.phase === 'voting'
+                        vote: roomData.phase === "voting"
                     };
                     socket.emit("available-channels", availableChannels);
+                    const gameData = await updatedGameData(gameId);
+                    socket.emit("game-update", gameData);
 
                     io.to(generalChannel).emit("chat-message", {
                         type: "system",
@@ -172,7 +186,6 @@ app.prepare().then(() => {
                         createdAt: new Date().toISOString(),
                         channel: "general"
                     });
-
                 });
             } catch (error) {
                 console.error("❌ Erreur join-game:", error);
@@ -371,6 +384,84 @@ app.prepare().then(() => {
             } catch (error) {
                 console.error("❌ Erreur lors de la récupération de l'historique:", error);
                 socket.emit("history-error", {error: "Impossible de charger l'historique"});
+            }
+        });
+
+        socket.on("leave-game", (gameId, userData) => {
+            try {
+                const playerInfo = connectedPlayers.get(socket.id) || {
+                    gameId,
+                    nickname: userData?.nickname,
+                    role: userData?.role
+                };
+                const roomId = playerInfo?.gameId || gameId;
+                const roomData = gameRooms.get(roomId);
+
+                if (!playerInfo || !roomData) {
+                    // rien à faire
+                    return;
+                }
+
+                // retirer des canaux
+                CHANNEL_TYPES.forEach(channel => {
+                    roomData.channels[channel].delete(socket.id);
+                });
+
+                // si la partie est en attente, supprimer le joueur, sinon marquer offline
+                if (roomData.state === 'waiting') {
+                    roomData.players.delete(socket.id);
+                } else {
+                    const player = roomData.players.get(socket.id);
+                    if (player) {
+                        player.online = false;
+                        roomData.players.set(socket.id, player);
+                    }
+                }
+
+                roomData.lastActivity = new Date();
+
+                const leaveAction = addGameAction(roomId, {
+                    type: "player_left",
+                    playerName: playerInfo.nickname,
+                    playerRole: playerInfo.role,
+                    message: `${playerInfo.nickname} a quitté la partie`,
+                    phase: "connection"
+                });
+
+                setImmediate(() => {
+                    io.in(`game-${roomId}`).emit("players-update", {
+                        players: Array.from(roomData.players.values())
+                    });
+
+                    if (leaveAction) {
+                        io.in(`game-${roomId}`).emit("new-action", leaveAction);
+                    } else {
+                        io.in(`game-${roomId}`).emit("new-action", {
+                            type: "player_left",
+                            playerName: playerInfo.nickname,
+                            message: `${playerInfo.nickname} a quitté la partie`,
+                            createdAt: new Date().toISOString()
+                        });
+                    }
+
+                    io.in(`game-${roomId}-general`).emit("chat-message", {
+                        type: "system",
+                        playerName: "Système",
+                        message: `${playerInfo.nickname} s'est déconnecté`,
+                        createdAt: new Date().toISOString(),
+                        channel: "general"
+                    });
+                });
+
+                // nettoyage des maps et quitter les rooms
+                connectedPlayers.delete(socket.id);
+                try {
+                    socket.leave(`game-${roomId}`);
+                    CHANNEL_TYPES.forEach(ch => socket.leave(`game-${roomId}-${ch}`));
+                } catch (e) {
+                }
+            } catch (err) {
+                console.error("❌ Erreur leave-game:", err);
             }
         });
 

@@ -1,3 +1,4 @@
+// src/app/game/%5Bid%5D/page.jsx
 "use client";
 
 import {use, useEffect, useState} from "react";
@@ -14,44 +15,11 @@ const GamePage = ({params}) => {
     const [chatMessage, setChatMessage] = useState("");
     const [creator, setCreator] = useState(null);
     const [configuration, setConfiguration] = useState(null);
+    const [players, setPlayers] = useState([]);
     const [currentPlayer, setCurrentPlayer] = useState(null);
     const [history, setHistory] = useState([]);
     const [hasJoin, setHasJoin] = useState(false);
     const {user, token} = useAuth()
-
-    useEffect(() => {
-        const fetchGame = async () => {
-            try {
-                const response = await fetch(`/api/game/${id}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error("Erreur réseau lors du chargement de la partie");
-                }
-
-                const gameData = await response.json();
-
-                setCreator(gameData.admin);
-                setGame({
-                    ...gameData,
-                    players: gameData.players || []
-                });
-                const newConfiguration = JSON.parse(gameData.configuration);
-                setConfiguration(newConfiguration)
-            } catch (error) {
-                console.error("Erreur chargement partie:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchGame();
-    }, [id]);
 
     useEffect(() => {
         if (!id || !socket) return;
@@ -60,10 +28,13 @@ const GamePage = ({params}) => {
 
         if (hasJoin) return;
 
+        setLoading(true);
+
         const handleGameUpdate = (gameData) => {
             setGame(gameData);
             try {
                 setConfiguration(JSON.parse(gameData.configuration));
+                setCreator(gameData.admin)
             } catch (e) {
                 setConfiguration({});
             }
@@ -73,18 +44,26 @@ const GamePage = ({params}) => {
             setHistory(history);
         };
 
-        const handleAvailableChannels = (channels) => { /* ... */ };
-        const handleChatMessage = (msg) => { /* ... */ };
+        const handleAvailableChannels = (channels) => {
+        };
+        const handleChatMessage = (msg) => { /* ... */
+        };
         const handleNewAction = (action) => setHistory(prev => [...prev, action]);
 
         const handlePlayersUpdate = (data) => {
-            console.log("Mise à jour des joueurs reçue:", data);
-            setGame(prev => ({
-                ...prev,
-                players: data.players
-            }));
-            console.log(game)
-            setCurrentPlayer((data.players || []).find(p => p.id === userFromLocalStorage.id));
+            const players = data.players || [];
+            console.log("Mise à jour des joueurs reçue:", players);
+
+            setPlayers(players);
+
+            const found = players.find(p =>
+                p.id === userFromLocalStorage?.id ||
+                p.socketId === userFromLocalStorage?.id ||
+                p.socketId === socket.id ||
+                p.id === socket.id
+            );
+
+            setCurrentPlayer(found || null);
         };
 
         const handleGameError = (error) => console.error("Erreur Socket.IO:", error);
@@ -98,10 +77,10 @@ const GamePage = ({params}) => {
         socket.on("game-error", handleGameError);
 
         socket.emit("join-game", id, userFromLocalStorage, "");
+        socket.emit("request-history", id);
 
         setHasJoin(true);
-
-        socket.emit("request-history", id);
+        setLoading(false);
 
         return () => {
             socket.off("game-update", handleGameUpdate);
@@ -122,14 +101,23 @@ const GamePage = ({params}) => {
 
     const sendChatMessage = () => {
         if (chatMessage.trim()) {
-            // Logique d'envoi de message
-            console.log("Message envoyé:", chatMessage);
+            // Émettre le message au serveur
+            const payload = {gameId: id, message: chatMessage, channel: "general"};
+            socket.emit("send-chat", payload);
             setChatMessage("");
         }
     };
 
     const performAction = (action, targetPlayerId = null) => {
-        console.log("Action:", action, "Cible:", targetPlayerId);
+        // Exemple d'envoi d'action
+        socket.emit("player-action", {
+            gameId: id,
+            type: action,
+            targetPlayerId,
+            playerName: currentPlayer?.nickname,
+            playerRole: currentPlayer?.role,
+            details: {}
+        });
     };
 
     if (loading) {
@@ -156,8 +144,8 @@ const GamePage = ({params}) => {
         );
     }
 
-    const alivePlayers = game.players.filter(p => p.isAlive);
-    const deadPlayers = game.players.filter(p => !p.isAlive);
+    const alivePlayers = players.filter(p => p.isAlive);
+    const deadPlayers = players.filter(p => !p.isAlive);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -167,16 +155,16 @@ const GamePage = ({params}) => {
                         <div>
                             <h1 className="text-2xl font-bold text-white">{game.name}</h1>
                             <div className="flex items-center gap-4 mt-2">
-                                <span className={`badge ${
-                                    game.state === "En attente" ? "badge-warning" :
-                                        game.state === "En cours" ? "badge-success" : "badge-error"
-                                }`}>
-                                    {game.state}
-                                </span>
+                                    <span className={`badge ${
+                                        game.state === "En attente" ? "badge-warning" :
+                                            game.state === "En cours" ? "badge-success" : "badge-error"
+                                    }`}>
+                                        {game.state}
+                                    </span>
                                 <span className="badge badge-info">{game.phase}</span>
                                 <span className="text-gray-400">
-                                    {alivePlayers.length} / {Object.values(configuration).reduce((a, b) => a + b, 0)} joueurs vivants
-                                </span>
+                                        {alivePlayers.length} / {configuration ? Object.values(configuration).reduce((a, b) => a + b, 0) : 0} joueurs vivants
+                                    </span>
                             </div>
                         </div>
 
@@ -233,20 +221,20 @@ const GamePage = ({params}) => {
 
                                         {game.phase === "Nuit" && currentPlayer && (
                                             <div className="alert alert-info bg-blue-500/10 border-blue-500/20">
-                                                <span>
-                                                    C'est la nuit ! Les pouvoirs spéciaux peuvent être utilisés.
-                                                    {currentPlayer.role === "Loup-Garou" && " Choisissez une victime."}
-                                                    {currentPlayer.role === "Voyante" && " Découvrez l'identité d'un joueur."}
-                                                    {currentPlayer.role === "Docteur" && " Soignez un joueur."}
-                                                </span>
+                                                    <span>
+                                                        C'est la nuit ! Les pouvoirs spéciaux peuvent être utilisés.
+                                                        {currentPlayer.role === "Loup-Garou" && " Choisissez une victime."}
+                                                        {currentPlayer.role === "Voyante" && " Découvrez l'identité d'un joueur."}
+                                                        {currentPlayer.role === "Docteur" && " Soignez un joueur."}
+                                                    </span>
                                             </div>
                                         )}
 
                                         {game.phase === "Jour" && (
                                             <div className="alert alert-warning bg-yellow-500/10 border-yellow-500/20">
-                                                <span>
-                                                    C'est le jour ! Discutez et votez pour éliminer un suspect.
-                                                </span>
+                                                    <span>
+                                                        C'est le jour ! Discutez et votez pour éliminer un suspect.
+                                                    </span>
                                             </div>
                                         )}
 
@@ -324,14 +312,14 @@ const GamePage = ({params}) => {
 
                                 <div className="flex justify-center my-6">
                                     <div className="relative w-64 h-64">
-                                        {game.players.map((player, idx) => {
-                                            const angle = (2 * Math.PI * idx) / game.players.length;
+                                        {players.map((player, idx) => {
+                                            const angle = (2 * Math.PI * idx) / players.length;
                                             const radius = 110;
                                             const x = radius * Math.cos(angle) + 110;
                                             const y = radius * Math.sin(angle) + 110;
                                             return (
                                                 <div
-                                                    key={player.id}
+                                                    key={player.id || player.socketId || idx}
                                                     className={`absolute`}
                                                     style={{
                                                         left: `${x}px`,
@@ -379,8 +367,8 @@ const GamePage = ({params}) => {
                                             ].map((msg, index) => (
                                                 <div key={index} className="p-3 bg-base-200/30 rounded-lg">
                                                     <div className="flex justify-between items-start mb-1">
-                                                        <span
-                                                            className="font-semibold text-purple-400">@{msg.user}</span>
+                                                            <span
+                                                                className="font-semibold text-purple-400">@{msg.user}</span>
                                                         <span className="text-gray-400 text-xs">{msg.time}</span>
                                                     </div>
                                                     <p className="text-gray-300 text-sm">{msg.message}</p>
@@ -415,9 +403,9 @@ const GamePage = ({params}) => {
                                     <h2 className="card-title text-2xl text-white mb-6">👥 Joueurs de la partie</h2>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {game.players.map(player => (
+                                        {players.map(player => (
                                             <div
-                                                key={player.id}
+                                                key={player.id || player.socketId}
                                                 className={`p-4 rounded-2xl border-2 backdrop-blur-sm transition-all ${
                                                     player.isAlive
                                                         ? "bg-base-200/30 border-green-500/20"
@@ -441,6 +429,8 @@ const GamePage = ({params}) => {
                                                             </h3>
                                                             <p className="text-gray-400 text-sm">
                                                                 {player.isAlive ? "🟢 En vie" : "🔴 Mort"}
+                                                                {" • "}
+                                                                {player.online ? "🟢 En ligne" : "⚪ Hors-ligne"}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -497,14 +487,20 @@ const GamePage = ({params}) => {
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">Votre rôle:</span>
                                         <span className="text-white font-semibold">
-                                            {currentPlayer?.role || "Non assigné"}
-                                        </span>
+                                                {currentPlayer?.role || "Non assigné"}
+                                            </span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">Statut:</span>
                                         <span className={currentPlayer?.isAlive ? "text-green-400" : "text-red-400"}>
-                                            {currentPlayer?.isAlive ? "🟢 En vie" : "🔴 Mort"}
-                                        </span>
+                                                {currentPlayer?.isAlive ? "🟢 En vie" : "🔴 Mort"}
+                                            </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Connecté:</span>
+                                        <span className={currentPlayer?.online ? "text-green-400" : "text-gray-400"}>
+                                                {currentPlayer?.online ? "🟢 En ligne" : "⚪ Hors-ligne"}
+                                            </span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">Phase:</span>
@@ -521,7 +517,8 @@ const GamePage = ({params}) => {
                                     {history.map((event, index) => (
                                         <div key={index}
                                              className="flex items-start gap-3 p-3 bg-base-200/30 rounded-lg">
-                                            <span className="text-gray-400 text-sm mt-1">{formatTime(event.createdAt)}</span>
+                                            <span
+                                                className="text-gray-400 text-sm mt-1">{formatTime(event.createdAt)}</span>
                                             <p className="text-gray-300 flex-1">{event.message}</p>
                                         </div>
                                     ))}
