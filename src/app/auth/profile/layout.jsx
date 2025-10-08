@@ -1,12 +1,20 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../../AuthProvider";
 import { useRouter, usePathname } from "next/navigation";
+import {ChartColumnBig, LayoutDashboard, Settings} from "lucide-react";
+
+const TABS = [
+    { key: "overview", label: "Vue d'ensemble", icon: <LayoutDashboard /> },
+    { key: "settings", label: "Paramètres", icon: <Settings /> },
+    { key: "stats", label: "Statistiques", icon: <ChartColumnBig /> }
+];
 
 const ProfileLayout = ({ children }) => {
     const router = useRouter();
     const pathname = usePathname();
     const { user, token, loading } = useAuth();
+    const [activeTab, setActiveTab] = useState("overview");
 
     useEffect(() => {
         if (loading) return;
@@ -15,6 +23,17 @@ const ProfileLayout = ({ children }) => {
         }
     }, [user, token, loading, router, pathname]);
 
+    const handleTabChange = (tabKey) => {
+        setActiveTab(tabKey);
+        router.push(`/auth/profile/${tabKey}`);
+    };
+
+    useEffect(() => {
+        const currentTab = pathname.split('/').pop();
+        if (TABS.some(tab => tab.key === currentTab)) {
+            setActiveTab(currentTab);
+        }
+    }, [pathname]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50 dark:from-slate-900 dark:to-purple-950 py-8">
@@ -30,13 +49,27 @@ const ProfileLayout = ({ children }) => {
 
                 <div className="flex justify-center mb-8">
                     <div className="tabs tabs-boxed bg-white/80 backdrop-blur-sm dark:bg-slate-800/80 flex space-x-4 rounded-lg shadow-md pl-2 pr-2">
-                        <a className="tab tab-active dark:text-white">📊 Vue d&apos;ensemble</a>
-                        <a className="tab dark:text-white">⚙️ Paramètres</a>
-                        <a className="tab dark:text-white">📈 Statistiques</a>
+                        {TABS.map(tab => (
+                            <button
+                                key={tab.key}
+                                className={`tab flex items-center space-x-2 ${
+                                    activeTab === tab.key
+                                        ? 'tab-active text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30'
+                                        : 'text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400'
+                                }`}
+                                onClick={() => handleTabChange(tab.key)}
+                                type="button"
+                            >
+                                {tab.icon}
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
-                {children}
+                <div className="animate-fade-in">
+                    {children}
+                </div>
             </div>
         </div>
     );

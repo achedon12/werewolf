@@ -2,11 +2,10 @@
 
 import {use, useEffect, useRef, useState} from "react";
 import {useAuth} from "@/app/AuthProvider";
-import Image from "next/image";
 import {socket} from "@/socket";
-import Information from "@/components/game/Information";
-import Chat from "@/components/game/chat/Chat";
-import Actions from "@/components/game/actions/Actions";
+import GameInformation from "@/components/game/Information";
+import GameChat from "@/components/game/chat/Chat";
+import GameActions from "@/components/game/actions/Actions";
 import GameHeader from "@/components/game/Header";
 
 const GamePage = ({params}) => {
@@ -119,7 +118,6 @@ const GamePage = ({params}) => {
         const handleChannelJoined = (payload) => {
             if (!payload || !payload.channel) return;
             setCurrentChannel(payload.channel);
-            // message système dans le canal
             setChatMessages(prev => {
                 const next = {...prev};
                 next[payload.channel] = [...(next[payload.channel] || []), {
@@ -148,8 +146,15 @@ const GamePage = ({params}) => {
             });
         };
 
+        const handleHowl = () => {
+            const audio = new Audio('/sounds/howl.mp3');
+            audio.volume = 0.5;
+            audio.play().catch(e => console.error("Erreur de lecture audio:", e));
+        }
+
         socket.on("game-update", handleGameUpdate);
         socket.on("game-history", handleGameHistory);
+        socket.on("howl", handleHowl);
         socket.on("available-channels", handleAvailableChannels);
         socket.on("chat-message", handleChatMessage);
         socket.on("new-action", handleNewAction);
@@ -175,11 +180,11 @@ const GamePage = ({params}) => {
             socket.off("game-error", handleGameError);
             socket.off("channel-joined", handleChannelJoined);
             socket.off("chat-error", handleChatError);
+            socket.off("howl", handleHowl);
             socket.emit("leave-game", id, userFromLocalStorage);
         };
     }, [id, socket]);
 
-    // scroll du canal courant quand ses messages changent
     useEffect(() => {
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -204,6 +209,11 @@ const GamePage = ({params}) => {
             setChatMessage("");
         }
     };
+
+    const startGame = () => {
+        socket.emit("start-game", id);
+    }
+
 
     const performAction = (action, targetPlayerId = null) => {
         socket.emit("player-action", {
@@ -240,9 +250,6 @@ const GamePage = ({params}) => {
         );
     }
 
-    const alivePlayers = players.filter(p => p.isAlive);
-    const deadPlayers = players.filter(p => !p.isAlive);
-
     const participantsForChannel = (channel) => {
         if (channel === "werewolves") {
             return players.filter(p => p.role === "Loup-Garou");
@@ -260,20 +267,19 @@ const GamePage = ({params}) => {
             <div className="container mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
-                    <Actions
+                    <GameActions
                         players={players}
                         currentPlayer={currentPlayer}
                         game={game}
                         performAction={performAction}
-                        alivePlayers={alivePlayers}
                         activeTab={activeTab}
                         setActiveTab={setActiveTab}
                     />
 
                     <div className="lg:col-span-1">
-                        <Information game={game} currentPlayer={currentPlayer}/>
+                        <GameInformation game={game} currentPlayer={currentPlayer} startGame={startGame}/>
 
-                        <Chat
+                        <GameChat
                             chatChannels={chatChannels}
                             switchChannel={switchChannel}
                             chatMessages={chatMessages}

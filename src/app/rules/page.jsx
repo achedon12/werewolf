@@ -151,10 +151,6 @@ const RulesPage = () => {
                                     <p className="text-sm text-gray-600"><strong>10-15 joueurs :</strong> 30-40 minutes
                                         :cite[7]</p>
                                 </div>
-                                <div>
-                                    <p className="text-sm text-gray-600"><strong>15-20+ joueurs :</strong> 45-60 minutes
-                                        :cite[7]</p>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -201,30 +197,33 @@ const RulesPage = () => {
                     </div>
                 </div>
 
+
                 <div className="mt-12 bg-white rounded-2xl shadow-lg p-6">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-6">⚡ Configuration Rapide</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h3 className="text-lg font-semibold mb-3">Pour débutants :</h3>
-                            <ul className="list-disc list-inside space-y-2 text-gray-600">
-                                <li>1 Modérateur</li>
-                                <li>2 Loups-Garous</li>
-                                <li>1 Voyante</li>
-                                <li>1 Docteur</li>
-                                <li>3+ Villageois</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-semibold mb-3">Pour experts :</h3>
-                            <ul className="list-disc list-inside space-y-2 text-gray-600">
-                                <li>Ajoutez la Sorcière et le Chasseur</li>
-                                <li>Incluez Cupidon pour des alliances complexes</li>
-                                <li>Ajoutez le Loup-Garou Alpha pour plus de défi</li>
-                                <li>Expérimentez avec des rôles neutres</li>
-                            </ul>
-                        </div>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6">🎲 Types de parties & configuration</h2>
+                    <div className="space-y-4 text-gray-700">
+                        <p>
+                            Sur cette plateforme, vous pouvez créer deux types de parties :
+                        </p>
+                        <ul className="list-disc list-inside ml-4 space-y-2">
+                            <li>
+                                <strong>Partie Classique</strong> : La composition des rôles est automatiquement adaptée au nombre de joueurs, selon les recommandations officielles du jeu. Idéal pour une expérience équilibrée et rapide à mettre en place.
+                            </li>
+                            <li>
+                                <strong>Partie Personnalisée</strong> : Vous choisissez librement la répartition des rôles parmi tous ceux disponibles. Parfait pour expérimenter de nouvelles stratégies ou jouer avec des variantes maison.
+                            </li>
+                        </ul>
+                        <p>
+                            <span className="font-semibold text-purple-700">En mode classique</span>, la configuration est optimisée pour garantir l’équilibre entre les Loups-Garous et les Villageois, avec l’ajout automatique des rôles spéciaux selon le nombre de participants.
+                        </p>
+                        <p>
+                            <span className="font-semibold text-blue-700">En mode personnalisé</span>, vous pouvez ajuster chaque rôle à votre convenance, dans la limite du nombre de joueurs maximum. Attention à bien équilibrer la partie pour garder tout l’intérêt du jeu !
+                        </p>
+                        <p>
+                            Retrouvez ci-dessous les règles générales, les conseils de configuration et la liste complète des rôles pour vous aider à préparer votre partie idéale.
+                        </p>
                     </div>
                 </div>
+
             </div>
         </div>
     );

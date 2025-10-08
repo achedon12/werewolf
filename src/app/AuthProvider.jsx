@@ -38,6 +38,11 @@ export function AuthProvider({children}) {
     }, []);
 
     useEffect(() => {
+        if (!user) return;
+        localStorage.setItem("user", JSON.stringify(user));
+    }, [user]);
+
+    useEffect(() => {
         const handleStorageChange = (event) => {
             if (event.key === "user") {
                 const newUser = event.newValue ? JSON.parse(event.newValue) : null;

@@ -196,7 +196,6 @@ app.prepare().then(() => {
             }
         });
 
-        // Rejoindre un canal spécifique
         socket.on("join-channel", (gameId, channelType) => {
             try {
                 const playerInfo = connectedPlayers.get(socket.id);
@@ -290,7 +289,6 @@ app.prepare().then(() => {
             }
         });
 
-        // Gestion des actions de jeu
         socket.on("player-action", async (data) => {
             try {
                 const {gameId, action, targetPlayerId, type, playerName, playerRole, details = {}} = data;
@@ -453,7 +451,6 @@ app.prepare().then(() => {
             }
         });
 
-        // javascript
         socket.on("disconnect", async (reason) => {
             const playerInfo = connectedPlayers.get(socket.id);
 
@@ -516,8 +513,6 @@ app.prepare().then(() => {
             connectedPlayers.delete(socket.id);
         });
 
-
-        // Événements de gestion des rooms
         socket.on("get-room-info", (gameId) => {
             const roomData = gameRooms.get(gameId);
             if (roomData) {
@@ -534,7 +529,46 @@ app.prepare().then(() => {
             }
         });
 
-        // Ping pour maintenir la connexion
+        socket.on("start-game", (gameId) => {
+            const roomData = gameRooms.get(gameId);
+
+            // TODO: reset for prod
+            //if (roomData && roomData.state === 'waiting') {
+                roomData.state = 'in_progress';
+                roomData.phase = 'night';
+                roomData.lastActivity = new Date();
+
+                console.log(`🎮 La partie ${gameId} a commencé.`, roomData);
+
+                addGameAction(gameId, {
+                    type: "game_event",
+                    playerName: "Système",
+                    playerRole: "system",
+                    message: `🚀 La partie a commencé ! Phase: Nuit`,
+                    phase: "game_start"
+                });
+
+                io.to(`game-${gameId}-general`).emit("chat-message", {
+                    type: "system",
+                    playerName: "Système",
+                    message: `🚀 La partie commence ! Bonne chance à tous.`,
+                    createdAt: new Date().toISOString(),
+                    channel: "general"
+                });
+
+                setImmediate(async () => {
+                    io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+                    io.to(`game-${gameId}`).emit("howl");
+                    // io.in(`game-${gameId}`).emit("game-update", {state: roomData.state, phase: roomData.phase});
+                    // if (startAction) {
+                    //     io.in(`game-${gameId}`).emit("new-action", startAction);
+                    // }
+                    // const gameData = await updatedGameData(gameId);
+                    // io.to(`game-${gameId}`).emit("game-update", gameData);
+                });
+            //}
+        })
+
         socket.on("ping", () => {
             socket.emit("pong", {
                 createdAt: new Date().toISOString(),
@@ -543,7 +577,6 @@ app.prepare().then(() => {
         });
     });
 
-    // Middleware pour logger les requêtes HTTP
     httpServer.on('request', (req, res) => {
         const start = Date.now();
         res.on('finish', () => {

@@ -2,7 +2,8 @@ import TabGame from "@/components/game/actions/tab/TabGame";
 import TabPlayers from "@/components/game/actions/tab/TabPlayers";
 import TabRules from "@/components/game/actions/tab/TabRules";
 
-const Actions = ({ players, currentPlayer, game, performAction, alivePlayers, activeTab, setActiveTab }) => {
+const GameActions = ({ players, currentPlayer, game, performAction, activeTab, setActiveTab }) => {
+
     return (
         <div className="lg:col-span-3 space-y-6">
             <div
@@ -36,4 +37,4 @@ const Actions = ({ players, currentPlayer, game, performAction, alivePlayers, ac
     );
 }
 
-export default Actions
+export default GameActions

@@ -1,7 +1,6 @@
 import Image from "next/image";
-import {useState} from "react";
 
-const Board = ({players, currentPlayer}) => {
+const GameBoard = ({players, currentPlayer}) => {
 
     if (!players || players.length === 0) {
         return (
@@ -75,12 +74,15 @@ const Board = ({players, currentPlayer}) => {
                                 transform: `translate(${x}px, ${y}px) translate(-50%, -50%)`,
                             }}
                         >
-                            <Image
-                                className="absolute bottom-6 -right-10 z-10"
-                                src={"/cards/card.jpeg"}
-                                alt={"Card Back"}
-                                width={60}
-                                height={90}/>
+                            {player.role && (
+                                <Image
+                                    className="absolute bottom-6 -right-10 z-10"
+                                    src={"/cards/card.jpeg"}
+                                    alt={"Card Back"}
+                                    width={60}
+                                    height={90}
+                                />
+                            )}
 
                             <div className={`relative group cursor-pointer ${
                                 !player.isAlive ? 'grayscale' : ''
@@ -143,4 +145,4 @@ const Board = ({players, currentPlayer}) => {
     );
 }
 
-export default Board;
+export default GameBoard;

@@ -1,6 +1,9 @@
-import {Circle, CircleDot, Skull} from "lucide-react";
+import {Circle, CircleDot, Settings, Skull} from "lucide-react";
 
-const Information = ({game, currentPlayer}) => {
+const GameInformation = ({game, currentPlayer, startGame = () => {}}) => {
+
+    const isAdmin = game.admin.id === currentPlayer.id;
+
     return (
         <div className="card glass shadow-2xl backdrop-blur-sm border border-white/10">
             <div className="card-body">
@@ -24,7 +27,7 @@ const Information = ({game, currentPlayer}) => {
                                 <span className="flex items-center">
                                     <Skull size={16} className="inline text-red-400 mr-1"/>
                                     Mort
-                                  </span>
+                                </span>
                             )}
                         </span>
                     </div>
@@ -49,9 +52,27 @@ const Information = ({game, currentPlayer}) => {
                         <span className="text-white">{game.phase}</span>
                     </div>
                 </div>
+
+                {isAdmin && (
+                    <div className="mt-6 pt-4 border-t border-white/10">
+                        <h4 className="text-white font-semibold mb-2">
+                            <Settings size={16} className="inline mr-2"/>
+                            Contrôles Admin
+                        </h4>
+                        <div className="space-y-2">
+                            <button
+                                className="btn btn-sm btn-primary w-full"
+                                onClick={() => startGame()}
+                            >
+                                Démarrer la partie
+                            </button>
+                            <button className="btn btn-sm btn-secondary w-full">Configurer la partie</button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
 }
 
-export default Information;
+export default GameInformation;

@@ -1,7 +1,7 @@
 import TabMessages from "@/components/game/chat/tab/TabMessages";
 import TabParticipants from "@/components/game/chat/tab/TabParticipants";
 
-const Chat = ({chatChannels, chatMessages, chatMessage, participantsForChannel, currentChannel, chatSubTab, chatContainerRef, switchChannel = () => {}, setChatSubTab = () => {}, setChatMessage = () => {}, sendChatMessage = () => {}, currentPlayer}) => {
+const GameChat = ({chatChannels, chatMessages, chatMessage, participantsForChannel, currentChannel, chatSubTab, chatContainerRef, switchChannel = () => {}, setChatSubTab = () => {}, setChatMessage = () => {}, sendChatMessage = () => {}, currentPlayer}) => {
 
     return (
         <div
@@ -65,4 +65,4 @@ const Chat = ({chatChannels, chatMessages, chatMessage, participantsForChannel, 
     );
 }
 
-export default Chat;
+export default GameChat;

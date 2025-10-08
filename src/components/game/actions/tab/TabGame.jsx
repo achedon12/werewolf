@@ -1,5 +1,4 @@
-import Board from "@/components/game/Board";
-
+import GameBoard from "@/components/game/Board";
 
 const TabGame = ({game, players, currentPlayer, performAction}) => {
     const alivePlayers = players.filter(p => p.isAlive);
@@ -103,7 +102,7 @@ const TabGame = ({game, players, currentPlayer, performAction}) => {
                 </div>
             </div>
 
-            <Board players={players} currentPlayer={currentPlayer}/>
+            <GameBoard players={players} currentPlayer={currentPlayer}/>
         </div>
     );
 }
