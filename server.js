@@ -538,8 +538,6 @@ app.prepare().then(() => {
                 roomData.phase = 'night';
                 roomData.lastActivity = new Date();
 
-                console.log(`🎮 La partie ${gameId} a commencé.`, roomData);
-
                 addGameAction(gameId, {
                     type: "game_event",
                     playerName: "Système",
