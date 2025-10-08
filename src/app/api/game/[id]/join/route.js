@@ -29,33 +29,13 @@ export async function POST(req, {params}) {
         return NextResponse.json({error: "ID manquant"}, {status: 400});
     }
 
-    const userId = payload.id;
-
-    const user = await prisma.user.findUnique({where: {id: userId}});
-    if (!user) {
-        return NextResponse.json({error: "Utilisateur non trouvé"}, {status: 404});
-    }
-
     const game = await prisma.game.findUnique({
         where: {id: gameId},
         include: {players: true}
     });
 
-    if (!game) {
-        return NextResponse.json({error: "Partie non trouvée"}, {status: 404});
-    }
-
-    const alreadyInGame = game.players.some(p => p.userId === userId);
-    if (!alreadyInGame) {
-        await prisma.player.create({
-            data: {
-                userId: userId,
-                gameId: gameId,
-                isAlive: true,
-                isAdmin: false,
-                role: ''
-            }
-        });
+    if (!game || game.state !== "En attente") {
+        return NextResponse.json({error: "Partie non trouvée ou non joignable"}, {status: 404});
     }
 
     return NextResponse.json({success: true, gameId});

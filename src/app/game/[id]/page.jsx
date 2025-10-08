@@ -14,7 +14,9 @@ const GamePage = ({params}) => {
     const [chatMessage, setChatMessage] = useState("");
     const [creator, setCreator] = useState(null);
     const [configuration, setConfiguration] = useState(null);
+    const [currentPlayer, setCurrentPlayer] = useState(null);
     const [history, setHistory] = useState([]);
+    const [hasJoin, setHasJoin] = useState(false);
     const {user, token} = useAuth()
 
     useEffect(() => {
@@ -34,8 +36,11 @@ const GamePage = ({params}) => {
 
                 const gameData = await response.json();
 
-                setCreator(gameData.players.find(p => p.isAdmin).user);
-                setGame(gameData);
+                setCreator(gameData.admin);
+                setGame({
+                    ...gameData,
+                    players: gameData.players || []
+                });
                 const newConfiguration = JSON.parse(gameData.configuration);
                 setConfiguration(newConfiguration)
             } catch (error) {
@@ -49,61 +54,67 @@ const GamePage = ({params}) => {
     }, [id]);
 
     useEffect(() => {
-        if (!id || !socket.connected) {
-            console.log("Waiting for socket connection or game ID...");
-            return;
-        }
+        if (!id || !socket) return;
 
         const userFromLocalStorage = JSON.parse(localStorage.getItem('user'));
 
-        socket.emit("join-game", id, userFromLocalStorage.nickname, userFromLocalStorage.id)
+        if (hasJoin) return;
 
         const handleGameUpdate = (gameData) => {
-            console.log("Mise à jour de la partie reçue:", gameData);
             setGame(gameData);
             try {
                 setConfiguration(JSON.parse(gameData.configuration));
             } catch (e) {
-                console.error("Erreur parsing configuration:", e);
                 setConfiguration({});
             }
         };
 
-        const handleChatMessage = (msg) => {
-            console.log("Nouveau message de chat:", msg);
+        const handleGameHistory = (history) => {
+            setHistory(history);
         };
 
-        const handlePlayerJoined = (data) => {
-            console.log("Nouveau joueur:", data);
+        const handleAvailableChannels = (channels) => { /* ... */ };
+        const handleChatMessage = (msg) => { /* ... */ };
+        const handleNewAction = (action) => setHistory(prev => [...prev, action]);
+
+        const handlePlayersUpdate = (data) => {
+            console.log("Mise à jour des joueurs reçue:", data);
+            setGame(prev => ({
+                ...prev,
+                players: data.players
+            }));
+            console.log(game)
+            setCurrentPlayer((data.players || []).find(p => p.id === userFromLocalStorage.id));
         };
 
-        const handleGameError = (error) => {
-            console.error("Erreur Socket.IO:", error);
-        };
+        const handleGameError = (error) => console.error("Erreur Socket.IO:", error);
 
         socket.on("game-update", handleGameUpdate);
+        socket.on("game-history", handleGameHistory);
+        socket.on("available-channels", handleAvailableChannels);
         socket.on("chat-message", handleChatMessage);
-        socket.on("player-joined", handlePlayerJoined);
-        socket.on("connect_error", handleGameError);
+        socket.on("new-action", handleNewAction);
+        socket.on("players-update", handlePlayersUpdate);
         socket.on("game-error", handleGameError);
 
-        socket.on("game-logs", (logs) => {
-            setHistory(logs);
-        });
+        socket.emit("join-game", id, userFromLocalStorage, "");
 
-        socket.emit("request-logs", id);
+        setHasJoin(true);
+
+        socket.emit("request-history", id);
 
         return () => {
-            console.log("Cleaning up socket listeners for game:", id);
             socket.off("game-update", handleGameUpdate);
+            socket.off("game-history", handleGameHistory);
+            socket.off("available-channels", handleAvailableChannels);
             socket.off("chat-message", handleChatMessage);
-            socket.off("player-joined", handlePlayerJoined);
-            socket.off("connect_error", handleGameError);
+            socket.off("new-action", handleNewAction);
+            socket.off("players-update", handlePlayersUpdate);
             socket.off("game-error", handleGameError);
-            socket.off("game-logs");
-            socket.emit("leave-game", id, userFromLocalStorage.nickname);
+            socket.emit("leave-game", id, userFromLocalStorage);
         };
-    }, [id, socket.connected]);
+    }, [id, socket]);
+
 
     useEffect(() => {
         console.log("Historique mis à jour:", history);
@@ -145,7 +156,6 @@ const GamePage = ({params}) => {
         );
     }
 
-    const currentPlayer = game.players.find(p => p.user.id === user.id);
     const alivePlayers = game.players.filter(p => p.isAlive);
     const deadPlayers = game.players.filter(p => !p.isAlive);
 
@@ -253,8 +263,8 @@ const GamePage = ({params}) => {
                                                             {alivePlayers
                                                                 .filter(p => p.role !== "Loup-Garou")
                                                                 .map(player => (
-                                                                    <option key={player.user.id} value={player.user.id}>
-                                                                        {player.user.nickname}
+                                                                    <option key={player.id} value={player.id}>
+                                                                        {player.nickname}
                                                                     </option>
                                                                 ))
                                                             }
@@ -268,7 +278,7 @@ const GamePage = ({params}) => {
                                                         >
                                                             <option value="">Découvrir un joueur</option>
                                                             {alivePlayers
-                                                                .filter(p => p.id !== currentPlayer.user.id)
+                                                                .filter(p => p.id !== currentPlayer?.id)
                                                                 .map(player => (
                                                                     <option key={player.id} value={player.id}>
                                                                         {player.nickname}
@@ -285,10 +295,10 @@ const GamePage = ({params}) => {
                                                         >
                                                             <option value="">Voter pour éliminer</option>
                                                             {alivePlayers
-                                                                .filter(p => p.id !== currentPlayer.user.id)
+                                                                .filter(p => p.id !== currentPlayer?.id)
                                                                 .map(player => (
-                                                                    <option key={player.user.id} value={player.user.id}>
-                                                                        {player.user.nickname}
+                                                                    <option key={player.id} value={player.id}>
+                                                                        {player.nickname}
                                                                     </option>
                                                                 ))
                                                             }
@@ -332,16 +342,16 @@ const GamePage = ({params}) => {
                                                     }}
                                                 >
                                                     <div
-                                                        className={`avatar ${player.id === currentPlayer.user.id ? "ring-2 ring-purple-500" : ""}`}>
+                                                        className={`avatar ${player.id === currentPlayer?.id ? "ring-2 ring-purple-500" : ""}`}>
                                                         <div
                                                             className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-                                                            <Image src={player.user.avatar || "/default-avatar.png"}
-                                                                   alt={player.user.nickname} width={40} height={40}
+                                                            <Image src={player.avatar || "/default-avatar.png"}
+                                                                   alt={player.nickname} width={40} height={40}
                                                                    className="rounded-full"/>
                                                         </div>
                                                     </div>
                                                     <div
-                                                        className="text-center text-xs text-white mt-1">{player.user.nickname}</div>
+                                                        className="text-center text-xs text-white mt-1">{player.nickname}</div>
                                                 </div>
                                             );
                                         })}
@@ -413,7 +423,7 @@ const GamePage = ({params}) => {
                                                         ? "bg-base-200/30 border-green-500/20"
                                                         : "bg-red-500/10 border-red-500/20 opacity-60"
                                                 } ${
-                                                    player.id === currentPlayer.user.id ? "ring-2 ring-purple-500" : ""
+                                                    player.id === currentPlayer?.id ? "ring-2 ring-purple-500" : ""
                                                 }`}
                                             >
                                                 <div className="flex items-center justify-between">
@@ -426,8 +436,8 @@ const GamePage = ({params}) => {
                                                         </div>
                                                         <div>
                                                             <h3 className="font-semibold text-white">
-                                                                {player.user.nickname}
-                                                                {player.user.id === currentPlayer.user.id && " (Vous)"}
+                                                                {player.nickname}
+                                                                {player.id === currentPlayer?.id && " (Vous)"}
                                                             </h3>
                                                             <p className="text-gray-400 text-sm">
                                                                 {player.isAlive ? "🟢 En vie" : "🔴 Mort"}

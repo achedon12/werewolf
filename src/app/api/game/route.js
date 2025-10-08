@@ -44,21 +44,12 @@ export async function POST(request) {
             state: 'En attente',
             phase: 'Jour',
             name,
-            type
+            type,
+            adminId: payload.id,
         }
     });
 
-    const newPlayer = await prisma.player.create({
-        data: {
-            userId: jwt.decode(token).id,
-            gameId: newGame.id,
-            isAdmin: true,
-            role: '',
-            isAlive: true
-        }
-    });
-
-    return NextResponse.json({playerId: newPlayer.id, gameId: newGame.id});
+    return NextResponse.json({gameId: newGame.id});
 }
 
 export async function PUT(request) {

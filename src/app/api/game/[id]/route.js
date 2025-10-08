@@ -9,9 +9,7 @@ export async function GET(request, context) {
     const game = await prisma.game.findFirst({
         where: {id: id},
         include: {
-            players: {
-                include: {user: true}
-            }
+            admin: true,
         }
     });
 

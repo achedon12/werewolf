@@ -1,11 +1,11 @@
-import { createServer } from "node:http";
+import {createServer} from "node:http";
 import next from "next";
-import { Server } from "socket.io";
+import {Server} from "socket.io";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = 3000;
-const app = next({ dev, hostname, port });
+const app = next({dev, hostname, port});
 const handler = app.getRequestHandler();
 
 app.prepare().then(() => {
@@ -18,78 +18,76 @@ app.prepare().then(() => {
         }
     });
 
-    async function addGameLog(gameId, message) {
-        try {
-            console.log(`📝 Tentative d'ajout de log pour ${gameId}: ${message}`);
+    const gameRooms = new Map();
+    const CHANNEL_TYPES = ['general', 'werewolves', 'vote'];
 
-            const res = await fetch(`http://${hostname}:${port}/api/game/${gameId}/log`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ message })
-            });
+    const createGameRoom = (gameId) => {
+        const roomData = {
+            id: gameId,
+            createdAt: new Date(),
+            lastActivity: new Date(),
+            channels: {
+                general: new Set(),
+                werewolves: new Set(),
+                vote: new Set()
+            },
+            players: new Map(),
+            actionHistory: [],
+            state: 'waiting',
+            phase: 'day'
+        };
 
-            if (!res.ok) {
-                const errorText = await res.text();
-                throw new Error(`HTTP error! status: ${res.status}, body: ${errorText}`);
-            }
-
-            const data = await res.json();
-            console.log("✅ Log ajouté avec succès:", data);
-            return data;
-        } catch (err) {
-            console.error("❌ Erreur lors de l'ajout du log :", err.message);
-            // Ne pas throw pour éviter de bloquer le flux principal
-            return { error: err.message };
-        }
+        gameRooms.set(gameId, roomData);
+        return roomData;
     }
 
-    async function removePlayer(gameId, userId) {
-        try {
-            console.log(`🗑️ Tentative de suppression du joueur ${userId} de la game ${gameId}`);
+    const addGameAction = (gameId, actionData) => {
+        const roomData = gameRooms.get(gameId);
+        if (!roomData) return null;
 
-            const res = await fetch(`http://${hostname}:${port}/api/game/${gameId}/leave/${userId}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
+        const action = {
+            id: `${gameId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            type: actionData.type,
+            playerName: actionData.playerName,
+            playerRole: actionData.playerRole,
+            message: actionData.message,
+            details: actionData.details || {},
+            createdAt: new Date().toISOString(),
+            phase: actionData.phase || 'general'
+        };
+
+        roomData.actionHistory.push(action);
+
+        if (roomData.actionHistory.length > 100) {
+            roomData.actionHistory = roomData.actionHistory.slice(-100);
+        }
+
+        roomData.lastActivity = new Date();
+
+        return action;
+    }
+
+    const getGameHistory = (gameId) => {
+        const roomData = gameRooms.get(gameId);
+        if (!roomData) return [];
+        return roomData.actionHistory;
+    }
+
+    const cleanupInactiveRooms = () => {
+        const now = new Date();
+        const inactiveTime = 15 * 60 * 1000;
+
+        for (const [gameId, room] of gameRooms.entries()) {
+            if (now - room.lastActivity > inactiveTime) {
+                const clientsInRoom = io.sockets.adapter.rooms.get(`game-${gameId}`);
+                if (!clientsInRoom || clientsInRoom.size === 0) {
+                    gameRooms.delete(gameId);
                 }
-            });
-
-            if (!res.ok) {
-                const errorText = await res.text();
-                throw new Error(`HTTP error! status: ${res.status}, body: ${errorText}`);
             }
-            const data = await res.json();
-            console.log("✅ Joueur supprimé avec succès:", data);
-            return data;
-        } catch (err) {
-            console.error("❌ Erreur lors de la suppression du joueur :", err.message);
-            return { error: err.message };
         }
     }
 
-    async function getGameLogs(gameId) {
-        try {
-            const res = await fetch(`http://${hostname}:${port}/api/game/${gameId}/log`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            });
-
-            if (!res.ok) {
-                console.log(res.json());
-                throw new Error(`HTTP error! status: ${res.status}`);
-            }
-
-            const data = await res.json();
-            return data.logs || [];
-        } catch (err) {
-            console.error("❌ Erreur lors de la récupération des logs :", err);
-            return [];
-        }
-    }
+    setInterval(cleanupInactiveRooms, 5 * 60 * 1000);
 
     async function updatedGameData(gameId) {
         try {
@@ -104,44 +102,78 @@ app.prepare().then(() => {
     const connectedPlayers = new Map();
 
     io.on("connection", (socket) => {
-        console.log(`🔌 Nouvelle connexion Socket.IO: ${socket.id}`);
 
-        const roomLogger = setInterval(() => {
-            const rooms = Array.from(io.sockets.adapter.rooms.entries())
-                .filter(([roomId, sockets]) => roomId.startsWith('game-'))
-                .map(([roomId, sockets]) => `${roomId}: ${sockets.size} joueurs`);
-
-            if (rooms.length > 0) {
-                console.log("🎮 Rooms actives:", rooms);
-            }
-        }, 30000);
-
-        socket.on("join-game", async (gameId, nickname, userId) => {
+        socket.on("join-game", async (gameId, userData, playerRole) => {
             try {
-                console.log(`🎯 Tentative de rejoindre la game ${gameId} par ${socket.id}`);
+                userData.role = playerRole;
+                userData.isAlive = true;
+                userData.online = true;
 
-                const previousRooms = Array.from(socket.rooms).filter(room => room.startsWith('game-'));
+                /*const previousRooms = Array.from(socket.rooms);
                 previousRooms.forEach(room => {
-                    socket.leave(room);
-                });
+                    if (room.startsWith('game-')) {
+                        socket.leave(room);
+                    }
+                });*/
 
-                const roomName = `game-${gameId}`;
-                socket.join(roomName);
+                let roomData = gameRooms.get(gameId);
+                if (!roomData) {
+                    roomData = createGameRoom(gameId);
+                }
+
+                roomData.lastActivity = new Date();
+
+                const mainRoom = `game-${gameId}`;
+                socket.join(mainRoom);
 
                 connectedPlayers.set(socket.id, {
-                    gameId: gameId,
-                    nickname: nickname,
-                    userId: userId,
-                    joinedAt: new Date()
+                    ...userData,
+                    gameId,
+                    joinedAt: new Date(),
+                    socketId: socket.id
                 });
 
-                // Ajouter le log de connexion
-                await addGameLog(gameId, `🎮 ${nickname || 'Un joueur'} a rejoint la partie`);
+                roomData.players.set(socket.id, {
+                    socketId: socket.id,
+                    ...userData
+                });
 
-                io.to(roomName).emit("game-logs", await getGameLogs(gameId));
+                const generalChannel = `game-${gameId}-general`;
+                socket.join(generalChannel);
+                roomData.channels.general.add(socket.id);
 
-                io.to(roomName).emit("game-update", await updatedGameData(gameId));
+                addGameAction(gameId, {
+                    type: "player_joined",
+                    playerName: userData.nickname,
+                    playerRole: playerRole,
+                    message: `${userData.nickname} a rejoint la partie`,
+                    phase: "connection",
+                });
 
+                setImmediate(() => {
+                    const clientsInRoom = io.sockets.adapter.rooms.get(mainRoom);
+
+                    io.in(mainRoom).emit("game-history", getGameHistory(gameId));
+                    io.in(mainRoom).emit("players-update", {
+                        players: Array.from(roomData.players.values())
+                    });
+
+                    const availableChannels = {
+                        general: true,
+                        werewolves: playerRole === "Loup-Garou",
+                        vote: roomData.phase === 'voting'
+                    };
+                    socket.emit("available-channels", availableChannels);
+
+                    io.to(generalChannel).emit("chat-message", {
+                        type: "system",
+                        playerName: "Système",
+                        message: `${userData.nickname} a rejoint la partie`,
+                        createdAt: new Date().toISOString(),
+                        channel: "general"
+                    });
+
+                });
             } catch (error) {
                 console.error("❌ Erreur join-game:", error);
                 socket.emit("game-error", {
@@ -151,40 +183,177 @@ app.prepare().then(() => {
             }
         });
 
-        socket.on("player-action", async (data) => {
+        // Rejoindre un canal spécifique
+        socket.on("join-channel", (gameId, channelType) => {
             try {
-                const { gameId, action, targetPlayerId, type, playerName } = data;
+                const playerInfo = connectedPlayers.get(socket.id);
+                if (!playerInfo) return;
 
-                if (!gameId) {
-                    throw new Error("Game ID manquant");
+                const roomData = gameRooms.get(gameId);
+                if (!roomData) return;
+
+                // Vérifier les permissions pour le canal des loups-garous
+                if (channelType === "werewolves" && playerInfo.role !== "Loup-Garou") {
+                    socket.emit("chat-error", {
+                        error: "Accès refusé : réservé aux Loups-Garous"
+                    });
+                    return;
                 }
 
-                const roomName = `game-${gameId}`;
+                const channelRoom = `game-${gameId}-${channelType}`;
 
-                console.log(`⚡ Traitement de l'action: ${type} par ${playerName}`);
+                // Quitter les autres canaux du même type si nécessaire
+                CHANNEL_TYPES.forEach(channel => {
+                    if (channel !== channelType && roomData.channels[channel].has(socket.id)) {
+                        const oldChannel = `game-${gameId}-${channel}`;
+                        socket.leave(oldChannel);
+                        roomData.channels[channel].delete(socket.id);
+                    }
+                });
 
-                // Ajouter un log pour l'action
+                // Rejoindre le nouveau canal
+                socket.join(channelRoom);
+                roomData.channels[channelType].add(socket.id);
+                roomData.lastActivity = new Date();
+
+                socket.emit("channel-joined", {
+                    channel: channelType,
+                    message: `Vous avez rejoint le canal ${channelType}`
+                });
+
+            } catch (error) {
+                console.error("❌ Erreur join-channel:", error);
+            }
+        });
+
+        // Envoyer un message dans un canal
+        socket.on("send-chat", async (data) => {
+            try {
+                const {gameId, message, channel = "general"} = data;
+                const playerInfo = connectedPlayers.get(socket.id);
+
+                if (!gameId || !message || !playerInfo) {
+                    return;
+                }
+
+                const roomData = gameRooms.get(gameId);
+                if (!roomData) return;
+
+                // Vérifier que le joueur est dans le canal
+                if (!roomData.channels[channel].has(socket.id)) {
+                    socket.emit("chat-error", {
+                        error: "Vous n'êtes pas dans ce canal"
+                    });
+                    return;
+                }
+
+                // Vérifier les permissions spécifiques
+                if (channel === "werewolves" && playerInfo.role !== "Loup-Garou") {
+                    socket.emit("chat-error", {
+                        error: "Accès refusé au canal des loups"
+                    });
+                    return;
+                }
+
+                const messageData = {
+                    playerId: socket.id,
+                    playerName: playerInfo.nickname,
+                    playerRole: playerInfo.role,
+                    message: message,
+                    channel: channel,
+                    createdAt: new Date().toISOString(),
+                    type: "player"
+                };
+
+                // Émettre le message au canal cible
+                const channelRoom = `game-${gameId}-${channel}`;
+                io.to(channelRoom).emit("chat-message", messageData);
+
+                // Mettre à jour l'activité de la room
+                roomData.lastActivity = new Date();
+
+                // Ajouter l'action de chat à l'historique seulement pour le canal général
+                if (channel === "general") {
+                    addGameAction(gameId, {
+                        type: "chat_message",
+                        playerName: playerInfo.nickname,
+                        playerRole: playerInfo.role,
+                        message: `${playerInfo.nickname}: ${message}`,
+                        details: {channel: channel},
+                        phase: "chat"
+                    });
+                }
+
+            } catch (error) {
+                console.error("❌ Erreur lors de l'envoi du chat:", error);
+            }
+        });
+
+        // Gestion des actions de jeu
+        socket.on("player-action", async (data) => {
+            try {
+                const {gameId, action, targetPlayerId, type, playerName, playerRole, details = {}} = data;
+                const playerInfo = connectedPlayers.get(socket.id);
+
+                if (!gameId || !playerInfo) {
+                    throw new Error("Données manquantes");
+                }
+
+                const roomData = gameRooms.get(gameId);
+                if (!roomData) return;
+
+                // Déterminer le message selon le type d'action
                 let actionMessage = "";
+                let actionType = "game_action";
+
                 switch (type) {
                     case "vote":
-                        actionMessage = `🗳️ ${playerName} a voté`;
+                        actionMessage = `🗳️ ${playerName} a voté contre un joueur`;
+                        actionType = "player_vote";
                         break;
                     case "attack":
-                        actionMessage = `🐺 ${playerName} a attaqué`;
+                        actionMessage = `🐺 ${playerName} a attaqué un villageois`;
+                        actionType = "werewolf_attack";
                         break;
                     case "reveal":
-                        actionMessage = `🔮 ${playerName} a utilisé son pouvoir`;
+                        actionMessage = `🔮 ${playerName} a utilisé son pouvoir de voyante`;
+                        actionType = "seer_reveal";
+                        break;
+                    case "heal":
+                        actionMessage = `🏥 ${playerName} a soigné un joueur`;
+                        actionType = "doctor_heal";
+                        break;
+                    case "phase_change":
+                        actionMessage = `🔄 La phase change: ${details.phase}`;
+                        actionType = "phase_change";
+                        break;
+                    case "player_eliminated":
+                        actionMessage = `💀 ${playerName} a été éliminé`;
+                        actionType = "player_eliminated";
                         break;
                     default:
                         actionMessage = `⚡ ${playerName} a effectué une action`;
+                        actionType = "game_action";
                 }
 
-                await addGameLog(gameId, actionMessage);
+                // Ajouter l'action à l'historique
+                const newAction = addGameAction(gameId, {
+                    type: actionType,
+                    playerName: playerName,
+                    playerRole: playerRole,
+                    message: actionMessage,
+                    details: details,
+                    phase: roomData.phase || "game"
+                });
 
-                // Diffuser les mises à jour
-                io.to(roomName).emit("game-update", await updatedGameData(gameId));
+                // Diffuser la nouvelle action à tous les joueurs de la game
+                io.to(`game-${gameId}`).emit("new-action", newAction);
 
-                console.log(`🔄 Mise à jour après action envoyée à ${roomName}`);
+                // Mettre à jour les données du jeu si nécessaire
+                if (type !== "chat_message") {
+                    const gameData = await updatedGameData(gameId);
+                    io.to(`game-${gameId}`).emit("game-update", gameData);
+                }
 
             } catch (error) {
                 console.error("❌ Erreur lors du traitement de l'action:", error);
@@ -195,93 +364,107 @@ app.prepare().then(() => {
             }
         });
 
-        socket.on("send-chat", async (data) => {
+        socket.on("request-history", (gameId) => {
             try {
-                const { gameId, message, playerName = "Anonyme" } = data;
+                const history = getGameHistory(gameId);
+                socket.emit("game-history", history);
+            } catch (error) {
+                console.error("❌ Erreur lors de la récupération de l'historique:", error);
+                socket.emit("history-error", {error: "Impossible de charger l'historique"});
+            }
+        });
 
-                if (!gameId || !message) {
-                    console.warn("⚠️ Données de chat incomplètes:", data);
-                    return;
-                }
+        // javascript
+        socket.on("disconnect", async (reason) => {
+            const playerInfo = connectedPlayers.get(socket.id);
 
-                const roomName = `game-${gameId}`;
+            if (!playerInfo) return;
 
-                console.log(`💬 Chat message dans ${roomName} de ${playerName}: ${message}`);
-
-                // Ajouter le message de chat aux logs
-                await addGameLog(gameId, `💬 ${playerName}: ${message}`);
-
-                // Diffuser le message à TOUS les joueurs de la room
-                io.to(roomName).emit("chat-message", {
-                    playerId: socket.id,
-                    playerName: playerName,
-                    message: message,
-                    timestamp: new Date().toISOString(),
-                    type: "player"
+            const roomData = gameRooms.get(playerInfo.gameId);
+            if (roomData) {
+                CHANNEL_TYPES.forEach(channel => {
+                    roomData.channels[channel].delete(socket.id);
                 });
 
+                if (roomData.state === 'waiting') {
+                    roomData.players.delete(socket.id);
+                } else {
+                    const player = roomData.players.get(socket.id);
+                    if (player) {
+                        player.online = false;
+                        roomData.players.set(socket.id, player);
+                    }
+                }
 
-            } catch (error) {
-                console.error("❌ Erreur lors de l'envoi du chat:", error);
+                roomData.lastActivity = new Date();
+
+                const leaveAction = addGameAction(playerInfo.gameId, {
+                    type: "player_left",
+                    playerName: playerInfo.nickname,
+                    playerRole: playerInfo.role,
+                    message: `${playerInfo.nickname} a quitté la partie`,
+                    phase: "connection"
+                });
+
+                setImmediate(() => {
+                    io.in(`game-${playerInfo.gameId}`).emit("players-update", {
+                        players: Array.from(roomData.players.values())
+                    });
+
+                    if (leaveAction) {
+                        io.in(`game-${playerInfo.gameId}`).emit("new-action", leaveAction);
+                    } else {
+                        io.in(`game-${playerInfo.gameId}`).emit("new-action", {
+                            type: "player_left",
+                            playerName: playerInfo.nickname,
+                            message: `${playerInfo.nickname} a quitté la partie`,
+                            createdAt: new Date().toISOString()
+                        });
+                    }
+
+                    io.in(`game-${playerInfo.gameId}-general`).emit("chat-message", {
+                        type: "system",
+                        playerName: "Système",
+                        message: `${playerInfo.nickname} s'est déconnecté`,
+                        createdAt: new Date().toISOString(),
+                        channel: "general"
+                    });
+
+                    console.log(`🔔 Broadcast déconnexion pour ${playerInfo.nickname} dans game-${playerInfo.gameId}`);
+                });
+            }
+
+            connectedPlayers.delete(socket.id);
+        });
+
+
+        // Événements de gestion des rooms
+        socket.on("get-room-info", (gameId) => {
+            const roomData = gameRooms.get(gameId);
+            if (roomData) {
+                socket.emit("room-info", {
+                    playersCount: roomData.players.size,
+                    channels: {
+                        general: roomData.channels.general.size,
+                        werewolves: roomData.channels.werewolves.size,
+                        vote: roomData.channels.vote.size
+                    },
+                    historyCount: roomData.actionHistory.length,
+                    lastActivity: roomData.lastActivity
+                });
             }
         });
 
-        socket.on("request-logs", async (gameId) => {
-            try {
-                const logs = await getGameLogs(gameId);
-                socket.emit("game-logs", logs);
-            } catch (error) {
-                console.error("❌ Erreur lors de la récupération des logs:", error);
-                socket.emit("logs-error", { error: "Impossible de charger les logs" });
-            }
-        });
-
-        socket.on("leave-game", async (gameId, nickname, userId) => {
-            try {
-                const roomName = `game-${gameId}`;
-                socket.leave(roomName);
-
-                const playerInfo = connectedPlayers.get(socket.id);
-                connectedPlayers.delete(socket.id);
-
-                await addGameLog(gameId, `🚪 ${nickname || playerInfo?.nickname || 'Un joueur'} a quitté la partie`);
-                await removePlayer(gameId, userId);
-                io.to(roomName).emit('game-update', await updatedGameData(gameId));
-                io.to(roomName).emit("game-logs", await getGameLogs(gameId));
-
-            } catch (error) {
-                console.error("❌ Erreur lors du leave-game:", error);
-            }
-        });
-
-        socket.on("disconnect", async (reason) => {
-            console.log(`🔌 Socket ${socket.id} déconnecté: ${reason}`);
-
-            clearInterval(roomLogger);
-
-            const playerInfo = connectedPlayers.get(socket.id);
-            console.log(`ℹ️ Infos du joueur déconnecté:`, playerInfo);
-            if (playerInfo) {
-                const roomName = `game-${playerInfo.gameId}`;
-
-                await addGameLog(playerInfo.gameId, `🔌 ${playerInfo.nickname || 'Un joueur'} s'est déconnecté`);
-                await removePlayer(playerInfo.gameId, playerInfo.userId);
-                io.to(roomName).emit('game-update', await updatedGameData(playerInfo.gameId));
-                io.to(roomName).emit("game-logs", await getGameLogs(playerInfo.gameId));
-
-                connectedPlayers.delete(socket.id);
-            }
-        });
-
-        socket.on("connect_error", (error) => {
-            console.error(`❌ Erreur de connexion Socket.IO (${socket.id}):`, error);
-        });
-
+        // Ping pour maintenir la connexion
         socket.on("ping", () => {
-            socket.emit("pong", { timestamp: new Date().toISOString() });
+            socket.emit("pong", {
+                createdAt: new Date().toISOString(),
+                serverTime: Date.now()
+            });
         });
     });
 
+    // Middleware pour logger les requêtes HTTP
     httpServer.on('request', (req, res) => {
         const start = Date.now();
         res.on('finish', () => {
@@ -297,11 +480,13 @@ app.prepare().then(() => {
         })
         .listen(port, () => {
             console.log(`🚀 Serveur Next.js prêt sur http://${hostname}:${port}`);
-            console.log(`📡 Serveur Socket.IO actif sur le même port`);
+            console.log(`📡 Serveur Socket.IO actif avec gestion des rooms et historique d'actions`);
         });
 
     process.on('SIGTERM', () => {
         console.log('🛑 Arrêt du serveur...');
+        // Sauvegarder l'historique des rooms si nécessaire
+        console.log(`💾 ${gameRooms.size} rooms actives avec leur historique`);
         httpServer.close(() => {
             console.log('✅ Serveur arrêté proprement');
             process.exit(0);
