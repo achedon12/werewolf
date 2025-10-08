@@ -33,6 +33,7 @@ model User {
   players           Player[]
   Game              Game[]
   ambientSoundsEnabled Boolean  @default(true)
+  ambientThemeEnabled  Boolean  @default(true)
 }
 
 model Player {

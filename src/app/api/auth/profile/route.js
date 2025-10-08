@@ -95,6 +95,7 @@ export async function PUT(req) {
                 bio: body.bio ?? user.bio,
                 avatar: avatarPath,
                 ambientSoundsEnabled: body.ambientSoundsEnabled ?? user.ambientSoundsEnabled,
+                ambientThemeEnabled: body.ambientThemeEnabled ?? user.ambientThemeEnabled,
             },
         });
 

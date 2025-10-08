@@ -12,6 +12,7 @@ const SettingsPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [soundEnabled, setSoundEnabled] = useState(true);
+    const [themeEnabled, setThemeEnabled] = useState(true);
     const {token, setUser} = useAuth()
 
     const [formData, setFormData] = useState({
@@ -54,6 +55,7 @@ const SettingsPage = () => {
     useEffect(() => {
         if(!userProfile) return;
         setSoundEnabled(userProfile.ambientSoundsEnabled);
+        setThemeEnabled(userProfile.ambientThemeEnabled);
     }, [userProfile]);
 
     const handleSubmit = async (e) => {
@@ -132,6 +134,31 @@ const SettingsPage = () => {
         }
     }
 
+    const toggleTheme = async () => {
+        try {
+            const response = await fetch('/api/auth/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ambientThemeEnabled: !themeEnabled}),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                setUserProfile(data);
+                setUser(data);
+                toast.success(`Thème ambiant ${!themeEnabled ? 'activé' : 'désactivé'}`);
+            } else {
+                throw new Error('Erreur lors de la mise à jour du thème');
+            }
+        } catch (error) {
+            toast.error("Erreur lors de la mise à jour du thème");
+            console.error('Erreur lors de la mise à jour des sons:', error);
+        }
+    }
+
     if (isLoading && !userProfile) {
         return (
             <div className="flex justify-center items-center min-h-96">
@@ -180,13 +207,22 @@ const SettingsPage = () => {
                                     />
                                 </div>
 
-                                <button
-                                    className={`btn ${soundEnabled ? 'btn-success' : 'btn-outline'}`}
-                                    onClick={toggleSound}
-                                    type="button"
-                                >
-                                    {soundEnabled ? '🔊 Effets sonores activés' : '🔇 Effets sonores désactivés'}
-                                </button>
+                                <div className="flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0">
+                                    <button
+                                        className={`btn ${soundEnabled ? 'btn-success' : 'btn-outline'}`}
+                                        onClick={toggleSound}
+                                        type="button"
+                                    >
+                                        {soundEnabled ? '🔊 Effets sonores activés' : '🔇 Effets sonores désactivés'}
+                                    </button>
+                                    <button
+                                        className={`btn ${themeEnabled ? 'btn-success' : 'btn-outline'}`}
+                                        onClick={toggleTheme}
+                                        type="button"
+                                    >
+                                        {themeEnabled ? '🌅 Thème ambiant activé' : '🌃 Thème ambiant désactivé'}
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

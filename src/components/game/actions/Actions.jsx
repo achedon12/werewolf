@@ -1,6 +1,7 @@
 import TabGame from "@/components/game/actions/tab/TabGame";
 import TabPlayers from "@/components/game/actions/tab/TabPlayers";
 import TabRules from "@/components/game/actions/tab/TabRules";
+import {Gamepad2, NotebookText, UsersRound} from "lucide-react";
 
 const GameActions = ({ players, currentPlayer, game, performAction, activeTab, setActiveTab }) => {
 
@@ -12,19 +13,22 @@ const GameActions = ({ players, currentPlayer, game, performAction, activeTab, s
                     className={`tab ${activeTab === "game" ? "tab-active" : ""}`}
                     onClick={() => setActiveTab("game")}
                 >
-                    🎮 Jeu
+                    <Gamepad2 className="inline mr-2 h-4 w-4"/>
+                    Jeu
                 </button>
                 <button
                     className={`tab ${activeTab === "players" ? "tab-active" : ""}`}
                     onClick={() => setActiveTab("players")}
                 >
-                    👥 Joueurs
+                    <UsersRound className="inline mr-2 h-4 w-4"/>
+                    Joueurs
                 </button>
                 <button
                     className={`tab ${activeTab === "rules" ? "tab-active" : ""}`}
                     onClick={() => setActiveTab("rules")}
                 >
-                    📖 Règles
+                    <NotebookText className="inline mr-2 h-4 w-4"/>
+                    Règles
                 </button>
             </div>
 

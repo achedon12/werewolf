@@ -1,4 +1,4 @@
-import {Circle, CircleDot, Settings, Skull} from "lucide-react";
+import {Circle, CircleDot, Info, Settings, Skull} from "lucide-react";
 
 const GameInformation = ({game, currentPlayer, startGame = () => {}}) => {
 
@@ -7,7 +7,10 @@ const GameInformation = ({game, currentPlayer, startGame = () => {}}) => {
     return (
         <div className="card glass shadow-2xl backdrop-blur-sm border border-white/10">
             <div className="card-body">
-                <h3 className="card-title text-white mb-4">ℹ️ Informations</h3>
+                <h3 className="card-title text-white mb-4">
+                    <Info className="inline mr-2"/>
+                    Informations
+                </h3>
                 <div className="space-y-3">
                     <div className="flex justify-between">
                         <span className="text-gray-400">Votre rôle:</span>

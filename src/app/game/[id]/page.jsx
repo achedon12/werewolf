@@ -24,6 +24,7 @@ const GamePage = ({params}) => {
     const [currentPlayer, setCurrentPlayer] = useState(null);
     const [history, setHistory] = useState([]);
     const [hasJoin, setHasJoin] = useState(false);
+    const [ambiant, setAmbiant] = useState(false);
     const {user, token} = useAuth();
     const chatContainerRef = useRef(null);
 
@@ -152,9 +153,14 @@ const GamePage = ({params}) => {
             audio.play().catch(e => console.error("Erreur de lecture audio:", e));
         }
 
+        const handleAmbient = () => {
+
+        }
+
         socket.on("game-update", handleGameUpdate);
         socket.on("game-history", handleGameHistory);
         socket.on("howl", handleHowl);
+        socket.on("ambient", handleAmbient);
         socket.on("available-channels", handleAvailableChannels);
         socket.on("chat-message", handleChatMessage);
         socket.on("new-action", handleNewAction);
@@ -181,6 +187,7 @@ const GamePage = ({params}) => {
             socket.off("channel-joined", handleChannelJoined);
             socket.off("chat-error", handleChatError);
             socket.off("howl", handleHowl);
+            socket.off("ambiant", handleAmbient);
             socket.emit("leave-game", id, userFromLocalStorage);
         };
     }, [id, socket]);

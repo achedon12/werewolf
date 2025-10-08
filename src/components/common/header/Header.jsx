@@ -5,6 +5,8 @@ import {useEffect, useState} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {useAuth} from "@/app/AuthProvider";
 import {toast} from 'react-toastify';
+import {Gamepad2, House, NotebookText, Search, UserRound} from "lucide-react";
+import Image from "next/image";
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -104,17 +106,20 @@ export default function Header() {
                         <ul className="menu menu-horizontal px-1 space-x-2">
                             <li>
                                 <Link href="/" className="btn btn-ghost text-base-content">
-                                    🏠 Accueil
+                                    <House className="inline w-5 h-5 mr-1"/>
+                                    Accueil
                                 </Link>
                             </li>
                             <li>
                                 <Link href="/rules" className="btn btn-ghost text-base-content">
-                                    📚 Règles
+                                    <NotebookText className="inline w-5 h-5 mr-1"/>
+                                    Règles
                                 </Link>
                             </li>
                             <li>
                                 <button onClick={createGame} className="btn btn-ghost text-base-content">
-                                    🎮 Créer une partie
+                                    <Gamepad2 className="inline w-5 h-5 mr-1"/>
+                                    Créer une partie
                                 </button>
                             </li>
                             <li>
@@ -122,7 +127,8 @@ export default function Header() {
                                     className="btn btn-ghost text-base-content"
                                     onClick={() => setShowJoinModal(true)}
                                 >
-                                    🔍 Rejoindre
+                                    <Search className="inline w-5 h-5 mr-1"/>
+                                    Rejoindre
                                 </button>
                             </li>
                         </ul>
@@ -155,19 +161,22 @@ export default function Header() {
                                     <li>
                                         <Link href="/" onClick={() => setIsMenuOpen(false)}
                                               className="text-base-content">
-                                            🏠 Accueil
+                                            <House className="inline w-5 h-5 mr-1"/>
+                                            Accueil
                                         </Link>
                                     </li>
                                     <li>
                                         <Link href="/rules" onClick={() => setIsMenuOpen(false)}
                                               className="text-base-content">
-                                            📚 Règles
+                                            <NotebookText className="inline w-5 h-5 mr-1"/>
+                                            Règles
                                         </Link>
                                     </li>
                                     <li>
                                         <Link href="/game/create" onClick={() => setIsMenuOpen(false)}
                                               className="text-base-content">
-                                            🎮 Créer une partie
+                                            <Gamepad2 className="inline w-5 h-5 mr-1"/>
+                                            Créer une partie
                                         </Link>
                                     </li>
                                     <li>
@@ -178,19 +187,27 @@ export default function Header() {
                                                 setShowJoinModal(true);
                                             }}
                                         >
-                                            🔍 Rejoindre
+                                            <Search className="inline w-5 h-5 mr-1"/>
+                                            Rejoindre
                                         </button>
                                     </li>
                                 </ul>
                             )}
                         </div>
 
-                        <div className="avatar">
                             <button onClick={redirectLogin}
-                                    className="w-10 rounded-full bg-base-300 flex items-center justify-center text-base-content">
-                                <span className="text-sm">👤</span>
+                                    className="flex items-center justify-center text-base-content hover:bg-base-200 hover:scale-105 transition-all hover:cursor-pointer">
+                                <span className="text-sm">
+                                    {isAuthenticated.user ? (
+                                        <div className="flex items-center space-x-2 gap-2">
+                                            {isAuthenticated.user.nickname}
+                                            <Image src={isAuthenticated.user.avatar  || '/default-avatar.png'} alt="Avatar" width={40} height={40} className="rounded-full"/>
+                                        </div>
+                                    ) : (
+                                      <UserRound className="w-6 h-6" />
+                                    )}
+                                </span>
                             </button>
-                        </div>
                     </div>
                 </div>
             </header>

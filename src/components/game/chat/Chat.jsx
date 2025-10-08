@@ -1,5 +1,6 @@
 import TabMessages from "@/components/game/chat/tab/TabMessages";
 import TabParticipants from "@/components/game/chat/tab/TabParticipants";
+import {MessageSquare} from "lucide-react";
 
 const GameChat = ({chatChannels, chatMessages, chatMessage, participantsForChannel, currentChannel, chatSubTab, chatContainerRef, switchChannel = () => {}, setChatSubTab = () => {}, setChatMessage = () => {}, sendChatMessage = () => {}, currentPlayer}) => {
 
@@ -8,7 +9,10 @@ const GameChat = ({chatChannels, chatMessages, chatMessage, participantsForChann
             className="card glass shadow-2xl backdrop-blur-sm border border-white/10 mt-6">
             <div className="card-body flex flex-col">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="card-title text-white mb-4">💬 Chat</h3>
+                    <h3 className="card-title text-white mb-4">
+                        <MessageSquare className="inline-block mr-2"/>
+                        Chat
+                    </h3>
 
                     <div className="flex gap-2 mb-4">
                         {chatChannels.length === 0 && (

@@ -1,8 +1,13 @@
+import {NotebookText} from "lucide-react";
+
 const TabRules = () => {
     return (
         <div className="card glass shadow-2xl backdrop-blur-sm border border-white/10">
             <div className="card-body">
-                <h2 className="card-title text-2xl text-white mb-6">📖 Règles de la partie</h2>
+                <h2 className="card-title text-2xl text-white mb-6">
+                    <NotebookText className="inline mr-2 h-6 w-6"/>
+                    Règles de la partie
+                </h2>
                 <div className="prose prose-invert max-w-none">
                     <h3 className="text-white">Phase de Nuit</h3>
                     <ul className="text-gray-300">
