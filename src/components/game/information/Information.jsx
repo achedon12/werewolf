@@ -1,6 +1,6 @@
 import {Circle, CircleDot, Info, Settings, Skull} from "lucide-react";
 
-const GameInformation = ({game, currentPlayer, startGame = () => {}}) => {
+const GameInformation = ({game, currentPlayer, startGame = () => {}, configurationGame = () => {}, playersConfiguration = () => {} }) => {
 
     const isAdmin = game.admin.id === currentPlayer.id;
 
@@ -56,20 +56,36 @@ const GameInformation = ({game, currentPlayer, startGame = () => {}}) => {
                     </div>
                 </div>
 
-                {isAdmin && (
+                {game.state === "En attente" && (
                     <div className="mt-6 pt-4 border-t border-white/10">
                         <h4 className="text-white font-semibold mb-2">
                             <Settings size={16} className="inline mr-2"/>
-                            Contrôles Admin
+                            Informations partie
                         </h4>
                         <div className="space-y-2">
+                            {isAdmin && (
+                                <>
+                                    <button
+                                        className="btn btn-sm btn-primary w-full"
+                                        onClick={() => startGame()}
+                                    >
+                                        Démarrer la partie
+                                    </button>
+                                    <button className="btn btn-sm btn-secondary w-full">Configurer la partie</button>
+                                    <button
+                                        className="btn btn-sm bg-blue-500 border-blue-500 hover:bg-blue-600 w-full"
+                                        onClick={playersConfiguration}
+                                    >
+                                        Gérer les joueurs
+                                    </button>
+                                </>
+                            )}
                             <button
-                                className="btn btn-sm btn-primary w-full"
-                                onClick={() => startGame()}
+                                className="btn btn-sm bg-yellow-500 border-yellow-500 hover:bg-yellow-600 w-full"
+                                onClick={configurationGame}
                             >
-                                Démarrer la partie
+                                Configuration de la partie
                             </button>
-                            <button className="btn btn-sm btn-secondary w-full">Configurer la partie</button>
                         </div>
                     </div>
                 )}

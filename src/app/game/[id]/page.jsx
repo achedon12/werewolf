@@ -3,11 +3,15 @@
 import {use, useEffect, useRef, useState} from "react";
 import {useAuth} from "@/app/AuthProvider";
 import {socket} from "@/socket";
-import GameInformation from "@/components/game/Information";
+import GameInformation from "@/components/game/information/Information";
 import GameChat from "@/components/game/chat/Chat";
 import GameActions from "@/components/game/actions/Actions";
 import GameHeader from "@/components/game/Header";
 import AmbientForest from "@/components/game/AmbientForest";
+import ConfigurationModal from "@/components/game/information/modal/Configuration";
+import PlayersConfigurationModal from "@/components/game/information/modal/Players";
+import {toast} from "react-toastify";
+import {useRouter} from "next/navigation";
 
 const GamePage = ({params}) => {
     const {id} = use(params);
@@ -28,9 +32,12 @@ const GamePage = ({params}) => {
     const [ambientThemeEnabled, setAmbientThemeEnabled] = useState(false);
     const [ambientSoundsEnabled, setAmbientSoundsEnabled] = useState(false);
     const [currentAmbientSound, setCurrentAmbientSound] = useState(null);
+    const [showConfigurationModal, setShowConfigurationModal] = useState(false);
+    const [showPlayersConfigurationModal, setShowPlayersConfigurationModal] = useState(false);
     const ambientSoundRef = useRef(null);
     const {user, token} = useAuth();
     const chatContainerRef = useRef(null);
+    const router = useRouter();
 
     useEffect(() => {
         if (!id || !socket) return;
@@ -123,7 +130,9 @@ const GamePage = ({params}) => {
             setCurrentPlayer(found || null);
         };
 
-        const handleGameError = (error) => console.error("Erreur Socket.IO:", error);
+        const handleGameError = (error) => {
+            toast.error(error || "Erreur de jeu")
+        };
 
         const handleChannelJoined = (payload) => {
             if (!payload || !payload.channel) return;
@@ -169,6 +178,15 @@ const GamePage = ({params}) => {
             }
         };
 
+        const handleExcludePlayerConfirm = (message) => {
+            toast.error(message);
+            router.push('/');
+        }
+
+        const handleAdminConfirmAction = (message) => {
+            toast.info(message || "Action administrateur éxécutée.");
+        }
+
         socket.on("game-update", handleGameUpdate);
         socket.on("game-history", handleGameHistory);
         socket.on("howl", handleHowl);
@@ -177,6 +195,8 @@ const GamePage = ({params}) => {
         socket.on("chat-message", handleChatMessage);
         socket.on("new-action", handleNewAction);
         socket.on("players-update", handlePlayersUpdate);
+        socket.on("exclude-player-confirm", handleExcludePlayerConfirm);
+        socket.on("admin-confirm-action", handleAdminConfirmAction);
         socket.on("game-error", handleGameError);
         socket.on("channel-joined", handleChannelJoined);
         socket.on("chat-error", handleChatError);
@@ -200,6 +220,9 @@ const GamePage = ({params}) => {
             socket.off("chat-error", handleChatError);
             socket.off("howl", handleHowl);
             socket.off("ambient-settings", handleAmbientSettings);
+            socket.off('exclude-player-confirm', handleExcludePlayerConfirm);
+            socket.off('admin-confirm-action', handleAdminConfirmAction)
+            socket.off('')
             socket.emit("leave-game", id, userFromLocalStorage);
         };
     }, [id, socket]);
@@ -276,6 +299,10 @@ const GamePage = ({params}) => {
         // });
     };
 
+    const handleExcludePlayer = (user, reason) => {
+        socket.emit("exclude-player", id, user, reason);
+    }
+
     const switchChannel = (channel) => {
         if (!channel || channel === currentChannel) return;
         socket.emit("join-channel", id, channel);
@@ -342,10 +369,11 @@ const GamePage = ({params}) => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+        <div
+            className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
             <GameHeader game={game} players={players} configuration={configuration} creator={creator}/>
 
-            {ambientThemeEnabled && <AmbientForest />}
+            {ambientThemeEnabled && <AmbientForest/>}
 
             <div className="absolute top-4 right-4 z-20 flex gap-2">
                 <button
@@ -386,7 +414,9 @@ const GamePage = ({params}) => {
                     />
 
                     <div className="lg:col-span-1">
-                        <GameInformation game={game} currentPlayer={currentPlayer} startGame={startGame}/>
+                        <GameInformation game={game} currentPlayer={currentPlayer} startGame={startGame}
+                                         configurationGame={setShowConfigurationModal}
+                                         playersConfiguration={setShowPlayersConfigurationModal}/>
 
                         <GameChat
                             chatChannels={chatChannels}
@@ -420,6 +450,21 @@ const GamePage = ({params}) => {
                     </div>
                 </div>
             </div>
+
+            <ConfigurationModal
+                game={game}
+                show={showConfigurationModal}
+                close={() => setShowConfigurationModal(false)}
+            />
+
+            <PlayersConfigurationModal
+                currentPlayer={currentPlayer}
+                excludePlayer={handleExcludePlayer}
+                game={game}
+                players={players}
+                show={showPlayersConfigurationModal}
+                close={() => setShowPlayersConfigurationModal(false)}
+            />
         </div>
     );
 };

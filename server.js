@@ -105,9 +105,13 @@ app.prepare().then(() => {
 
         socket.on("join-game", async (gameId, userData, playerRole) => {
             try {
-                userData.role = playerRole;
-                userData.isAlive = true;
-                userData.online = true;
+                userData = {
+                    ...userData,
+                    role: playerRole,
+                    isAlive: true,
+                    online: true,
+                    joinedAt: new Date()
+                }
 
                 let roomData = gameRooms.get(gameId);
                 if (!roomData) {
@@ -143,7 +147,6 @@ app.prepare().then(() => {
                 connectedPlayers.set(socket.id, {
                     ...userData,
                     gameId,
-                    joinedAt: new Date(),
                     socketId: socket.id
                 });
 
@@ -505,8 +508,6 @@ app.prepare().then(() => {
                         createdAt: new Date().toISOString(),
                         channel: "general"
                     });
-
-                    console.log(`🔔 Broadcast déconnexion pour ${playerInfo.nickname} dans game-${playerInfo.gameId}`);
                 });
             }
 
@@ -534,42 +535,102 @@ app.prepare().then(() => {
 
             // TODO: reset for prod
             //if (roomData && roomData.state === 'waiting') {
-                roomData.state = 'in_progress';
-                roomData.phase = 'night';
-                roomData.lastActivity = new Date();
+            roomData.state = 'in_progress';
+            roomData.phase = 'night';
+            roomData.lastActivity = new Date();
 
-                addGameAction(gameId, {
-                    type: "game_event",
-                    playerName: "Système",
-                    playerRole: "system",
-                    message: `🚀 La partie a commencé ! Phase: Nuit`,
-                    phase: "game_start"
-                });
+            addGameAction(gameId, {
+                type: "game_event",
+                playerName: "Système",
+                playerRole: "system",
+                message: `🚀 La partie a commencé ! Phase: Nuit`,
+                phase: "game_start"
+            });
 
-                io.to(`game-${gameId}-general`).emit("chat-message", {
-                    type: "system",
-                    playerName: "Système",
-                    message: `🚀 La partie commence ! Bonne chance à tous.`,
-                    createdAt: new Date().toISOString(),
-                    channel: "general"
-                });
+            io.to(`game-${gameId}-general`).emit("chat-message", {
+                type: "system",
+                playerName: "Système",
+                message: `🚀 La partie commence ! Bonne chance à tous.`,
+                createdAt: new Date().toISOString(),
+                channel: "general"
+            });
 
-                setImmediate(async () => {
-                    io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
-                    io.to(`game-${gameId}`).emit("howl");
-                    io.to(`game-${gameId}`).emit("ambiant-settings", {
-                        themeEnabled: true,
-                        soundsEnabled: true
-                    });
-                    // io.in(`game-${gameId}`).emit("game-update", {state: roomData.state, phase: roomData.phase});
-                    // if (startAction) {
-                    //     io.in(`game-${gameId}`).emit("new-action", startAction);
-                    // }
-                    // const gameData = await updatedGameData(gameId);
-                    // io.to(`game-${gameId}`).emit("game-update", gameData);
+            setImmediate(async () => {
+                io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+                io.to(`game-${gameId}`).emit("howl");
+                io.to(`game-${gameId}`).emit("ambiant-settings", {
+                    themeEnabled: true,
+                    soundsEnabled: true
                 });
+                // io.in(`game-${gameId}`).emit("game-update", {state: roomData.state, phase: roomData.phase});
+                // if (startAction) {
+                //     io.in(`game-${gameId}`).emit("new-action", startAction);
+                // }
+                // const gameData = await updatedGameData(gameId);
+                // io.to(`game-${gameId}`).emit("game-update", gameData);
+            });
             //}
         })
+
+        socket.on("exclude-player", (gameId, targetPlayerId, reason) => {
+            const roomData = gameRooms.get(gameId);
+            if (!roomData) return;
+
+            let targetSocketId = null;
+            let targetPlayer = null;
+
+            for (const [socketId, player] of roomData.players.entries()) {
+                if (player.id === targetPlayerId) {
+                    targetSocketId = socketId;
+                    targetPlayer = player;
+                    break;
+                }
+            }
+
+            if (!targetPlayer) {
+                socket.emit("game-error", `Joueur avec ID ${targetPlayerId} non trouvé`);
+                return;
+            }
+
+            roomData.players.delete(targetPlayerId);
+            CHANNEL_TYPES.forEach(channel => roomData.channels[channel].delete(targetPlayerId));
+            connectedPlayers.delete(targetPlayerId);
+
+            const action = addGameAction(gameId, {
+                type: "player_excluded",
+                playerName: targetPlayer.nickname,
+                playerRole: targetPlayer.role,
+                message: `❌ ${targetPlayer.nickname} a été exclu de la partie (${reason})`,
+                phase: "game"
+            });
+
+            io.in(`game-${gameId}`).emit("players-update", {
+                players: Array.from(roomData.players.values())
+            });
+            if (action) {
+                io.in(`game-${gameId}`).emit("new-action", action);
+            }
+            io.in(`game-${gameId}-general`).emit("chat-message", {
+                type: "system",
+                playerName: "Système",
+                message: `❌ ${targetPlayer.nickname} a été exclu de la partie (${reason})`,
+                createdAt: new Date().toISOString(),
+                channel: "general"
+            });
+            socket.emit("admin-confirm-action", `Le joueur ${targetPlayer.nickname} a bien été exclu (${reason})`);
+
+            if (targetSocketId) {
+                const targetSocket = io.sockets.sockets.get(targetSocketId);
+                if (targetSocket) {
+                    try {
+                        targetSocket.emit("exclude-player-confirm", `Vous avez été exclu de la partie: ${reason}`);
+                        targetSocket.leave(`game-${gameId}`);
+                        CHANNEL_TYPES.forEach(ch => targetSocket.leave(`game-${gameId}-${ch}`));
+                    } catch (e) {
+                    }
+                }
+            }
+        });
 
         socket.on("ping", () => {
             socket.emit("pong", {
