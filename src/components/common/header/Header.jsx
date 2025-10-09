@@ -200,7 +200,6 @@ export default function Header() {
                                 <span className="text-sm">
                                     {isAuthenticated.user ? (
                                         <div className="flex items-center space-x-2 gap-2">
-                                            {isAuthenticated.user.nickname}
                                             <Image src={isAuthenticated.user.avatar  || '/default-avatar.png'} alt="Avatar" width={40} height={40} className="rounded-full"/>
                                         </div>
                                     ) : (
