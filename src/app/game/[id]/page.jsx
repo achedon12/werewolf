@@ -8,10 +8,10 @@ import GameChat from "@/components/game/chat/Chat";
 import GameActions from "@/components/game/actions/Actions";
 import GameHeader from "@/components/game/Header";
 import AmbientForest from "@/components/game/AmbientForest";
-import ConfigurationModal from "@/components/game/information/modal/Configuration";
 import PlayersConfigurationModal from "@/components/game/information/modal/Players";
 import {toast} from "react-toastify";
 import {useRouter} from "next/navigation";
+import ConfigurationOverviewModal from "@/components/game/information/modal/ConfigurationOverview";
 
 const GamePage = ({params}) => {
     const {id} = use(params);
@@ -32,7 +32,7 @@ const GamePage = ({params}) => {
     const [ambientThemeEnabled, setAmbientThemeEnabled] = useState(false);
     const [ambientSoundsEnabled, setAmbientSoundsEnabled] = useState(false);
     const [currentAmbientSound, setCurrentAmbientSound] = useState(null);
-    const [showConfigurationModal, setShowConfigurationModal] = useState(false);
+    const [showConfigurationOverviewModal, setShowConfigurationOverwiewModal] = useState(false);
     const [showPlayersConfigurationModal, setShowPlayersConfigurationModal] = useState(false);
     const ambientSoundRef = useRef(null);
     const {user, token} = useAuth();
@@ -414,9 +414,13 @@ const GamePage = ({params}) => {
                     />
 
                     <div className="lg:col-span-1">
-                        <GameInformation game={game} currentPlayer={currentPlayer} startGame={startGame}
-                                         configurationGame={setShowConfigurationModal}
-                                         playersConfiguration={setShowPlayersConfigurationModal}/>
+                        <GameInformation
+                            game={game}
+                            currentPlayer={currentPlayer}
+                            startGame={startGame}
+                            configurationGame={setShowConfigurationOverwiewModal}
+                            playersConfiguration={() => setShowPlayersConfigurationModal(true)}
+                        />
 
                         <GameChat
                             chatChannels={chatChannels}
@@ -451,10 +455,10 @@ const GamePage = ({params}) => {
                 </div>
             </div>
 
-            <ConfigurationModal
+            <ConfigurationOverviewModal
                 game={game}
-                show={showConfigurationModal}
-                close={() => setShowConfigurationModal(false)}
+                show={showConfigurationOverviewModal}
+                close={() => setShowConfigurationOverwiewModal(false)}
             />
 
             <PlayersConfigurationModal

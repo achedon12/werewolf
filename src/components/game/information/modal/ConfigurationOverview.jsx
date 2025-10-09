@@ -3,7 +3,7 @@ import Image from 'next/image';
 import {roles} from "@/utils/Roles";
 import {CircleX, Cog} from "lucide-react";
 
-const ConfigurationModal = ({game, show, close = () => {} }) => {
+const ConfigurationOverviewModal = ({ show, close = () => {}, game }) => {
     const [configuration, setConfiguration] = useState({});
     const [wolfNumber, setWolfNumber] = useState(0);
     const [villagerNumber, setVillagerNumber] = useState(0);
@@ -128,8 +128,8 @@ const ConfigurationModal = ({game, show, close = () => {} }) => {
                                                 />
                                             </div>
                                             <div className={`absolute -bottom-2 -right-2 w-6 h-6 rounded-full border-2 border-base-200 ${
-                                                role.team === 'werewolves' ? 'bg-red-500' :
-                                                    role.team === 'villagers' ? 'bg-green-500' :
+                                                role.team === 'Équipe des Loups' ? 'bg-red-500' :
+                                                    role.team === 'Équipe du Village' ? 'bg-green-500' :
                                                         'bg-yellow-500'
                                             }`}></div>
                                         </div>
@@ -144,8 +144,8 @@ const ConfigurationModal = ({game, show, close = () => {} }) => {
 
                                             <div className="flex flex-wrap gap-2">
                                             <span className={`badge badge-sm ${
-                                                role.team === 'werewolves' ? 'badge-error' :
-                                                    role.team === 'villagers' ? 'badge-success' :
+                                                role.team === 'Équipe des Loups' ? 'badge-error' :
+                                                    role.team === 'Équipe du Village' ? 'badge-success' :
                                                         'badge-warning'
                                             }`}>
                                                 {role.team === 'Équipe des Loups' ? '🐺 Loup' :
@@ -159,7 +159,6 @@ const ConfigurationModal = ({game, show, close = () => {} }) => {
                                         </div>
                                     </div>
 
-                                    {/* Effet de hover */}
                                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                 </div>
                             ))}
@@ -183,4 +182,4 @@ const ConfigurationModal = ({game, show, close = () => {} }) => {
     );
 }
 
-export default ConfigurationModal;
+export default ConfigurationOverviewModal;

@@ -578,7 +578,7 @@ app.prepare().then(() => {
 
             let targetSocketId = null;
             let targetPlayer = null;
-
+            // TODO: if game is started : kill player, else just remove
             for (const [socketId, player] of roomData.players.entries()) {
                 if (player.id === targetPlayerId) {
                     targetSocketId = socketId;
