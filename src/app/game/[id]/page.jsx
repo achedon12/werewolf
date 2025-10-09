@@ -12,6 +12,7 @@ import PlayersConfigurationModal from "@/components/game/information/modal/Playe
 import {toast} from "react-toastify";
 import {useRouter} from "next/navigation";
 import ConfigurationOverviewModal from "@/components/game/information/modal/ConfigurationOverview";
+import AdminConfigurationModal from "@/components/game/information/modal/Configuration";
 
 const GamePage = ({params}) => {
     const {id} = use(params);
@@ -32,7 +33,8 @@ const GamePage = ({params}) => {
     const [ambientThemeEnabled, setAmbientThemeEnabled] = useState(false);
     const [ambientSoundsEnabled, setAmbientSoundsEnabled] = useState(false);
     const [currentAmbientSound, setCurrentAmbientSound] = useState(null);
-    const [showConfigurationOverviewModal, setShowConfigurationOverwiewModal] = useState(false);
+    const [showConfigurationOverviewModal, setShowConfigurationOverviewModal] = useState(false);
+    const [showConfigurationModal, setShowConfigurationModal] = useState(false);
     const [showPlayersConfigurationModal, setShowPlayersConfigurationModal] = useState(false);
     const ambientSoundRef = useRef(null);
     const {user, token} = useAuth();
@@ -303,6 +305,10 @@ const GamePage = ({params}) => {
         socket.emit("exclude-player", id, user, reason);
     }
 
+    const handleUpdateGame = (newName, newType, newConfig) => {
+        socket.emit("update-game", id, {name: newName, type: newType, configuration: JSON.stringify(newConfig)})
+    }
+
     const switchChannel = (channel) => {
         if (!channel || channel === currentChannel) return;
         socket.emit("join-channel", id, channel);
@@ -418,7 +424,8 @@ const GamePage = ({params}) => {
                             game={game}
                             currentPlayer={currentPlayer}
                             startGame={startGame}
-                            configurationGame={setShowConfigurationOverwiewModal}
+                            configurationGameOverview={setShowConfigurationOverviewModal}
+                            configurationGame={setShowConfigurationModal}
                             playersConfiguration={() => setShowPlayersConfigurationModal(true)}
                         />
 
@@ -458,7 +465,7 @@ const GamePage = ({params}) => {
             <ConfigurationOverviewModal
                 game={game}
                 show={showConfigurationOverviewModal}
-                close={() => setShowConfigurationOverwiewModal(false)}
+                close={() => setShowConfigurationOverviewModal(false)}
             />
 
             <PlayersConfigurationModal
@@ -468,6 +475,13 @@ const GamePage = ({params}) => {
                 players={players}
                 show={showPlayersConfigurationModal}
                 close={() => setShowPlayersConfigurationModal(false)}
+            />
+
+            <AdminConfigurationModal
+                game={game}
+                show={showConfigurationModal}
+                close={() => setShowConfigurationModal(false)}
+                save={handleUpdateGame}
             />
         </div>
     );

@@ -99,6 +99,22 @@ app.prepare().then(() => {
         }
     }
 
+    async function updateGameData(gameId, updatedData) {
+        try {
+            console.log("Mise à jour des données de la game:", gameId, updatedData);
+            const res = await fetch(`http://${hostname}:${port}/api/game/${gameId}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: updatedData.name, configuration: updatedData.configuration, type: updatedData.type
+                })
+            });
+            return await res.json();
+        } catch (err) {
+            console.error("❌ Erreur lors de la mise à jour des données de la game :", err);
+            return {};
+        }
+    }
+
     const connectedPlayers = new Map();
 
     io.on("connection", (socket) => {
@@ -570,7 +586,17 @@ app.prepare().then(() => {
                 // io.to(`game-${gameId}`).emit("game-update", gameData);
             });
             //}
-        })
+        });
+
+        socket.on("update-game", async(gameId, updatedData) => {
+            const roomData = gameRooms.get(gameId);
+            if (!roomData) return;
+
+            await updateGameData(gameId, updatedData);
+            io.to(`game-${gameId}`).emit("game-update", await updatedGameData(gameId));
+            roomData.lastActivity = new Date();
+            socket.emit("admin-confirm-action", `Les données de la partie ont été mises à jour`);
+        });
 
         socket.on("exclude-player", (gameId, targetPlayerId, reason) => {
             const roomData = gameRooms.get(gameId);

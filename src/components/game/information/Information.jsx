@@ -1,6 +1,6 @@
 import {Circle, CircleDot, Info, Settings, Skull} from "lucide-react";
 
-const GameInformation = ({game, currentPlayer, startGame = () => {}, configurationGame = () => {}, playersConfiguration = () => {} }) => {
+const GameInformation = ({game, currentPlayer, startGame = () => {}, configurationGameOverview = () => {}, configurationGame = () => {}, playersConfiguration = () => {} }) => {
 
     const isAdmin = game.admin.id === currentPlayer.id;
 
@@ -71,7 +71,12 @@ const GameInformation = ({game, currentPlayer, startGame = () => {}, configurati
                                     >
                                         Démarrer la partie
                                     </button>
-                                    <button className="btn btn-sm btn-secondary w-full">Configurer la partie</button>
+                                    <button
+                                        className="btn btn-sm btn-secondary w-full"
+                                        onClick={configurationGame}
+                                    >
+                                        Configurer la partie
+                                    </button>
                                     <button
                                         className="btn btn-sm bg-blue-500 border-blue-500 hover:bg-blue-600 w-full"
                                         onClick={playersConfiguration}
@@ -82,7 +87,7 @@ const GameInformation = ({game, currentPlayer, startGame = () => {}, configurati
                             )}
                             <button
                                 className="btn btn-sm bg-yellow-500 border-yellow-500 hover:bg-yellow-600 w-full"
-                                onClick={configurationGame}
+                                onClick={configurationGameOverview}
                             >
                                 Configuration de la partie
                             </button>

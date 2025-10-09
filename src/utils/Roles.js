@@ -215,7 +215,7 @@ export const classicRoles = {
         9: 1,  // Petite Fille
         10: 2, // Soeur
         11: 1, // Voleur
-        12: 1, // Salvateur
+        12: 0, // Salvateur
         13: 0, // Servante Dévouée
         14: 0, // Enfant Sauvage
         15: 0, // Renard
@@ -231,8 +231,8 @@ export const classicRoles = {
         8: 1,  // Loup-Garou Blanc
         9: 1,  // Petite Fille
         10: 2, // Soeur
-        11: 1, // Voleur
-        12: 1, // Salvateur
+        11: 0, // Voleur
+        12: 0, // Salvateur
         13: 0, // Servante Dévouée
         14: 0, // Enfant Sauvage
         15: 0, // Renard
