@@ -61,14 +61,6 @@ export const metadata = {
         locale: "fr_FR",
         type: "website"
     },
-    twitter: {
-        card: "summary_large_image",
-        title: "Online Werewolf - Jouez au Loup-Garou en ligne",
-        description: "Plateforme en ligne pour jouer au jeu de société Loup-Garou avec vos amis.",
-        site: "@TonTwitter",
-        creator: "@TonTwitter",
-        images: ["/logo.png"]
-    },
     icons: {
         icon: "/logo.png",
         shortcut: "/logo.png",

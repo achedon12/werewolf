@@ -21,7 +21,6 @@ export default function Footer() {
                         <Link href="/" className="link link-hover">Accueil</Link>
                         <Link href="/rules" className="link link-hover">Règles du jeu</Link>
                         <Link href="/game/create" className="link link-hover">Créer une partie</Link>
-                        <Link href="/join" className="link link-hover">Rejoindre</Link>
                     </div>
 
                     <div className="flex flex-col items-start space-y-2">
@@ -35,15 +34,13 @@ export default function Footer() {
                         <h3 className="footer-title">Légal</h3>
                         <Link href="/privacy" className="link link-hover">Confidentialité</Link>
                         <Link href="/terms" className="link link-hover">Conditions d'utilisation</Link>
-                        <Link href="/cookies" className="link link-hover">Cookies</Link>
                     </div>
 
                     <div className="flex flex-col items-start">
                         <h3 className="footer-title">Communauté</h3>
                         <div className="flex flex-col space-y-2">
-                            <a className="link link-hover">Discord</a>
-                            <a className="link link-hover">Twitter</a>
-                            <a className="link link-hover">GitHub</a>
+                            <Link className="link link-hover" href={process.env.NEXT_PUBLIC_DISCORD_URL || ''} target="_blank">Discord</Link>
+                            <Link className="link link-hover" href={process.env.NEXT_PUBLIC_GITHUB_URL || ''} target="_blank">GitHub</Link>
                         </div>
                     </div>
                 </div>
