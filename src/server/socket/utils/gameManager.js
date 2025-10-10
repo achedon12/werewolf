@@ -6,7 +6,7 @@ import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "../../config/constants.js"
 const hostname = "localhost";
 const port = 3000;
 
-export async function updatedGameData(gameId) {
+export const updatedGameData = async (gameId) => {
     try {
         const res = await fetch(`http://${hostname}:${port}/api/game/${gameId}`);
         return await res.json();
@@ -16,7 +16,7 @@ export async function updatedGameData(gameId) {
     }
 }
 
-export async function updateGameData(gameId, updatedData) {
+export const updateGameData = async (gameId, updatedData) => {
     try {
         const res = await fetch(`http://${hostname}:${port}/api/game/${gameId}`, {
             method: 'POST',
@@ -37,7 +37,7 @@ export async function updateGameData(gameId, updatedData) {
     }
 }
 
-export async function startGameLogic(socket, io, gameId) {
+export const startGameLogic = async (socket, io, gameId) => {
     const roomData = getGameRoom(gameId);
 
     if (!roomData) {

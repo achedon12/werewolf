@@ -7,7 +7,7 @@ const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = 3000;
 
-async function startServer() {
+const startServer = async () => {
     try {
         const app = next({dev, hostname, port});
         await app.prepare();
@@ -38,4 +38,4 @@ async function startServer() {
     }
 }
 
-startServer();
+await startServer();

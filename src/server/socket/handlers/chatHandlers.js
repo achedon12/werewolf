@@ -2,7 +2,7 @@ import {connectedPlayers, getGameRoom} from "../utils/roomManager.js";
 import {addGameAction, getGameHistory} from "../utils/actionLogger.js";
 import {ACTION_TYPES} from "../../config/constants.js";
 
-export function handleSendChat(socket, io, data) {
+export const handleSendChat = (socket, io, data)=> {
     try {
         const {gameId, message, channel = "general"} = data;
         const playerInfo = connectedPlayers.get(socket.id);
@@ -57,7 +57,7 @@ export function handleSendChat(socket, io, data) {
     }
 }
 
-export function handleRequestHistory(socket, gameId) {
+export const handleRequestHistory = (socket, gameId)=> {
     try {
         const history = getGameHistory(gameId);
         socket.emit("game-history", history);

@@ -3,7 +3,7 @@ import {addGameAction} from "../utils/actionLogger.js";
 import {startGameLogic, updatedGameData, updateGameData} from "../utils/gameManager.js";
 import {ACTION_TYPES, CHANNEL_TYPES} from "../../config/constants.js";
 
-export async function handleStartGame(socket, io, gameId) {
+export const handleStartGame = async (socket, io, gameId) => {
     try {
         await startGameLogic(socket, io, gameId);
     } catch (error) {
@@ -12,7 +12,7 @@ export async function handleStartGame(socket, io, gameId) {
     }
 }
 
-export async function handleUpdateGame(socket, io, gameId, updatedData) {
+export const handleUpdateGame = async (socket, io, gameId, updatedData) => {
     const roomData = getGameRoom(gameId);
     if (!roomData) return;
 
@@ -22,7 +22,7 @@ export async function handleUpdateGame(socket, io, gameId, updatedData) {
     socket.emit("admin-confirm-action", `Les données de la partie ont été mises à jour`);
 }
 
-export function handleExcludePlayer(socket, io, gameId, targetPlayerId, reason) {
+export const handleExcludePlayer = (socket, io, gameId, targetPlayerId, reason) => {
     const roomData = getGameRoom(gameId);
     if (!roomData) return;
 
@@ -85,7 +85,7 @@ export function handleExcludePlayer(socket, io, gameId, targetPlayerId, reason) 
     }
 }
 
-export function handleAddBot(socket, io, gameId, botName) {
+export const handleAddBot = (socket, io, gameId, botName) => {
     const roomData = getGameRoom(gameId);
 
     if (!roomData) {
@@ -133,7 +133,7 @@ export function handleAddBot(socket, io, gameId, botName) {
     socket.emit("admin-confirm-action", `Le bot ${botData.nickname} a bien été ajouté à la partie`);
 }
 
-export function handleGetRoomInfo(socket, gameId) {
+export const handleGetRoomInfo = (socket, gameId) => {
     const roomData = getGameRoom(gameId);
     if (roomData) {
         socket.emit("room-info", {

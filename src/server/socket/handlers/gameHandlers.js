@@ -10,7 +10,7 @@ import {addGameAction, getGameHistory} from "../utils/actionLogger.js";
 import {updatedGameData} from "../utils/gameManager.js";
 import {ACTION_TYPES, CHANNEL_TYPES} from "../../config/constants.js";
 
-export async function handleJoinGame(socket, io, gameId, userData, playerRole) {
+export const handleJoinGame = async (socket, io, gameId, userData, playerRole) => {
     try {
         userData = {
             ...userData,
@@ -75,7 +75,7 @@ export async function handleJoinGame(socket, io, gameId, userData, playerRole) {
     }
 }
 
-export function handleLeaveGame(socket, io, gameId, userData) {
+export const handleLeaveGame = (socket, io, gameId, userData) => {
     try {
         const playerInfo = connectedPlayers.get(socket.id) || {
             gameId,
@@ -91,7 +91,7 @@ export function handleLeaveGame(socket, io, gameId, userData) {
     }
 }
 
-export function handleJoinChannel(socket, io, gameId, channelType) {
+export const handleJoinChannel = (socket, io, gameId, channelType) => {
     try {
         const playerInfo = connectedPlayers.get(socket.id);
         if (!playerInfo) return;
@@ -121,7 +121,7 @@ export function handleJoinChannel(socket, io, gameId, channelType) {
     }
 }
 
-async function notifyGameUpdate(socket, io, gameId, roomData, userData) {
+const notifyGameUpdate = async (socket, io, gameId, roomData, userData) => {
     const mainRoom = `game-${gameId}`;
     const generalChannel = `game-${gameId}-general`;
 

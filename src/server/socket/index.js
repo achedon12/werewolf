@@ -11,7 +11,7 @@ import {
     handleUpdateGame
 } from "./handlers/adminHandlers.js";
 
-export function initializeSocket(httpServer, hostname, port) {
+export const initializeSocket = (httpServer, hostname, port) => {
     const io = new Server(httpServer, {
         cors: {
             origin: `http://${hostname}:${port}`,

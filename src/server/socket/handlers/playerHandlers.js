@@ -2,7 +2,7 @@ import {connectedPlayers, getGameRoom, removePlayerFromGame} from "../utils/room
 import {addGameAction} from "../utils/actionLogger.js";
 import {updatedGameData} from "../utils/gameManager.js";
 
-export async function handlePlayerAction(socket, io, data) {
+export const handlePlayerAction = async (socket, io, data) => {
     try {
         const {gameId, action, targetPlayerId, type, playerName, playerRole, details = {}} = data;
         const playerInfo = connectedPlayers.get(socket.id);
@@ -41,14 +41,14 @@ export async function handlePlayerAction(socket, io, data) {
     }
 }
 
-export function handleDisconnect(socket, io, reason) {
+export const handleDisconnect = (socket, io, reason) => {
     const playerInfo = connectedPlayers.get(socket.id);
     if (!playerInfo) return;
 
     removePlayerFromGame(socket, io, playerInfo.gameId, playerInfo, true);
 }
 
-function getActionDetails(type, playerName, details) {
+const getActionDetails = (type, playerName, details) => {
     switch (type) {
         case "vote":
             return {
