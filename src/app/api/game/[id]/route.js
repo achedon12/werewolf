@@ -50,5 +50,28 @@ export async function POST(request, context) {
         data
     });
 
+    console.log(body.players);
+    if (body.players) {
+        for (const player of body.players) {
+            await prisma.player.upsert({
+                where: {id: player.id},
+                update: {
+                    role: player.role,
+                    isAlive: player.isAlive,
+                    isAdmin: player.isAdmin || false,
+                    gameId: id,
+                    userId: player.id
+                },
+                create: {
+                    role: player.role,
+                    gameId: id,
+                    userId: player.id,
+                    isAlive: player.isAlive,
+                    isAdmin: player.isAdmin || false,
+                }
+            });
+        }
+    }
+
     return NextResponse.json(updatedGame);
 }

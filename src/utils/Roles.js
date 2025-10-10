@@ -135,6 +135,19 @@ export const roles = [
         strategy: "Utilisez les informations de l'ours pour guider vos décisions, mais soyez prudent car il ne sait pas qui sont les loups-garous."
     } // montreur d'ours
 ];
+
+export const getRoleById = (id) => {
+    return roles.find(role => role.id === id);
+}
+
+export const getRoleByName = (name) => {
+    return roles.find(role => role.name === name);
+}
+
+export const getRoleTeam = (role) => {
+    const foundRole = getRoleByName(role);
+    return foundRole ? foundRole.team : null;
+}
 export const classicRoles = {
     8: {
         1: 2,  // Loup-Garou

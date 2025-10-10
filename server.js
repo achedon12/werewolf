@@ -1,6 +1,7 @@
 import {createServer} from "node:http";
 import next from "next";
 import {Server} from "socket.io";
+import {getRoleById} from "./src/utils/Roles.js";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -101,12 +102,10 @@ app.prepare().then(() => {
 
     async function updateGameData(gameId, updatedData) {
         try {
-            console.log("Mise à jour des données de la game:", gameId, updatedData);
             const res = await fetch(`http://${hostname}:${port}/api/game/${gameId}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({name: updatedData.name, configuration: updatedData.configuration, type: updatedData.type
-                })
+                body: JSON.stringify({name: updatedData.name, configuration: updatedData.configuration, type: updatedData.type, state: updatedData.state, phase: updatedData.phase, players: updatedData.players})
             });
             return await res.json();
         } catch (err) {
@@ -144,6 +143,11 @@ app.prepare().then(() => {
                 if (existingEntry) {
                     const [oldSid] = existingEntry;
                     if (oldSid !== socket.id) {
+                        const oldPlayer = roomData.players.get(oldSid);
+                        if (oldPlayer) {
+                            userData.role = oldPlayer.role || userData.role;
+                            userData.isAdmin = oldPlayer.isAdmin || false;
+                        }
                         roomData.players.delete(oldSid);
                         connectedPlayers.delete(oldSid);
                         const oldSocket = io.sockets.sockets.get(oldSid);
@@ -196,6 +200,9 @@ app.prepare().then(() => {
                     };
                     socket.emit("available-channels", availableChannels);
                     const gameData = await updatedGameData(gameId);
+                    roomData.configuration = gameData.configuration;
+                    roomData.type = gameData.type;
+                    roomData.name = gameData.name;
                     socket.emit("game-update", gameData);
 
                     io.to(generalChannel).emit("chat-message", {
@@ -549,10 +556,20 @@ app.prepare().then(() => {
         socket.on("start-game", (gameId) => {
             const roomData = gameRooms.get(gameId);
 
+            const configuration = JSON.parse(roomData.configuration)
+            const connectedPlayers = Array.from(roomData.players.values()).filter(p => p.online);
+            const gamePlayers = Object.values(configuration).reduce((a, b) => a + b, 0)
+
+            // TODO: remove for prod
+            // if (connectedPlayers.length < gamePlayers) {
+            //     socket.emit("game-error", `Nombre de joueurs insuffisant pour démarrer la partie (joueurs connectés: ${connectedPlayers.length}, joueurs requis: ${gamePlayers})`);
+            //     return;
+            // }
+
             // TODO: reset for prod
             //if (roomData && roomData.state === 'waiting') {
-            roomData.state = 'in_progress';
-            roomData.phase = 'night';
+            roomData.state = 'En cours';
+            roomData.phase = 'nuit';
             roomData.lastActivity = new Date();
 
             addGameAction(gameId, {
@@ -571,6 +588,24 @@ app.prepare().then(() => {
                 channel: "general"
             });
 
+            // roles distribution
+            const roleCounts = configuration;
+            let roles = [];
+            Object.entries(roleCounts).forEach(([role, count]) => {
+                const roleData = getRoleById(Number(role));
+                for (let i = 0; i < count; i++) roles.push(roleData.name);
+            });
+
+            roles = roles.sort(() => Math.random() - 0.5);
+
+            connectedPlayers.forEach((player, idx) => {
+                player.role = roles[idx];
+                const socketId = player.socketId;
+                if (roomData.players.has(socketId)) {
+                    roomData.players.get(socketId).role = player.role;
+                }
+            });
+
             setImmediate(async () => {
                 io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
                 io.to(`game-${gameId}`).emit("howl");
@@ -578,12 +613,15 @@ app.prepare().then(() => {
                     themeEnabled: true,
                     soundsEnabled: true
                 });
-                // io.in(`game-${gameId}`).emit("game-update", {state: roomData.state, phase: roomData.phase});
-                // if (startAction) {
-                //     io.in(`game-${gameId}`).emit("new-action", startAction);
-                // }
-                // const gameData = await updatedGameData(gameId);
-                // io.to(`game-${gameId}`).emit("game-update", gameData);
+                io.to(`game-${gameId}`).emit("starting-soon", 10);
+                io.to(`game-${gameId}`).emit("players-update", {
+                    players: Array.from(roomData.players.values())
+                });
+
+                // update game
+                await updateGameData(gameId, {state: "En cours", phase: "Nuit", players: Array.from(roomData.players.values())});
+                const gameData = await updatedGameData(gameId);
+                io.to(`game-${gameId}`).emit("game-update", gameData);
             });
             //}
         });

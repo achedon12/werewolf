@@ -13,6 +13,7 @@ import {toast} from "react-toastify";
 import {useRouter} from "next/navigation";
 import ConfigurationOverviewModal from "@/components/game/information/modal/ConfigurationOverview";
 import AdminConfigurationModal from "@/components/game/information/modal/Configuration";
+import StartingCounter from "@/components/game/StartingCounter";
 
 const GamePage = ({params}) => {
     const {id} = use(params);
@@ -36,6 +37,7 @@ const GamePage = ({params}) => {
     const [showConfigurationOverviewModal, setShowConfigurationOverviewModal] = useState(false);
     const [showConfigurationModal, setShowConfigurationModal] = useState(false);
     const [showPlayersConfigurationModal, setShowPlayersConfigurationModal] = useState(false);
+    const [startingSoon, setStartingSoon] = useState(null);
     const ambientSoundRef = useRef(null);
     const {user, token} = useAuth();
     const chatContainerRef = useRef(null);
@@ -132,6 +134,10 @@ const GamePage = ({params}) => {
             setCurrentPlayer(found || null);
         };
 
+        const handleStartingSoon = (seconds) => {
+            setStartingSoon(seconds);
+        };
+
         const handleGameError = (error) => {
             toast.error(error || "Erreur de jeu")
         };
@@ -202,6 +208,7 @@ const GamePage = ({params}) => {
         socket.on("game-error", handleGameError);
         socket.on("channel-joined", handleChannelJoined);
         socket.on("chat-error", handleChatError);
+        socket.on("starting-soon", handleStartingSoon);
 
         socket.emit("join-game", id, userFromLocalStorage, "");
         socket.emit("join-channel", id, "general");
@@ -224,7 +231,7 @@ const GamePage = ({params}) => {
             socket.off("ambient-settings", handleAmbientSettings);
             socket.off('exclude-player-confirm', handleExcludePlayerConfirm);
             socket.off('admin-confirm-action', handleAdminConfirmAction)
-            socket.off('')
+            socket.off('starting-soon', handleStartingSoon);
             socket.emit("leave-game", id, userFromLocalStorage);
         };
     }, [id, socket]);
@@ -241,7 +248,7 @@ const GamePage = ({params}) => {
                 setCurrentAmbientSound('/sounds/ambiance.mp3');
                 ambientSoundRef.current = new Audio('/sounds/ambiance.mp3');
                 ambientSoundRef.current.loop = true;
-                ambientSoundRef.current.volume = 0.3;
+                ambientSoundRef.current.volume = 0.2;
             }
         };
 
@@ -256,6 +263,18 @@ const GamePage = ({params}) => {
             stopAmbientSound();
         };
     }, [ambientSoundsEnabled]);
+
+    useEffect(() => {
+        if (!startingSoon) return;
+        if (startingSoon <= 0) {
+            setStartingSoon(null);
+            return;
+        }
+        const timer = setTimeout(() => {
+            setStartingSoon(startingSoon - 1);
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, [startingSoon]);
 
     const playAmbientSound = () => {
         if (ambientSoundRef.current && ambientSoundsEnabled) {
@@ -483,6 +502,8 @@ const GamePage = ({params}) => {
                 close={() => setShowConfigurationModal(false)}
                 save={handleUpdateGame}
             />
+
+            <StartingCounter startingSoon={startingSoon} players={players} currentPlayer={currentPlayer}/>
         </div>
     );
 };
