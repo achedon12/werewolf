@@ -20,6 +20,7 @@ export default function Footer() {
                         <h3 className="footer-title">Navigation</h3>
                         <Link href="/" className="link link-hover">Accueil</Link>
                         <Link href="/rules" className="link link-hover">Règles du jeu</Link>
+                        <Link href="/game/list" className="link link-hover">Liste des parties</Link>
                         <Link href="/game/create" className="link link-hover">Créer une partie</Link>
                     </div>
 

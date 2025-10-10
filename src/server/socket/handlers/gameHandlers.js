@@ -2,7 +2,7 @@ import {
     addPlayerToChannel,
     addPlayerToGame,
     connectedPlayers,
-    createGameRoom,
+    createGameRoom, gameRooms,
     getGameRoom,
     removePlayerFromGame
 } from "../utils/roomManager.js";
@@ -85,7 +85,7 @@ export const handleLeaveGame = (socket, io, gameId, userData) => {
         const roomId = playerInfo?.gameId || gameId;
 
         removePlayerFromGame(socket, io, roomId, playerInfo, false);
-
+        io.emit('game-updated', updatedGameData);
     } catch (err) {
         console.error("❌ Erreur leave-game:", err);
     }
@@ -118,6 +118,27 @@ export const handleJoinChannel = (socket, io, gameId, channelType) => {
 
     } catch (error) {
         console.error("❌ Erreur join-channel:", error);
+    }
+}
+
+export const handleGetAvailableGames = (socket, io) => {
+    try {
+        const availableGames = Array.from(gameRooms.values()).map(room => ({
+            id: room.id,
+            name: room.name || `Partie ${room.id}`,
+            type: room.type || 'classic',
+            configuration: room.configuration,
+            state: room.state,
+            phase: room.phase,
+            players: room.players ? Object.fromEntries(room.players) : {},
+            createdAt: room.createdAt,
+            lastActivity: room.lastActivity
+        }));
+
+        socket.emit('available-games', availableGames);
+    } catch (error) {
+        console.error('❌ Erreur get-available-games:', error);
+        socket.emit('connection-error', { message: 'Erreur lors du chargement des parties' });
     }
 }
 

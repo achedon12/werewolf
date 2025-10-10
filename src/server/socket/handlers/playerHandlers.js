@@ -46,6 +46,7 @@ export const handleDisconnect = (socket, io, reason) => {
     if (!playerInfo) return;
 
     removePlayerFromGame(socket, io, playerInfo.gameId, playerInfo, true);
+    io.emit('game-updated', updatedGameData);
 }
 
 const getActionDetails = (type, playerName, details) => {

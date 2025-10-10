@@ -71,6 +71,7 @@ export const handleExcludePlayer = (socket, io, gameId, targetPlayerId, reason) 
     });
 
     socket.emit("admin-confirm-action", `Le joueur ${targetPlayer.nickname} a bien été exclu (${reason})`);
+    io.emit('game-updated', updatedGameData);
 
     if (targetSocketId) {
         const targetSocket = io.sockets.sockets.get(targetSocketId);
@@ -131,6 +132,7 @@ export const handleAddBot = (socket, io, gameId, botName) => {
     });
 
     socket.emit("admin-confirm-action", `Le bot ${botData.nickname} a bien été ajouté à la partie`);
+    io.emit('game-updated', updatedGameData);
 }
 
 export const handleGetRoomInfo = (socket, gameId) => {

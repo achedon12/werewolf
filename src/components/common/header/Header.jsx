@@ -5,7 +5,7 @@ import {useEffect, useState} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {useAuth} from "@/app/AuthProvider";
 import {toast} from 'react-toastify';
-import {Gamepad2, House, NotebookText, Search, UserRound} from "lucide-react";
+import {Gamepad2, House, Joystick, NotebookText, Search, UserRound} from "lucide-react";
 import Image from "next/image";
 
 export default function Header() {
@@ -117,6 +117,12 @@ export default function Header() {
                                 </Link>
                             </li>
                             <li>
+                                <Link href="/game/list" className="btn btn-ghost text-base-content">
+                                    <Joystick className="inline w-5 h-5 mr-1"/>
+                                    Parties
+                                </Link>
+                            </li>
+                            <li>
                                 <button onClick={createGame} className="btn btn-ghost text-base-content">
                                     <Gamepad2 className="inline w-5 h-5 mr-1"/>
                                     Créer une partie
@@ -170,6 +176,12 @@ export default function Header() {
                                               className="text-base-content">
                                             <NotebookText className="inline w-5 h-5 mr-1"/>
                                             Règles
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link href="/game/list" className="text-base-content">
+                                            <Joystick className="inline w-5 h-5 mr-1"/>
+                                            Parties
                                         </Link>
                                     </li>
                                     <li>

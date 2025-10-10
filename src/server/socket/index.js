@@ -1,6 +1,6 @@
 import {Server} from "socket.io";
 import {handleDisconnect, handlePing} from "./handlers/connectionHandlers.js";
-import {handleJoinChannel, handleJoinGame, handleLeaveGame} from "./handlers/gameHandlers.js";
+import {handleGetAvailableGames, handleJoinChannel, handleJoinGame, handleLeaveGame} from "./handlers/gameHandlers.js";
 import {handleRequestHistory, handleSendChat} from "./handlers/chatHandlers.js";
 import {handlePlayerAction} from "./handlers/playerHandlers.js";
 import {
@@ -22,6 +22,8 @@ export const initializeSocket = (httpServer, hostname, port) => {
     io.on("connection", (socket) => {
 
         socket.on("ping", () => handlePing(socket));
+
+        socket.on('get-available-games', () => handleGetAvailableGames(socket, io));
 
         socket.on("join-game", (gameId, userData, playerRole) =>
             handleJoinGame(socket, io, gameId, userData, playerRole));
