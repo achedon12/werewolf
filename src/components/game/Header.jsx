@@ -14,7 +14,8 @@ const GameHeader = ({game, players, configuration, creator}) => {
                             <span className={`badge ${
                                 game.state === "En attente" ? "badge-warning" :
                                     game.state === "En cours" ? "badge-success" : "badge-error"
-                            }`}>
+                                }`}
+                            >
                                 {game.state}
                             </span>
                             {game.state !== "En attente" ? (
@@ -25,9 +26,13 @@ const GameHeader = ({game, players, configuration, creator}) => {
                                     </span>
                                 </>
                             ) : (
-                                <span>
-                                    {players.length} / {configuration ? Object.values(configuration).reduce((a, b) => a + b, 0) : 0} joueurs inscrits
-                                </span>
+                                <>
+                                    <span className="badge badge-info">{game.type}</span>
+                                    <span>
+                                        {players.length} / {configuration ? Object.values(configuration).reduce((a, b) => a + b, 0) : 0} joueurs inscrits
+                                    </span>
+                                </>
+
                             )}
                         </div>
                     </div>

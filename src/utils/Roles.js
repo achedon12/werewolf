@@ -136,6 +136,44 @@ export const roles = [
     } // montreur d'ours
 ];
 
+export const gameRoleCallOrder =  [
+    "Cupidon",
+    "Voyante",
+    "Salvateur",
+    "Renard",
+    "Enfant Sauvage",
+    "Loup-Garou Blanc",
+    "Loup-Garou",
+    "Sorcière",
+    "Voleur"
+]
+
+export const defaultGameConfig = {
+    day: 0,
+    night: 1,
+    roles: roles,
+    lovers: {
+        exists: false,
+        players: []
+    },
+    wildChild: {
+        transformed: false,
+        model: null,
+    },
+    saving: {
+        target: null,
+        prevTarget: null
+    },
+    wolves: {
+        target: null,
+        whiteTarget: null
+    },
+    thief: {
+        choices: [],
+        swapped: false
+    }
+}
+
 export const getRoleById = (id) => {
     return roles.find(role => role.id === id);
 }

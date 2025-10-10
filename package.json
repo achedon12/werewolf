@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "nodemon server.js",
+    "dev": "nodemon src/server/index.js",
     "build": "next build --turbopack",
-    "start": "NODE_ENV=production node server.js",
+    "start": "NODE_ENV=production node src/server/index.js",
     "lint": "eslint"
   },
   "dependencies": {

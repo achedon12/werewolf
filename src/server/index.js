@@ -1,7 +1,7 @@
 import {createServer} from "node:http";
 import next from "next";
 import {Server} from "socket.io";
-import {getRoleById} from "./src/utils/Roles.js";
+import { defaultGameConfig, getRoleById } from "../utils/Roles.js";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -613,6 +613,8 @@ app.prepare().then(() => {
                     roomData.players.get(socketId).role = player.role;
                 }
             });
+
+            roomData.config = defaultGameConfig;
 
             setImmediate(async () => {
                 io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
