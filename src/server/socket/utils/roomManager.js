@@ -1,4 +1,4 @@
-import {CHANNEL_TYPES} from "../../config/constants.js";
+import {ACTION_TYPES, CHANNEL_TYPES, GAME_PHASES, GAME_STATES} from "../../config/constants.js";
 import {addGameAction} from "./actionLogger.js";
 
 export const gameRooms = new Map();
@@ -16,8 +16,8 @@ export const createGameRoom = (gameId) => {
         },
         players: new Map(),
         actionHistory: [],
-        state: 'waiting',
-        phase: 'day'
+        state: GAME_STATES.WAITING,
+        phase: GAME_PHASES.NIGHT
     };
 
     gameRooms.set(gameId, roomData);

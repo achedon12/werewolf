@@ -1,6 +1,7 @@
 import {getGameRoom} from "./roomManager.js";
 import {addGameAction} from "./actionLogger.js";
 import {defaultGameConfig, getRoleById} from "../../../utils/Roles.js";
+import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "../../config/constants.js";
 
 const hostname = "localhost";
 const port = 3000;
@@ -56,8 +57,8 @@ export async function startGameLogic(socket, io, gameId) {
     //     throw new Error(`La partie a déjà commencé ou est terminée.`);
     // }
 
-    roomData.state = 'En cours';
-    roomData.phase = 'nuit';
+    roomData.state = GAME_STATES.IN_PROGRESS;
+    roomData.phase = GAME_PHASES.NIGHT;
     roomData.lastActivity = new Date();
 
     addGameAction(gameId, {

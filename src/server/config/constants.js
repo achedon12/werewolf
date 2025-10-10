@@ -7,9 +7,10 @@ export const GAME_STATES = {
 };
 
 export const GAME_PHASES = {
-    DAY: 'day',
-    NIGHT: 'nuit',
-    VOTING: 'voting'
+    DAY: 'Jour',
+    NIGHT: 'Nuit',
+    VOTING: 'voting',
+    STARTING: 'Démarrage',
 };
 
 export const ACTION_TYPES = {
