@@ -121,7 +121,7 @@ export const removePlayerFromAllChannels = (socket, gameId) => {
     });
 }
 
-export const cleanupInactiveRooms = () => {
+export const cleanupInactiveRooms = (io) => {
     const now = new Date();
     const inactiveTime = 15 * 60 * 1000;
 

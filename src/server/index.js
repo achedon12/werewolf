@@ -6,6 +6,7 @@ import {cleanupInactiveRooms} from "./socket/utils/roomManager.js";
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = 3000;
+import { Server } from "socket.io";
 
 const startServer = async () => {
     try {
@@ -14,10 +15,11 @@ const startServer = async () => {
 
         const handler = app.getRequestHandler();
         const httpServer = createServer(handler);
+        const io = new Server(httpServer)
 
         initializeSocket(httpServer, hostname, port);
 
-        setInterval(cleanupInactiveRooms, 5 * 60 * 1000);
+        setInterval(() => cleanupInactiveRooms(io), 5 * 60 * 1000);
 
         httpServer
             .once("error", (err) => {
