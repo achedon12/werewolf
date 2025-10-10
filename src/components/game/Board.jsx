@@ -1,6 +1,33 @@
 import Image from "next/image";
+import {useState, useEffect} from "react";
 
-const GameBoard = ({players, currentPlayer}) => {
+const GameBoard = ({players, currentPlayer, game}) => {
+
+    const [configuration, setConfiguration] = useState({});
+    const [maxPlayers, setMaxPlayers] = useState(0);
+    const [radius, setRadius] = useState(160);
+    const [boardSize, setBoardSize] = useState(400);
+    const baseRadius = 160;
+    const referencePlayers = 8;
+
+    useEffect(() => {
+        if (!game) return;
+        setConfiguration(JSON.parse(game.configuration));
+    }, [game]);
+
+    useEffect(() => {
+        if (!configuration) return;
+        const total = Object.values(configuration).reduce((a, b) => a + b, 0);
+        setMaxPlayers(total);
+    }, [configuration]);
+
+    useEffect(() => {
+        setRadius(baseRadius * (maxPlayers / referencePlayers))
+    }, [maxPlayers])
+
+    useEffect(() => {
+        setBoardSize(radius * 2 + 100);
+    }, [radius])
 
     if (!players || players.length === 0) {
         return (
@@ -23,24 +50,28 @@ const GameBoard = ({players, currentPlayer}) => {
 
     return (
         <div className="relative my-8">
-            <div className="flex justify-center gap-6 mb-8">
-                <div
-                    className="stat place-items-center bg-base-200/20 backdrop-blur-sm rounded-2xl px-6 py-4 border border-green-500/20">
-                    <div className="stat-title text-green-400">En vie</div>
-                    <div className="stat-value text-green-400 text-3xl">{alivePlayers.length}</div>
-                    <div className="stat-desc text-gray-400">Joueurs</div>
-                </div>
+            {game.state !== "En attente" && (
+                <div className="flex justify-center gap-6 mb-8">
+                    <div
+                        className="stat place-items-center bg-base-200/20 backdrop-blur-sm rounded-2xl px-6 py-4 border border-green-500/20">
+                        <div className="stat-title text-green-400">En vie</div>
+                        <div className="stat-value text-green-400 text-3xl">{alivePlayers.length}</div>
+                        <div className="stat-desc text-gray-400">Joueurs</div>
+                    </div>
 
-                <div
-                    className="stat place-items-center bg-base-200/20 backdrop-blur-sm rounded-2xl px-6 py-4 border border-red-500/20">
-                    <div className="stat-title text-red-400">Morts</div>
-                    <div className="stat-value text-red-400 text-3xl">{deadPlayers.length}</div>
-                    <div className="stat-desc text-gray-400">Joueurs</div>
+                    <div
+                        className="stat place-items-center bg-base-200/20 backdrop-blur-sm rounded-2xl px-6 py-4 border border-red-500/20">
+                        <div className="stat-title text-red-400">Morts</div>
+                        <div className="stat-value text-red-400 text-3xl">{deadPlayers.length}</div>
+                        <div className="stat-desc text-gray-400">Joueurs</div>
+                    </div>
                 </div>
-            </div>
+            )}
 
-            <div className="relative mx-auto w-80 h-80 md:w-96 md:h-96">
-                <div className="absolute inset-0 rounded-full border-2 border-purple-500/20 animate-pulse">
+            <div className="relative mx-auto"
+                 style={{ width: `${boardSize}px`, height: `${boardSize}px` }}>
+                <div className="absolute inset-0 rounded-full border-2 border-purple-500/20 animate-pulse"
+                     style={{ width: `${radius * 2}px`, height: `${radius * 2}px`, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
                     <div className="absolute inset-4 rounded-full border border-white/10"></div>
                 </div>
 
@@ -50,7 +81,7 @@ const GameBoard = ({players, currentPlayer}) => {
                         return (
                             <div
                                 key={`line-${idx}`}
-                                className="absolute top-1/2 left-1/2 w-px h-1/2 bg-white/5 transform origin-top"
+                                className="absolute top-1/2 left-1/2 w-px h-2/3 bg-white/5 transform origin-top"
                                 style={{transform: `rotate(${angle}deg) translateY(-50%)`}}
                             />
                         );
@@ -59,8 +90,7 @@ const GameBoard = ({players, currentPlayer}) => {
 
                 {players.map((player, idx) => {
                     const totalPlayers = players.length;
-                    const angle = (2 * Math.PI * idx) / totalPlayers;
-                    const radius = 140;
+                    const angle = (2 * Math.PI / totalPlayers) * idx - Math.PI / 2;
                     const x = radius * Math.cos(angle);
                     const y = radius * Math.sin(angle);
 

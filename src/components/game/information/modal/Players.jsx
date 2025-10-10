@@ -1,39 +1,37 @@
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import Image from 'next/image';
 import {formatDateTime} from "@/utils/Date";
+import {Bot, Plus} from "lucide-react";
+import { faker } from '@faker-js/faker';
 
-const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close = () => {}, excludePlayer = () => {} }) => {
+const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close = () => {}, excludePlayer = () => {}, addBot = () => {} }) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [actionType, setActionType] = useState(''); // 'kick' or 'ban'
     const [duration, setDuration] = useState(''); // For ban duration
     const [reason, setReason] = useState('');
+    const [configuration, setConfiguration] = useState(null);
+    const [maxPlayers, setMaxPlayers] = useState(0);
+
+    useEffect(() => {
+        if (!game) return;
+        setConfiguration(JSON.parse(game.configuration));
+    }, [game]);
+
+    useEffect(() => {
+        if (!configuration) return;
+        setMaxPlayers(Object.values(configuration).reduce((a, b) => a + b, 0))
+    }, [configuration]);
 
     if (!show) return null;
 
-    // Mock function - à remplacer par vos appels API
     const handleKickPlayer = (playerId, reason) => {
-        console.log(`Kick player ${playerId} for: ${reason}`);
         excludePlayer(playerId, reason);
         setSelectedPlayer(null);
     };
 
-    const handleBanPlayer = (playerId, duration, reason) => {
-        console.log(`Ban player ${playerId} for ${duration} because: ${reason}`);
-        // API call here
-        setSelectedPlayer(null);
-    };
-
-    const handleMutePlayer = (playerId, duration) => {
-        console.log(`Mute player ${playerId} for ${duration}`);
-        // API call here
-        setSelectedPlayer(null);
-    };
-
-    const handlePromoteToAdmin = (playerId) => {
-        console.log(`Promote player ${playerId} to admin`);
-        // API call here
-        setSelectedPlayer(null);
-    };
+    const handleAddBot = () => {
+        addBot(faker.person.firstName());
+    }
 
     return (
         <div className="modal modal-open z-[100]">
@@ -73,7 +71,7 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
 
                 <div className="p-6 max-w-7xl mx-auto h-[calc(100vh-120px)] overflow-y-auto">
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
                         <div className="stat bg-base-200/30 backdrop-blur-sm rounded-2xl border border-white/10">
                             <div className="stat-title text-gray-300">Total</div>
                             <div className="stat-value text-primary text-2xl">{players.length}</div>
@@ -96,6 +94,12 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
                                 {players.filter(p => p.isAdmin).length + 1 /* +1 for owner */}
                             </div>
                         </div>
+                        <div className="stat bg-base-200/30 backdrop-blur-sm rounded-2xl border border-white/10">
+                            <div className="stat-title text-gray-300">Bots</div>
+                            <div className="stat-value text-purple-400 text-2xl">
+                                {players.filter(p => p.isBot).length}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -104,6 +108,15 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
                                 key={player.id}
                                 className="group relative p-6 bg-base-200/30 backdrop-blur-sm rounded-2xl border border-white/10 hover:border-purple-500/50 transition-all duration-300"
                             >
+                                {player.isBot && (
+                                    <div className="absolute -top-2 -left-2 z-10">
+                                        <div className="badge badge-sm badge-purple">
+                                            <Bot className="inline-block mr-1" size={12} />
+                                            Bot
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="absolute -top-2 -right-2 z-10">
                                     <div className={`badge badge-sm ${
                                         (player.isAdmin || game.admin.id === player.id ) ? 'badge-warning' :
@@ -142,7 +155,16 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
                                 </div>
 
                                 <div className="mt-4 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 relative">
-                                    {(!player.isAdmin || game.admin.id === currentPlayer.id) && player.id !== currentPlayer.id && (
+                                    {player.isBot && (
+                                        <button
+                                            onClick={() => handleKickPlayer(player.id, 'Suppression du bot')}
+                                            className="btn btn-sm btn-outline btn-warning hover:cursor-pointer"
+                                            title="Supprimer le bot"
+                                        >
+                                            🤖 Supprimer
+                                        </button>
+                                    )}
+                                    {(!player.isAdmin || game.admin.id === currentPlayer.id) && !player.isBot && player.id !== currentPlayer.id && (
                                         <>
                                             <button
                                                 onClick={() => {
@@ -154,39 +176,29 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
                                             >
                                                 🚪
                                             </button>
-                                            {/*<button
-                                                onClick={() => {
-                                                    setSelectedPlayer(player);
-                                                    setActionType('ban');
-                                                }}
-                                                className="btn btn-sm btn-outline btn-error hover:cursor-pointer"
-                                                title="Bannir le joueur"
-                                            >
-                                                ⚔️
-                                            </button>
-                                            <button
-                                                onClick={() => handleMutePlayer(player.id, '1h')}
-                                                className="btn btn-sm btn-outline btn-warning hover:cursor-pointer"
-                                                title="Rendre muet"
-                                            >
-                                                🔇
-                                            </button>*/}
                                         </>
                                     )}
-                                    {/*{(!player.isAdmin && game.admin.id !== player.id) && (
-                                        <button
-                                            onClick={() => handlePromoteToAdmin(player.id)}
-                                            className="btn btn-sm btn-outline btn-success hover:cursor-pointer"
-                                            title="Promouvoir admin"
-                                        >
-                                            👑
-                                        </button>
-                                    )}*/}
+
                                 </div>
 
                                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             </div>
                         ))}
+                        {players.length < maxPlayers && (
+                            <div
+                                className="flex flex-col items-center justify-center p-6 bg-base-200/20 backdrop-blur-sm rounded-2xl border-2 border-dashed border-white/10 hover:border-purple-500/50 transition-all duration-300 cursor-pointer"
+                                title={`Ajouter un bot (${maxPlayers - players.length} place${maxPlayers - players.length > 1 ? 's' : ''} restante${maxPlayers - players.length > 1 ? 's' : ''})`}
+                                onClick={handleAddBot}
+                            >
+                                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg mb-4">
+                                    <Plus className="text-white" size={32} />
+                                </div>
+                                <h3 className="font-bold text-white text-lg">Ajouter un bot</h3>
+                                <p className="text-gray-500 text-sm mt-1">
+                                    {maxPlayers - players.length} place{maxPlayers - players.length > 1 ? 's' : ''} restante{maxPlayers - players.length > 1 ? 's' : ''}
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     {players.length === 0 && (
@@ -284,8 +296,6 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
                                 onClick={() => {
                                     if (actionType === 'kick') {
                                         handleKickPlayer(selectedPlayer.id, reason);
-                                    } else {
-                                        handleBanPlayer(selectedPlayer.id, duration, reason);
                                     }
                                 }}
                                 disabled={!reason.trim() || (actionType === 'ban' && !duration)}

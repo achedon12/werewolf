@@ -17,10 +17,18 @@ const GameHeader = ({game, players, configuration, creator}) => {
                             }`}>
                                 {game.state}
                             </span>
-                            <span className="badge badge-info">{game.phase}</span>
-                            <span className="text-gray-400">
-                                {alivePlayers.length} / {configuration ? Object.values(configuration).reduce((a, b) => a + b, 0) : 0} joueurs vivants
-                            </span>
+                            {game.state !== "En attente" ? (
+                                <>
+                                    <span className="badge badge-info">{game.phase}</span>
+                                    <span className="text-gray-400">
+                                        {alivePlayers.length} / {configuration ? Object.values(configuration).reduce((a, b) => a + b, 0) : 0} joueurs vivants
+                                    </span>
+                                </>
+                            ) : (
+                                <span>
+                                    {players.length} / {configuration ? Object.values(configuration).reduce((a, b) => a + b, 0) : 0} joueurs inscrits
+                                </span>
+                            )}
                         </div>
                     </div>
 

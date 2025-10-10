@@ -324,6 +324,10 @@ const GamePage = ({params}) => {
         socket.emit("exclude-player", id, user, reason);
     }
 
+    const handleAddBot = (botName) => {
+        socket.emit("add-bot", id, botName);
+    }
+
     const handleUpdateGame = (newName, newType, newConfig) => {
         socket.emit("update-game", id, {name: newName, type: newType, configuration: JSON.stringify(newConfig)})
     }
@@ -490,6 +494,7 @@ const GamePage = ({params}) => {
             <PlayersConfigurationModal
                 currentPlayer={currentPlayer}
                 excludePlayer={handleExcludePlayer}
+                addBot={handleAddBot}
                 game={game}
                 players={players}
                 show={showPlayersConfigurationModal}
@@ -503,7 +508,10 @@ const GamePage = ({params}) => {
                 save={handleUpdateGame}
             />
 
-            <StartingCounter startingSoon={startingSoon} players={players} currentPlayer={currentPlayer}/>
+            <StartingCounter
+                startingSoon={startingSoon}
+                currentPlayer={currentPlayer}
+            />
         </div>
     );
 };

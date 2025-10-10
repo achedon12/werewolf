@@ -7,30 +7,32 @@ const GameActions = ({ players, currentPlayer, game, performAction, activeTab, s
 
     return (
         <div className="lg:col-span-3 space-y-6">
-            <div
-                className="tabs tabs-boxed bg-base-200/20 backdrop-blur-sm flex gap-4 justify-center border border-white/10">
-                <button
-                    className={`tab ${activeTab === "game" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("game")}
-                >
-                    <Gamepad2 className="inline mr-2 h-4 w-4"/>
-                    Jeu
-                </button>
-                <button
-                    className={`tab ${activeTab === "players" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("players")}
-                >
-                    <UsersRound className="inline mr-2 h-4 w-4"/>
-                    Joueurs
-                </button>
-                <button
-                    className={`tab ${activeTab === "rules" ? "tab-active" : ""}`}
-                    onClick={() => setActiveTab("rules")}
-                >
-                    <NotebookText className="inline mr-2 h-4 w-4"/>
-                    Règles
-                </button>
-            </div>
+            {game.state === "En cours" && (
+                <div
+                    className="tabs tabs-boxed bg-base-200/20 backdrop-blur-sm flex gap-4 justify-center border border-white/10">
+                    <button
+                        className={`tab ${activeTab === "game" ? "tab-active" : ""}`}
+                        onClick={() => setActiveTab("game")}
+                    >
+                        <Gamepad2 className="inline mr-2 h-4 w-4"/>
+                        Jeu
+                    </button>
+                    <button
+                        className={`tab ${activeTab === "players" ? "tab-active" : ""}`}
+                        onClick={() => setActiveTab("players")}
+                    >
+                        <UsersRound className="inline mr-2 h-4 w-4"/>
+                        Joueurs
+                    </button>
+                    <button
+                        className={`tab ${activeTab === "rules" ? "tab-active" : ""}`}
+                        onClick={() => setActiveTab("rules")}
+                    >
+                        <NotebookText className="inline mr-2 h-4 w-4"/>
+                        Règles
+                    </button>
+                </div>
+            )}
 
             {activeTab === "game" && <TabGame game={game} players={players} currentPlayer={currentPlayer} performAction={performAction} />}
 

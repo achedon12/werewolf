@@ -556,18 +556,26 @@ app.prepare().then(() => {
         socket.on("start-game", (gameId) => {
             const roomData = gameRooms.get(gameId);
 
+            if (!roomData) {
+                socket.emit("game-error", `Partie avec ID ${gameId} non trouvée, Veuillez recharger la page.`);
+                return;
+            }
+
             const configuration = JSON.parse(roomData.configuration)
             const connectedPlayers = Array.from(roomData.players.values()).filter(p => p.online);
             const gamePlayers = Object.values(configuration).reduce((a, b) => a + b, 0)
 
-            // TODO: remove for prod
-            // if (connectedPlayers.length < gamePlayers) {
-            //     socket.emit("game-error", `Nombre de joueurs insuffisant pour démarrer la partie (joueurs connectés: ${connectedPlayers.length}, joueurs requis: ${gamePlayers})`);
+            if (connectedPlayers.length !== gamePlayers) {
+                socket.emit("game-error", `Nombre de joueurs insuffisant pour démarrer la partie (joueurs connectés: ${connectedPlayers.length}, joueurs requis: ${gamePlayers})`);
+                return;
+            }
+
+            // TODO: reset for prod
+            // if (roomData.state !== 'En attente') {
+            //     socket.emit("game-error", `La partie a déjà commencé ou est terminée.`);
             //     return;
             // }
 
-            // TODO: reset for prod
-            //if (roomData && roomData.state === 'waiting') {
             roomData.state = 'En cours';
             roomData.phase = 'nuit';
             roomData.lastActivity = new Date();
@@ -618,12 +626,10 @@ app.prepare().then(() => {
                     players: Array.from(roomData.players.values())
                 });
 
-                // update game
                 await updateGameData(gameId, {state: "En cours", phase: "Nuit", players: Array.from(roomData.players.values())});
                 const gameData = await updatedGameData(gameId);
                 io.to(`game-${gameId}`).emit("game-update", gameData);
             });
-            //}
         });
 
         socket.on("update-game", async(gameId, updatedData) => {
@@ -696,19 +702,56 @@ app.prepare().then(() => {
             }
         });
 
+        socket.on("add-bot", (gameId, botName) => {
+            const roomData = gameRooms.get(gameId);
+
+            if (!roomData) {
+                socket.emit("game-error", `Partie avec ID ${gameId} non trouvée, Veuillez recharger la page.`);
+                return;
+            }
+
+            const botId = `bot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            const botData = {
+                id: botId,
+                socketId: null,
+                nickname: botName || `Bot-${Math.floor(Math.random() * 1000)}`,
+                avatar: null,
+                isAdmin: false,
+                role: "",
+                isAlive: true,
+                online: true,
+                isBot: true,
+                joinedAt: new Date()
+            };
+            roomData.players.set(botId, botData);
+            roomData.lastActivity = new Date();
+
+            addGameAction(gameId, {
+                type: "bot_added",
+                playerName: botData.nickname,
+                playerRole: "Bot",
+                message: `🤖 ${botData.nickname} a rejoint la partie`,
+                phase: "game"
+            });
+
+            io.in(`game-${gameId}`).emit("players-update", {
+                players: Array.from(roomData.players.values())
+            });
+            io.in(`game-${gameId}-general`).emit("chat-message", {
+                type: "system",
+                playerName: "Système",
+                message: `🤖 ${botData.nickname} a rejoint la partie`,
+                createdAt: new Date().toISOString(),
+                channel: "general"
+            });
+            socket.emit("admin-confirm-action", `Le bot ${botData.nickname} a bien été ajouté à la partie`);
+        })
+
         socket.on("ping", () => {
             socket.emit("pong", {
                 createdAt: new Date().toISOString(),
                 serverTime: Date.now()
             });
-        });
-    });
-
-    httpServer.on('request', (req, res) => {
-        const start = Date.now();
-        res.on('finish', () => {
-            const duration = Date.now() - start;
-            console.log(`🌐 ${req.method} ${req.url} - ${res.statusCode} (${duration}ms)`);
         });
     });
 

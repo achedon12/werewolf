@@ -10,6 +10,11 @@ export async function GET(request, context) {
         where: {id: id},
         include: {
             admin: true,
+            players: {
+                include: {
+                    user: true
+                }
+            },
         }
     });
 

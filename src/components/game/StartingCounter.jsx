@@ -1,9 +1,32 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 
-const StartingCounter = ({startingSoon, players, currentPlayer}) => {
+const StartingCounter = ({startingSoon, currentPlayer}) => {
     const [showRole, setShowRole] = useState(false);
+    const audioRef = useRef(null);
 
     useEffect(() => {
+        if (startingSoon === 4) {
+            try {
+                const audio = new Audio('/sounds/riser.mp3');
+                audio.volume = 1;
+                audioRef.current = audio;
+                audio.play();
+            } catch (error) {}
+        }
+
+        if (startingSoon === 1 && audioRef.current) {
+            const fadeOut = setInterval(() => {
+                if (audioRef.current.volume > 0.05) {
+                    audioRef.current.volume -= 0.05;
+                } else {
+                    audioRef.current.volume = 0;
+                    audioRef.current.pause();
+                    clearInterval(fadeOut);
+                }
+            }, 50);
+            return () => clearInterval(fadeOut);
+        }
+
         if (startingSoon === 0) {
             setShowRole(true);
             const timer = setTimeout(() => setShowRole(false), 1000);

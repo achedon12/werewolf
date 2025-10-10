@@ -20,17 +20,23 @@ const GameInformation = ({game, currentPlayer, startGame = () => {}, configurati
                     </div>
                     <div className="flex justify-between">
                         <span className="text-gray-400">Statut:</span>
-                        <span className={currentPlayer?.isAlive ? "text-green-400" : "text-red-400"}>
-                            {currentPlayer.isAlive ? (
-                                <span className="flex items-center">
-                                <CircleDot size={16} className="inline text-green-400 mr-1"/>
-                                En vie
-                              </span>
+                        <span className={game.state === "En attente" ? "text-gray-400" : currentPlayer.isAlive ? "text-green-400" : "text-red-400"}>
+                            {game.state === "En attente" ? (
+                                "~"
                             ) : (
-                                <span className="flex items-center">
-                                    <Skull size={16} className="inline text-red-400 mr-1"/>
-                                    Mort
-                                </span>
+                                <>
+                                    {currentPlayer.isAlive ? (
+                                        <span className="flex items-center">
+                                        <CircleDot size={16} className="inline text-green-400 mr-1"/>
+                                        En vie
+                                      </span>
+                                    ) : (
+                                        <span className="flex items-center">
+                                            <Skull size={16} className="inline text-red-400 mr-1"/>
+                                            Mort
+                                            </span>
+                                    )}
+                                </>
                             )}
                         </span>
                     </div>
