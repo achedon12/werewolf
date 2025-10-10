@@ -10,7 +10,4 @@ export function handlePing(socket) {
 export function handleDisconnect(socket, io, reason) {
     const playerInfo = connectedPlayers.get(socket.id);
     if (!playerInfo) return;
-
-    console.log(`🔌 Déconnexion: ${socket.id} (${playerInfo.nickname})`);
-
 }

@@ -24,15 +24,10 @@ async function startServer() {
                 console.error("❌ Erreur du serveur HTTP:", err);
                 process.exit(1);
             })
-            .listen(port, () => {
-                console.log(`🚀 Serveur Next.js prêt sur http://${hostname}:${port}`);
-                console.log(`📡 Serveur Socket.IO actif avec gestion des rooms et historique d'actions`);
-            });
+            .listen(port);
 
         process.on('SIGTERM', () => {
-            console.log('🛑 Arrêt du serveur...');
             httpServer.close(() => {
-                console.log('✅ Serveur arrêté proprement');
                 process.exit(0);
             });
         });

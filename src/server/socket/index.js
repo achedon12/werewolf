@@ -20,7 +20,6 @@ export function initializeSocket(httpServer, hostname, port) {
     });
 
     io.on("connection", (socket) => {
-        console.log(`🔗 Nouvelle connexion: ${socket.id}`);
 
         socket.on("ping", () => handlePing(socket));
 
