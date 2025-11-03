@@ -1,6 +1,6 @@
 import GameBoard from "@/components/game/Board";
 
-const TabGame = ({game, players, currentPlayer, performAction}) => {
+const TabGame = ({game, players, currentPlayer, performAction, numberCanBeSelected, selectedPlayers, setSelectedPlayers}) => {
     const alivePlayers = players.filter(p => p.isAlive);
 
     return (
@@ -104,7 +104,7 @@ const TabGame = ({game, players, currentPlayer, performAction}) => {
                 </div>
             )}
 
-            <GameBoard players={players} currentPlayer={currentPlayer} game={game}/>
+            <GameBoard players={players} currentPlayer={currentPlayer} game={game} numberCanBeSelected={numberCanBeSelected} selectedPlayers={selectedPlayers} setSelectedPlayers={setSelectedPlayers} />
         </div>
     );
 }

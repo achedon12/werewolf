@@ -1,8 +1,44 @@
 import {Circle, CircleDot, Info, Settings, Skull} from "lucide-react";
+import {useEffect, useState} from "react";
 
-const GameInformation = ({game, currentPlayer, startGame = () => {}, configurationGameOverview = () => {}, configurationGame = () => {}, playersConfiguration = () => {} }) => {
+const GameInformation = ({game, configuration, players, currentPlayer, startGame = () => {}, configurationGameOverview = () => {}, configurationGame = () => {}, playersConfiguration = () => {} }) => {
 
     const isAdmin = game.admin.id === currentPlayer.id;
+    const [timer, setTimer] = useState('~');
+
+
+    useEffect(() => {
+        if (game.state === "En attente") {
+            setTimer('~');
+            return;
+        }
+
+        let interval = setInterval(() => {
+            const startedAt = new Date(game.startedAt);
+            const now = new Date();
+            const diff = now.getTime() - startedAt.getTime();
+
+            if (diff < 0) {
+                setTimer('00:00:00');
+                return;
+            }
+
+            const totalSeconds = Math.floor(diff / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            const formatted = [
+                hours.toString().padStart(2, '0'),
+                minutes.toString().padStart(2, '0'),
+                seconds.toString().padStart(2, '0'),
+            ].join(':');
+
+            setTimer(formatted);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [game]);
 
     return (
         <div className="card glass shadow-2xl backdrop-blur-sm border border-white/10">
@@ -12,6 +48,10 @@ const GameInformation = ({game, currentPlayer, startGame = () => {}, configurati
                     Informations
                 </h3>
                 <div className="space-y-3">
+                    <div className="flex justify-between">
+                        <span className="text-gray-400">Durée de la partie:</span>
+                        <span className="text-white font-semibold">{timer}</span>
+                    </div>
                     <div className="flex justify-between">
                         <span className="text-gray-400">Votre rôle:</span>
                         <span className="text-white font-semibold">
@@ -74,6 +114,7 @@ const GameInformation = ({game, currentPlayer, startGame = () => {}, configurati
                                     <button
                                         className="btn btn-sm btn-primary w-full"
                                         onClick={() => startGame()}
+                                        disabled={players.length < Object.values(configuration).reduce((a, b) => a + b, 0)}
                                     >
                                         Démarrer la partie
                                     </button>

@@ -1,7 +1,14 @@
 import Image from "next/image";
-import {useState, useEffect} from "react";
+import {useEffect, useState} from "react";
 
-const GameBoard = ({players, currentPlayer, game}) => {
+const GameBoard = ({
+                       players,
+                       currentPlayer,
+                       game,
+                       numberCanBeSelected = 1,
+                       selectedPlayers = [],
+                       setSelectedPlayers
+                   }) => {
 
     const [configuration, setConfiguration] = useState({});
     const [maxPlayers, setMaxPlayers] = useState(0);
@@ -48,6 +55,30 @@ const GameBoard = ({players, currentPlayer, game}) => {
     const alivePlayers = players.filter(p => p.isAlive);
     const deadPlayers = players.filter(p => !p.isAlive);
 
+    const isSelected = (id) => {
+        return Array.isArray(selectedPlayers) && selectedPlayers.includes(id);
+    };
+
+    const handleSelect = (player, id) => {
+        if (!player.isAlive) return;
+        const current = Array.isArray(selectedPlayers) ? selectedPlayers.slice() : [];
+
+        if (isSelected(id)) {
+            const next = current.filter(i => i !== id);
+            setSelectedPlayers(next);
+            return;
+        }
+
+        if (numberCanBeSelected === 1) {
+            setSelectedPlayers([id]);
+            return;
+        }
+
+        if (current.length < numberCanBeSelected) {
+            setSelectedPlayers([...current, id]);
+        }
+    };
+
     return (
         <div className="relative my-8">
             {game.state !== "En attente" && (
@@ -69,9 +100,15 @@ const GameBoard = ({players, currentPlayer, game}) => {
             )}
 
             <div className="relative mx-auto"
-                 style={{ width: `${boardSize}px`, height: `${boardSize}px` }}>
+                 style={{width: `${boardSize}px`, height: `${boardSize}px`}}>
                 <div className="absolute inset-0 rounded-full border-2 border-purple-500/20 animate-pulse"
-                     style={{ width: `${radius * 2}px`, height: `${radius * 2}px`, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
+                     style={{
+                         width: `${radius * 2}px`,
+                         height: `${radius * 2}px`,
+                         left: '50%',
+                         top: '50%',
+                         transform: 'translate(-50%, -50%)'
+                     }}>
                     <div className="absolute inset-4 rounded-full border border-white/10"></div>
                 </div>
 
@@ -95,10 +132,13 @@ const GameBoard = ({players, currentPlayer, game}) => {
                     const y = radius * Math.sin(angle);
 
                     const isCurrentUser = player.id === currentPlayer?.id;
+                    const pid = player.id || player.socketId || `${idx}`;
+                    const selected = isSelected(pid);
+                    const notSelectable = !player.isAlive || (Array.isArray(selectedPlayers) && !selected && selectedPlayers.length >= numberCanBeSelected && numberCanBeSelected !== 1);
 
                     return (
                         <div
-                            key={player.id || player.socketId || idx}
+                            key={pid}
                             className="absolute top-1/2 left-1/2 transition-all duration-300 transform"
                             style={{
                                 transform: `translate(${x}px, ${y}px) translate(-50%, -50%)`,
@@ -114,15 +154,25 @@ const GameBoard = ({players, currentPlayer, game}) => {
                                 />
                             )}
 
-                            <div className={`relative group cursor-pointer ${
-                                !player.isAlive ? 'grayscale' : ''
-                            }`}>
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => handleSelect(player, pid)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') handleSelect(player, pid);
+                                }}
+                                className={`relative group cursor-pointer ${
+                                    !player.isAlive ? 'grayscale cursor-not-allowed opacity-60' : ''
+                                }`}
+                                aria-pressed={selected}
+                                aria-disabled={!player.isAlive}
+                            >
                                 <div
                                     className={`w-16 h-16 md:w-20 md:h-20 rounded-full border-4 transition-all duration-300 ${
                                         player.isAlive
                                             ? 'border-green-600'
                                             : 'border-red-600'
-                                    } p-1`}>
+                                    } p-1 ${selected ? 'ring-4 ring-purple-400 scale-105' : ''} ${notSelectable ? 'opacity-70' : ''}`}>
                                     <Image
                                         src={player.avatar || "/default-avatar.png"}
                                         alt={player.nickname}
@@ -149,13 +199,14 @@ const GameBoard = ({players, currentPlayer, game}) => {
                             </div>
 
                             <div className="text-center mt-2 transition-all duration-300">
-                                <span className={`text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm ${
-                                    player.isAlive
-                                        ? 'text-white bg-black/30'
-                                        : 'text-gray-400 bg-red-900/30'
-                                } ${isCurrentUser ? 'text-purple-300 bg-purple-900/50' : ''}`}>
-                                    {isCurrentUser ? '(Vous)' : player.nickname}
-                                </span>
+                                                                <span
+                                                                    className={`text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm ${
+                                                                        player.isAlive
+                                                                            ? 'text-white bg-black/30'
+                                                                            : 'text-gray-400 bg-red-900/30'
+                                                                    } ${isCurrentUser ? 'text-purple-300 bg-purple-900/50' : ''} ${selected ? 'ring-2 ring-purple-300' : ''}`}>
+                                                                    {isCurrentUser ? '(Vous)' : player.nickname}
+                                                                </span>
                             </div>
                         </div>
                     );

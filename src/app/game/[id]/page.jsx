@@ -37,9 +37,10 @@ const GamePage = ({params}) => {
     const [showConfigurationOverviewModal, setShowConfigurationOverviewModal] = useState(false);
     const [showConfigurationModal, setShowConfigurationModal] = useState(false);
     const [showPlayersConfigurationModal, setShowPlayersConfigurationModal] = useState(false);
+    const [numberCanBeSelected, setNumberCanBeSelected] = useState(0);
+    const [selectedPlayers, setSelectedPlayers] = useState([]);
     const [startingSoon, setStartingSoon] = useState(null);
     const ambientSoundRef = useRef(null);
-    const {user, token} = useAuth();
     const chatContainerRef = useRef(null);
     const router = useRouter();
 
@@ -351,7 +352,6 @@ const GamePage = ({params}) => {
         socket.emit("start-game", id);
     }
 
-
     const performAction = (action, targetPlayerId = null) => {
         socket.emit("player-action", {
             gameId: id,
@@ -440,11 +440,16 @@ const GamePage = ({params}) => {
                         performAction={performAction}
                         activeTab={activeTab}
                         setActiveTab={setActiveTab}
+                        numberCanBeSelected={numberCanBeSelected}
+                        selectedPlayers={selectedPlayers}
+                        setSelectedPlayers={setSelectedPlayers}
                     />
 
                     <div className="lg:col-span-1">
                         <GameInformation
                             game={game}
+                            configuration={configuration}
+                            players={players}
                             currentPlayer={currentPlayer}
                             startGame={startGame}
                             configurationGameOverview={setShowConfigurationOverviewModal}

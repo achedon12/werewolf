@@ -27,7 +27,12 @@ export async function GET(request, context) {
 
 export async function POST(request, context) {
     const {id} = await context.params;
-    const body = await request.json();
+    let body;
+    try {
+        body = await request.json();
+    } catch (err) {
+        body = {};
+    }
 
     let data = {};
 
@@ -49,15 +54,19 @@ export async function POST(request, context) {
     if (body.configuration) {
         data.configuration = body.configuration;
     }
+    if (body.startedAt) {
+        data.startedAt = body.startedAt;
+    }
 
     const updatedGame = await prisma.game.update({
         where: {id: id},
         data
     });
 
-    console.log(body.players);
     if (body.players) {
         for (const player of body.players) {
+            if (player.isBot) continue;
+
             await prisma.player.upsert({
                 where: {id: player.id},
                 update: {

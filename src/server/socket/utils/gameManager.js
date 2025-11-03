@@ -1,5 +1,5 @@
 import {getGameRoom} from "./roomManager.js";
-import {addGameAction} from "./actionLogger.js";
+import {addGameAction, getGameHistory} from "./actionLogger.js";
 import {defaultGameConfig, getRoleById} from "../../../utils/Roles.js";
 import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "../../config/constants.js";
 
@@ -27,7 +27,8 @@ export const updateGameData = async (gameId, updatedData) => {
                 type: updatedData.type,
                 state: updatedData.state,
                 phase: updatedData.phase,
-                players: updatedData.players
+                players: updatedData.players,
+                startedAt: updatedData.startedAt,
             })
         });
         return await res.json();
@@ -110,9 +111,10 @@ export const startGameLogic = async (socket, io, gameId) => {
     await updateGameData(gameId, {
         state: "En cours",
         phase: "Nuit",
-        players: Array.from(roomData.players.values())
+        players: Array.from(roomData.players.values()),
+        startedAt: new Date().toISOString()
     });
 
-    const gameData = await updatedGameData(gameId);
+    const gameData = await updatedGameData(gameId)
     io.to(`game-${gameId}`).emit("game-update", gameData);
 }

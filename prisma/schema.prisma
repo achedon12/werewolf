@@ -58,6 +58,7 @@ model Game {
   users         User[]    @relation("UserGames")
   winners       User[]    @relation("GameWinners")
   createdAt     DateTime  @default(now())
+  startedAt     DateTime?
   gameLog       GameLog[]
   adminId       String?
   admin         User?     @relation(fields: [adminId], references: [id])
