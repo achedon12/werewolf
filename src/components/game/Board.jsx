@@ -81,24 +81,6 @@ const GameBoard = ({
 
     return (
         <div className="relative my-8">
-            {game.state !== "En attente" && (
-                <div className="flex justify-center gap-6 mb-8">
-                    <div
-                        className="stat place-items-center bg-base-200/20 backdrop-blur-sm rounded-2xl px-6 py-4 border border-green-500/20">
-                        <div className="stat-title text-green-400">En vie</div>
-                        <div className="stat-value text-green-400 text-3xl">{alivePlayers.length}</div>
-                        <div className="stat-desc text-gray-400">Joueurs</div>
-                    </div>
-
-                    <div
-                        className="stat place-items-center bg-base-200/20 backdrop-blur-sm rounded-2xl px-6 py-4 border border-red-500/20">
-                        <div className="stat-title text-red-400">Morts</div>
-                        <div className="stat-value text-red-400 text-3xl">{deadPlayers.length}</div>
-                        <div className="stat-desc text-gray-400">Joueurs</div>
-                    </div>
-                </div>
-            )}
-
             <div className="relative mx-auto"
                  style={{width: `${boardSize}px`, height: `${boardSize}px`}}>
                 <div className="absolute inset-0 rounded-full border-2 border-purple-500/20 animate-pulse"
@@ -174,7 +156,7 @@ const GameBoard = ({
                                             : 'border-red-600'
                                     } p-1 ${selected ? 'ring-4 ring-purple-400 scale-105' : ''} ${notSelectable ? 'opacity-70' : ''}`}>
                                     <Image
-                                        src={player.avatar || "/default-avatar.png"}
+                                        src={player.isBot ? '/bot-avatar.png' : player.avatar || "/default-avatar.png"}
                                         alt={player.nickname}
                                         width={80}
                                         height={80}

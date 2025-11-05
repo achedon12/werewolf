@@ -1,6 +1,6 @@
 import {connectedPlayers, getGameRoom} from "../utils/roomManager.js";
 import {addGameAction, getGameHistory} from "../utils/actionLogger.js";
-import {ACTION_TYPES} from "../../config/constants.js";
+import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "../../config/constants.js";
 
 export const handleSendChat = (socket, io, data)=> {
     try {
@@ -64,5 +64,40 @@ export const handleRequestHistory = (socket, gameId)=> {
     } catch (error) {
         console.error("❌ Erreur lors de la récupération de l'historique:", error);
         socket.emit("history-error", {error: "Impossible de charger l'historique"});
+    }
+}
+
+export const handleUpdateAvailableChannels = (socket, io, gameId) => {
+    try {
+        const roomData = getGameRoom(gameId);
+        if (!roomData) return;
+
+        const playerInfo = connectedPlayers.get(socket.id);
+        if (!playerInfo) return;
+        console.log("Checking available channels for", playerInfo.nickname, "with role", playerInfo.role);
+
+        const isWerewolf = playerInfo.role === "Loup-Garou";
+        const isVotePhase = roomData.phase === GAME_PHASES.VOTING || roomData.phase === "voting";
+        const isSister = playerInfo.role === "Sœur";
+        const isGeneral = roomData.state === GAME_STATES.WAITING;
+
+        console.log("Updating available channels for", playerInfo.nickname, {
+            isGeneral,
+            isWerewolf,
+            isVotePhase,
+            isSister
+        })
+        console.log("Current room phase:", roomData.phase, "state:", roomData.state);
+
+        const availableChannels = {
+            general: isGeneral,
+            werewolves: isWerewolf,
+            vote: isVotePhase,
+            sisters: isSister
+        };
+
+        socket.emit("available-channels", availableChannels);
+    } catch (error) {
+        console.error("❌ Erreur lors de la mise à jour des canaux disponibles:", error);
     }
 }

@@ -9,6 +9,7 @@ import {
 import {addGameAction, getGameHistory} from "../utils/actionLogger.js";
 import {updatedGameData} from "../utils/gameManager.js";
 import {ACTION_TYPES, CHANNEL_TYPES} from "../../config/constants.js";
+import {handleUpdateAvailableChannels} from "../handlers/chatHandlers.js";
 
 export const handleJoinGame = async (socket, io, gameId, userData, playerRole) => {
     try {
@@ -22,7 +23,7 @@ export const handleJoinGame = async (socket, io, gameId, userData, playerRole) =
 
         let roomData = getGameRoom(gameId);
         if (!roomData) {
-            roomData = createGameRoom(gameId);
+            roomData = await createGameRoom(gameId);
         }
 
         const existingEntry = Array.from(roomData.players.entries()).find(
@@ -85,7 +86,6 @@ export const handleLeaveGame = (socket, io, gameId, userData) => {
         const roomId = playerInfo?.gameId || gameId;
 
         removePlayerFromGame(socket, io, roomId, playerInfo, false);
-        io.emit('game-updated', updatedGameData);
     } catch (err) {
         console.error("❌ Erreur leave-game:", err);
     }
@@ -151,12 +151,7 @@ const notifyGameUpdate = async (socket, io, gameId, roomData, userData) => {
         players: Array.from(roomData.players.values())
     });
 
-    const availableChannels = {
-        general: true,
-        werewolves: userData.role === "Loup-Garou",
-        vote: roomData.phase === "voting"
-    };
-    socket.emit("available-channels", availableChannels);
+    handleUpdateAvailableChannels(socket, io, gameId);
 
     const gameData = await updatedGameData(gameId);
     roomData.configuration = gameData.configuration;

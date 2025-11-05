@@ -2,11 +2,15 @@ import {createServer} from "node:http";
 import next from "next";
 import {initializeSocket} from "./socket/index.js";
 import {cleanupInactiveRooms} from "./socket/utils/roomManager.js";
+import { Server } from "socket.io";
+import path from 'path';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = 3000;
-import { Server } from "socket.io";
 
 const startServer = async () => {
     try {

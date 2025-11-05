@@ -130,6 +130,7 @@ const CreateGamePage = () => {
                                         placeholder="Ma super partie de Loup-Garou"
                                         className="input input-lg w-full bg-base-200/50 border-white/20 backdrop-blur-sm transition-all duration-300 focus:bg-base-200/80 focus:border-purple-400"
                                         required
+                                        autoFocus
                                     />
                                 </div>
 

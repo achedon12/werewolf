@@ -1,0 +1,367 @@
+import {gameRoleCallOrder} from '../../../utils/Roles.js';
+import {getGameRoom} from '../../socket/utils/roomManager.js';
+import {addGameAction, getGameHistory} from './actionLogger.js';
+import {ACTION_TYPES} from '../../config/constants.js';
+
+const sanitizeRoleChannel = (roleName) =>
+    roleName.toLowerCase().replace(/\s+/g, '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w-]/g, '');
+
+const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const pickRandom = (arr) => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
+
+const simulateBotAction = (roleName, bot, roomData, io, gameId) => {
+    const allPlayers = Array.from(roomData.players.values()).filter(p => p.isAlive !== false);
+    const others = allPlayers.filter(p => p.id !== bot.id);
+
+    let target = null;
+    let message = '';
+
+    switch (roleName) {
+        case 'Cupidon':
+            const candidatesPrefer = others.filter(p => !p.isBot);
+            const pool = (candidatesPrefer.length >= 2) ? candidatesPrefer : others;
+
+            if (pool.length < 2) {
+                message = `${bot.nickname} (bot) n'a pas trouvé assez de joueurs à lier`;
+            } else {
+                // choisir deux cibles distinctes
+                const first = pickRandom(pool);
+                const secondPool = pool.filter(p => p.id !== first.id);
+                const second = pickRandom(secondPool.length ? secondPool : others.filter(p => p.id !== first.id));
+
+                if (first && second) {
+                    // initialiser la config lovers si nécessaire
+                    if (!roomData.config) roomData.config = {};
+                    if (!roomData.config.lovers) roomData.config.lovers = { exists: false, players: [] };
+
+                    roomData.config.lovers.exists = true;
+                    roomData.config.lovers.players = [first.id, second.id];
+
+                    // marquer les joueurs dans roomData.players (itérer sur la map)
+                    for (const p of roomData.players.values()) {
+                        if (p.id === first.id) {
+                            p.isLover = true;
+                            p.loverWith = second.id;
+                        }
+                        if (p.id === second.id) {
+                            p.isLover = true;
+                            p.loverWith = first.id;
+                        }
+                    }
+
+                    message = `💘 ${bot.nickname} (bot) a lié ${first.nickname} et ${second.nickname}`;
+                    const payload = {
+                        role: roleName,
+                        playerId: bot.id,
+                        playerName: bot.nickname,
+                        targets: [
+                            { id: first.id, nickname: first.nickname },
+                            { id: second.id, nickname: second.nickname }
+                        ],
+                        message,
+                        automated: true,
+                        createdAt: new Date().toISOString()
+                    };
+
+                    io.in(`game-${gameId}`).emit('role-action', payload);
+                    const channel = sanitizeRoleChannel(roleName);
+                    if (channel) {
+                        const roomChannel = `game-${gameId}-${channel}`;
+                        io.in(roomChannel).emit && io.in(roomChannel).emit('role-action', payload);
+                    }
+                }
+            }
+            break;
+        case 'Loup-Garou':
+        case 'Loup-Garou Blanc':
+            const nonWolves = others.filter(p => !/Loup-Garou/i.test(p.role));
+            target = pickRandom(nonWolves.length ? nonWolves : others);
+            message = target ? `🗡️ ${bot.nickname} (bot) attaque ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
+            break;
+        case 'Voyante':
+            target = pickRandom(others);
+            message = target ? `🔎 ${bot.nickname} (bot) a regardé ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
+            break;
+        case 'Salvateur':
+            target = pickRandom(allPlayers);
+            message = target ? `🛡️ ${bot.nickname} (bot) protège ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
+            break;
+        case 'Renard':
+            target = pickRandom(others);
+            message = target ? `🦊 ${bot.nickname} (bot) a testé ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
+            break;
+        case 'Sorcière':
+            if (Math.random() < 0.4) {
+                target = pickRandom(others);
+                message = target ? `☠️ ${bot.nickname} (bot) empoisonne ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
+            } else {
+                message = `${bot.nickname} (bot) n'utilise pas de potion`;
+            }
+            break;
+        case 'Voleur':
+            message = `${bot.nickname} (bot) effectue une action de voleur`;
+            break;
+        default:
+            message = `${bot.nickname} (bot) n'a pas d'action nocturne`;
+            break;
+    }
+
+    const payload = {
+        role: roleName,
+        playerId: bot.id,
+        playerName: bot.nickname,
+        targetId: target ? target.id : null,
+        targetName: target ? target.nickname : null,
+        message,
+        automated: true,
+        createdAt: new Date().toISOString()
+    };
+
+    io.in(`game-${gameId}`).emit('role-action', payload);
+    const channel = sanitizeRoleChannel(roleName);
+    if (channel) {
+        const roomChannel = `game-${gameId}-${channel}`;
+        io.in(roomChannel).emit && io.in(roomChannel).emit('role-action', payload);
+    }
+
+    addGameAction(gameId, {
+        type: ACTION_TYPES.GAME_HISTORY,
+        playerName: bot.nickname,
+        playerRole: roleName,
+        message,
+        phase: "role_call",
+        createdAt: new Date().toISOString()
+    });
+
+    io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+
+    console.log(`🤖 Action de bot simulée: ${message}`);
+
+    if (target) {
+        if (!roomData._simulatedActions) roomData._simulatedActions = [];
+        roomData._simulatedActions.push({role: roleName, actor: bot.id, target: target.id, ts: Date.now()});
+    }
+};
+
+export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options = {}) => {
+    const roomData = getGameRoom(gameId);
+    if (!roomData) {
+        console.warn(`startRoleCallSequence: room ${gameId} introuvable`);
+        return null;
+    }
+
+    console.log(`🔔 Démarrage des tours nocturnes pour la partie ${gameId}`);
+
+    let index = 0;
+    let timer = null;
+    let remaining = perRoleSeconds;
+    let stopped = false;
+
+    const scheduledBotTimeouts = new Map();
+
+    const getPlayersForRole = (roleName) => {
+        return Array
+            .from(roomData.players.values())
+            .filter(p => p.role === roleName && p.isAlive !== false);
+    };
+
+    const clearBotTimeoutsForIndex = (idx) => {
+        const entry = scheduledBotTimeouts.get(idx);
+        if (entry && entry.timeouts && entry.timeouts.length) {
+            for (const t of entry.timeouts) clearTimeout(t);
+        }
+        scheduledBotTimeouts.delete(idx);
+    };
+
+    const clearAllBotTimeouts = () => {
+        for (const [k, entry] of scheduledBotTimeouts.entries()) {
+            if (entry && entry.timeouts) {
+                for (const t of entry.timeouts) clearTimeout(t);
+            }
+        }
+        scheduledBotTimeouts.clear();
+    };
+
+    const emitStartForRole = (roleName, players, roleIdx) => {
+        console.log(`🔔 Début du tour pour le rôle ${roleName} (${players.length} joueur(s)) dans la partie ${gameId}`);
+
+        const payload = {
+            role: roleName,
+            players: players.map(p => ({id: p.id, nickname: p.nickname, isBot: !!p.isBot})),
+            duration: perRoleSeconds
+        };
+
+        io.in(`game-${gameId}`).emit('role-call-start', payload);
+        const channel = sanitizeRoleChannel(roleName);
+        io.in(`game-${gameId}-${channel}`).emit && io.in(`game-${gameId}-${channel}`).emit('role-call-start', payload);
+
+        addGameAction(gameId, {
+            type: ACTION_TYPES.GAME_EVENT,
+            playerName: "Système",
+            playerRole: "system",
+            message: `🔔 ${roleName} peut maintenant agir`,
+            phase: "role_call"
+        });
+
+        io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+
+        // Planifier actions aléatoires pour les bots pendant la durée du rôle
+        const bots = players.filter(p => p.isBot);
+        const timeouts = [];
+        const now = Date.now();
+        const startTs = now;
+        const endTs = now + perRoleSeconds * 1000;
+        const maxDelay = Math.max(1, perRoleSeconds - 1);
+        const meta = { timeouts, startTs, endTs, executed: 0, totalBots: bots.length };
+        // stocker méta pour ce roleIdx
+        if (timeouts.length || bots.length) scheduledBotTimeouts.set(roleIdx, meta);
+
+        for (const bot of bots) {
+            const delaySec = randInt(1, maxDelay);
+            const t = setTimeout(() => {
+                const latestRoom = getGameRoom(gameId) || roomData;
+                const currentRole = gameRoleCallOrder[roleIdx];
+                if (!stopped && currentRole === roleName) {
+                    simulateBotAction(roleName, bot, latestRoom, io, gameId);
+                    console.log(`🤖 Action simulée pour le bot ${bot.nickname} (${roleName}) après ${delaySec}s dans la partie ${gameId}`);
+                }
+
+                // Mettre à jour méta et émettre un tick avec temps restant
+                const entry = scheduledBotTimeouts.get(roleIdx);
+                if (entry) {
+                    entry.executed = (entry.executed || 0) + 1;
+                    const remainingSec = Math.max(0, Math.ceil((entry.endTs - Date.now()) / 1000));
+                    // émettre tick pour rafraîchir le timer côté client
+                    io.in(`game-${gameId}`).emit('role-call-tick', { role: roleName, remaining: remainingSec });
+                    const channel = sanitizeRoleChannel(roleName);
+                    io.in(`game-${gameId}-${channel}`).emit && io.in(`game-${gameId}-${channel}`).emit('role-call-tick', { role: roleName, remaining: remainingSec });
+
+                    // Si tous les acteurs sont des bots et qu'ils ont tous agi -> terminer le rôle tôt
+                    const playersForThisRole = getPlayersForRole(roleName);
+                    const allBotsOnly = playersForThisRole.length > 0 && playersForThisRole.every(p => p.isBot);
+                    if (allBotsOnly && entry.executed >= entry.totalBots) {
+                        // annuler l'intervalle principal
+                        if (timer) {
+                            clearInterval(timer);
+                            timer = null;
+                        }
+                        // envoyer tick final 0 et terminer le rôle
+                        io.in(`game-${gameId}`).emit('role-call-tick', { role: roleName, remaining: 0 });
+                        io.in(`game-${gameId}-${channel}`).emit && io.in(`game-${gameId}-${channel}`).emit('role-call-tick', { role: roleName, remaining: 0 });
+                        // appeler la fin du rôle (cela supprimera les timeouts stockés)
+                        emitEndForRole(roleName, roleIdx);
+                        // avancer à la suite (petit délai pour conserver le comportement précédent)
+                        index += 1;
+                        setTimeout(advance, 300);
+                    }
+                }
+            }, delaySec * 1000);
+            timeouts.push(t);
+        }
+
+        if (timeouts.length) scheduledBotTimeouts.set(roleIdx, meta);
+    };
+
+    const emitTick = (roleName, sec) => {
+        io.in(`game-${gameId}`).emit('role-call-tick', {role: roleName, remaining: sec});
+        const channel = sanitizeRoleChannel(roleName);
+        io.in(`game-${gameId}-${channel}`).emit && io.in(`game-${gameId}-${channel}`).emit('role-call-tick', {
+            role: roleName,
+            remaining: sec
+        });
+    };
+
+    const emitEndForRole = (roleName, roleIdx) => {
+        // annuler les timeouts planifiés pour ce rôle si existant
+        clearBotTimeoutsForIndex(roleIdx);
+
+        io.in(`game-${gameId}`).emit('role-call-end', {role: roleName});
+        const channel = sanitizeRoleChannel(roleName);
+        io.in(`game-${gameId}-${channel}`).emit && io.in(`game-${gameId}-${channel}`).emit('role-call-end', {role: roleName});
+    };
+
+    const advance = () => {
+        if (stopped) return;
+
+        if (index >= gameRoleCallOrder.length) {
+            clearAllBotTimeouts();
+            io.in(`game-${gameId}`).emit('role-call-finished');
+            addGameAction(gameId, {
+                type: ACTION_TYPES.GAME_EVENT,
+                playerName: "Système",
+                playerRole: "system",
+                message: `🌅 Les tours nocturnes sont terminés`,
+                phase: "role_call_finished"
+            });
+            if (typeof options.onFinished === 'function') {
+                try { options.onFinished(); } catch (e) { console.error(e); }
+            }
+            if (timer) { clearInterval(timer); timer = null; }
+            return;
+        }
+
+        const roleIdx = index;
+        const roleName = gameRoleCallOrder[roleIdx];
+        const players = getPlayersForRole(roleName);
+
+        if (!players || players.length === 0) {
+            index += 1;
+            setImmediate(advance);
+            return;
+        }
+
+        remaining = perRoleSeconds;
+        emitStartForRole(roleName, players, roleIdx);
+        emitTick(roleName, remaining);
+
+        if (timer) {
+            clearInterval(timer);
+            timer = null;
+        }
+
+        timer = setInterval(() => {
+            remaining -= 1;
+            if (remaining <= 0) {
+                clearInterval(timer);
+                timer = null;
+                // on passe l'index courant pour clear correctement ses bots
+                emitEndForRole(roleName, roleIdx);
+                index += 1;
+                setTimeout(advance, 300);
+                return;
+            }
+            emitTick(roleName, remaining);
+        }, 1000);
+    };
+
+    const stop = () => {
+        stopped = true;
+        if (timer) {
+            clearInterval(timer);
+            timer = null;
+        }
+        clearAllBotTimeouts();
+        io.in(`game-${gameId}`).emit('role-call-stopped');
+    };
+
+    const next = () => {
+        if (timer) {
+            clearInterval(timer);
+            timer = null;
+        }
+        clearBotTimeoutsForIndex(index);
+        index += 1;
+        setImmediate(advance);
+    };
+
+    const getStatus = () => ({
+        currentIndex: index,
+        currentRole: gameRoleCallOrder[index] || null,
+        remaining,
+        running: !stopped && !!timer
+    });
+
+    setImmediate(advance);
+
+    return {stop, next, getStatus};
+};

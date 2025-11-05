@@ -3,7 +3,7 @@ import TabPlayers from "@/components/game/actions/tab/TabPlayers";
 import TabRules from "@/components/game/actions/tab/TabRules";
 import {Gamepad2, NotebookText, UsersRound} from "lucide-react";
 
-const GameActions = ({ players, currentPlayer, game, performAction, activeTab, setActiveTab, numberCanBeSelected, selectedPlayers, setSelectedPlayers }) => {
+const GameActions = ({ players, currentPlayer, game, performAction, activeTab, setActiveTab, numberCanBeSelected, selectedPlayers, setSelectedPlayers, roleCallRemaining }) => {
 
     return (
         <div className="lg:col-span-3 space-y-6">
@@ -34,7 +34,7 @@ const GameActions = ({ players, currentPlayer, game, performAction, activeTab, s
                 </div>
             )}
 
-            {activeTab === "game" && <TabGame game={game} players={players} currentPlayer={currentPlayer} performAction={performAction} numberCanBeSelected={numberCanBeSelected} selectedPlayers={selectedPlayers} setSelectedPlayers={setSelectedPlayers} />}
+            {activeTab === "game" && <TabGame game={game} players={players} currentPlayer={currentPlayer} performAction={performAction} numberCanBeSelected={numberCanBeSelected} selectedPlayers={selectedPlayers} setSelectedPlayers={setSelectedPlayers} roleCallRemaining={roleCallRemaining} />}
 
             {activeTab === "players" && <TabPlayers players={players} currentPlayer={currentPlayer} />}
 

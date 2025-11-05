@@ -1,7 +1,9 @@
-import {getGameRoom} from "./roomManager.js";
+import {addPlayerToChannel, getGameRoom} from "./roomManager.js";
 import {addGameAction, getGameHistory} from "./actionLogger.js";
 import {defaultGameConfig, getRoleById} from "../../../utils/Roles.js";
 import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "../../config/constants.js";
+import {handleUpdateAvailableChannels} from "../handlers/chatHandlers.js";
+import {startRoleCallSequence} from "../utils/roleTurnManager.js";
 
 const hostname = "localhost";
 const port = 3000;
@@ -53,14 +55,14 @@ export const startGameLogic = async (socket, io, gameId) => {
         throw new Error(`Nombre de joueurs insuffisant pour démarrer la partie (joueurs connectés: ${connectedPlayers.length}, joueurs requis: ${gamePlayers})`);
     }
 
-    // TODO: reset for prod
-    // if (roomData.state !== 'En attente') {
-    //     throw new Error(`La partie a déjà commencé ou est terminée.`);
-    // }
+    if (roomData.state !== GAME_STATES.WAITING) {
+        throw new Error(`La partie a déjà commencé ou est terminée.`);
+    }
 
     roomData.state = GAME_STATES.IN_PROGRESS;
     roomData.phase = GAME_PHASES.NIGHT;
     roomData.lastActivity = new Date();
+    roomData.startedAt = new Date().toISOString();
 
     addGameAction(gameId, {
         type: ACTION_TYPES.GAME_EVENT,
@@ -87,13 +89,28 @@ export const startGameLogic = async (socket, io, gameId) => {
 
     roles = roles.sort(() => Math.random() - 0.5);
 
-    connectedPlayers.forEach((player, idx) => {
+    for (const player of connectedPlayers) {
+        const idx = connectedPlayers.indexOf(player);
         player.role = roles[idx];
         const socketId = player.socketId;
         if (roomData.players.has(socketId)) {
-            roomData.players.get(socketId).role = player.role;
+            const p = roomData.players.get(socketId);
+            p.role = player.role;
+            p.isBot = player.isBot;
+
+            if (p.role === 'Loup-Garou') {
+                await addPlayerToChannel(io.sockets.sockets.get(socketId), io, gameId, 'werewolves');
+            }
+
+            if (p.role === 'Sœur') {
+                await addPlayerToChannel(io.sockets.sockets.get(socketId), io, gameId, 'sisters');
+            }
+
+            if (!p.isBot) {
+                handleUpdateAvailableChannels(io.sockets.sockets.get(socketId), io, gameId);
+            }
         }
-    });
+    }
 
     roomData.config = defaultGameConfig;
 
@@ -103,18 +120,45 @@ export const startGameLogic = async (socket, io, gameId) => {
         themeEnabled: true,
         soundsEnabled: true
     });
-    io.to(`game-${gameId}`).emit("starting-soon", 10);
+
+    const countdownSeconds = 10;
+
+    io.to(`game-${gameId}`).emit("starting-soon", countdownSeconds);
     io.to(`game-${gameId}`).emit("players-update", {
         players: Array.from(roomData.players.values())
     });
 
     await updateGameData(gameId, {
-        state: "En cours",
-        phase: "Nuit",
+        state: GAME_STATES.IN_PROGRESS,
+        phase: GAME_PHASES.NIGHT,
         players: Array.from(roomData.players.values()),
         startedAt: new Date().toISOString()
     });
 
-    const gameData = await updatedGameData(gameId)
-    io.to(`game-${gameId}`).emit("game-update", gameData);
+    io.to(`game-${gameId}`).emit("game-update", roomData);
+
+    setTimeout(() => {
+        if (roomData.roleCallController && typeof roomData.roleCallController.stop === 'function') {
+            try { roomData.roleCallController.stop(); } catch (e) {}
+        }
+
+        roomData.roleCallController = startRoleCallSequence(io, gameId, 60, {
+            onFinished: async () => {
+                roomData.phase = GAME_PHASES.DAY;
+                roomData.lastActivity = new Date();
+                addGameAction(gameId, {
+                    type: ACTION_TYPES.GAME_EVENT,
+                    playerName: "Système",
+                    playerRole: "system",
+                    message: `🌞 La nuit est terminée. Passage au Jour.`,
+                    phase: "phase_change"
+                });
+
+
+                io.to(`game-${gameId}`).emit("game-update", roomData);
+                io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+                delete roomData.roleCallController;
+            }
+        });
+    }, countdownSeconds * 1000);
 }

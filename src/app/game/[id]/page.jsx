@@ -1,7 +1,6 @@
 "use client";
 
 import {use, useEffect, useRef, useState} from "react";
-import {useAuth} from "@/app/AuthProvider";
 import {socket} from "@/socket";
 import GameInformation from "@/components/game/information/Information";
 import GameChat from "@/components/game/chat/Chat";
@@ -14,6 +13,8 @@ import {useRouter} from "next/navigation";
 import ConfigurationOverviewModal from "@/components/game/information/modal/ConfigurationOverview";
 import AdminConfigurationModal from "@/components/game/information/modal/Configuration";
 import StartingCounter from "@/components/game/StartingCounter";
+import {ACTION_TYPES, GAME_PHASES} from "@/server/config/constants";
+import {History} from "lucide-react";
 
 const GamePage = ({params}) => {
     const {id} = use(params);
@@ -42,6 +43,7 @@ const GamePage = ({params}) => {
     const [startingSoon, setStartingSoon] = useState(null);
     const ambientSoundRef = useRef(null);
     const chatContainerRef = useRef(null);
+    const [roleCallRemaining, setRoleCallRemaining] = useState(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -210,6 +212,11 @@ const GamePage = ({params}) => {
         socket.on("channel-joined", handleChannelJoined);
         socket.on("chat-error", handleChatError);
         socket.on("starting-soon", handleStartingSoon);
+        socket.on('role-call-start', handleRoleCallStart);
+        socket.on('role-call-tick', handleRoleCallTick);
+        socket.on('role-call-end', handleRoleCallEnd);
+        socket.on('role-call-stopped', handleRoleCallStopped);
+        socket.on('role-call-finished', handleRoleCallFinished);
 
         socket.emit("join-game", id, userFromLocalStorage, "");
         socket.emit("join-channel", id, "general");
@@ -234,6 +241,12 @@ const GamePage = ({params}) => {
             socket.off('admin-confirm-action', handleAdminConfirmAction)
             socket.off('starting-soon', handleStartingSoon);
             socket.emit("leave-game", id, userFromLocalStorage);
+            socket.off('role-call-start', handleRoleCallStart);
+            socket.off('role-call-tick', handleRoleCallTick);
+            socket.off('role-call-end', handleRoleCallEnd);
+            socket.off('role-call-stopped', handleRoleCallStopped);
+            socket.off('role-call-finished', handleRoleCallFinished);
+
         };
     }, [id, socket]);
 
@@ -276,6 +289,19 @@ const GamePage = ({params}) => {
         }, 1000);
         return () => clearTimeout(timer);
     }, [startingSoon]);
+
+    const handleRoleCallTick = (data) => {
+        if (!data) return;
+        const remaining = typeof data.remaining === 'number' ? data.remaining : (data.duration ?? null);
+        setRoleCallRemaining(remaining);
+    };
+    const handleRoleCallStart = (payload) => {
+        setRoleCallRemaining(payload?.duration ?? null);
+    };
+    const handleRoleCallEnd = () => setRoleCallRemaining(null);
+    const handleRoleCallStopped = () => setRoleCallRemaining(null);
+    const handleRoleCallFinished = () => setRoleCallRemaining(null);
+
 
     const playAmbientSound = () => {
         if (ambientSoundRef.current && ambientSoundsEnabled) {
@@ -443,6 +469,7 @@ const GamePage = ({params}) => {
                         numberCanBeSelected={numberCanBeSelected}
                         selectedPlayers={selectedPlayers}
                         setSelectedPlayers={setSelectedPlayers}
+                        roleCallRemaining={roleCallRemaining}
                     />
 
                     <div className="lg:col-span-1">
@@ -471,21 +498,42 @@ const GamePage = ({params}) => {
                             sendChatMessage={sendChatMessage}
                             currentPlayer={currentPlayer}/>
 
-                        {/*<div className="card glass shadow-2xl backdrop-blur-sm border border-white/10 mt-6">
-                            <div className="card-body">
-                                <h3 className="card-title text-white mb-4">📜 Historique</h3>
-                                <div className="space-y-3 max-h-64 overflow-y-auto">
-                                    {history.map((event, index) => (
-                                        <div key={index}
-                                             className="flex items-start gap-3 p-3 bg-base-200/30 rounded-lg">
-                                                <span
-                                                    className="text-gray-400 text-sm mt-1">{formatTime(event.createdAt)}</span>
-                                            <p className="text-gray-300 flex-1">{event.message}</p>
-                                        </div>
-                                    ))}
+                        {game.phase === GAME_PHASES.NIGHT && (
+                            <div className="card glass shadow-2xl backdrop-blur-sm border border-white/10 mt-6">
+                                <div className="card-body p-4">
+                                    <h3 className="card-title text-white text-lg mb-4">
+                                        <History className="inline mr-2" size={20}/>
+                                        Derniers Événements
+                                    </h3>
+                                    <div className="space-y-3 max-h-64 overflow-y-auto">
+                                        {history
+                                            .filter(event => event.type === ACTION_TYPES.GAME_EVENT)
+                                            .map((event, index) => {
+                                                const startedAtMs = new Date(game.startedAt).getTime();
+                                                const eventAtMs = new Date(event.createdAt).getTime();
+                                                const diffMs = Math.max(0, eventAtMs - startedAtMs);
+                                                const totalSeconds = Math.floor(diffMs / 1000);
+                                                const hours = Math.floor(totalSeconds / 3600);
+                                                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                                                const seconds = totalSeconds % 60;
+                                                const elapsed = [
+                                                    hours.toString().padStart(2, '0'),
+                                                    minutes.toString().padStart(2, '0'),
+                                                    seconds.toString().padStart(2, '0')
+                                                ].join(':');
+
+                                                return (
+                                                    <div key={index}
+                                                         className="flex items-start gap-3 p-3 bg-base-200/30 rounded-lg">
+                                                        <span className="text-gray-400 text-xs mt-1">{elapsed}</span>
+                                                        <p className="text-gray-300 text-sm">{event.message}</p>
+                                                    </div>
+                                                );
+                                            })}
+                                    </div>
                                 </div>
                             </div>
-                        </div>*/}
+                        )}
                     </div>
                 </div>
             </div>

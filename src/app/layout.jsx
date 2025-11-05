@@ -1,3 +1,4 @@
+import {Suspense} from "react";
 import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 import Header from "@/components/common/header/Header";
@@ -24,7 +25,9 @@ export default function RootLayout({children}) {
             className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
         <Providers>
-            <Header/>
+            <Suspense fallback={<div className="h-16"/>}>
+                <Header/>
+            </Suspense>
             {children}
             <Footer/>
         </Providers>
@@ -47,7 +50,7 @@ export const metadata = {
         "plateforme",
         "amis"
     ],
-    authors: [{ name: "Achedon12 - leo deroin", url: "https://leoderoin.fr" }],
+    authors: [{name: "Achedon12 - leo deroin", url: "https://leoderoin.fr"}],
     openGraph: {
         title: "Online Werewolf - Jouez au Loup-Garou en ligne",
         description: "Jouez au Loup-Garou en ligne avec vos amis, gratuitement et sans inscription.",

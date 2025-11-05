@@ -31,7 +31,6 @@ const NotFound = () => {
             });
         }
 
-        // Animation des étoiles
         const animateStars = () => {
             stars.forEach(star => {
                 star.opacity += star.speed;
@@ -41,7 +40,6 @@ const NotFound = () => {
             });
         };
 
-        // Arbres
         const drawTrees = () => {
             ctx.fillStyle = '#1a1a2e';
 

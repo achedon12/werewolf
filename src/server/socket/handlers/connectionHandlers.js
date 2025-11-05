@@ -1,4 +1,4 @@
-import {connectedPlayers} from "../utils/roomManager.js";
+import {connectedPlayers, removePlayerFromGame} from "../utils/roomManager.js";
 
 export const handlePing = (socket) => {
     socket.emit("pong", {
@@ -10,4 +10,7 @@ export const handlePing = (socket) => {
 export const handleDisconnect = (socket, io, reason) => {
     const playerInfo = connectedPlayers.get(socket.id);
     if (!playerInfo) return;
+
+    removePlayerFromGame(socket, io, playerInfo.gameId, playerInfo, true);
+    connectedPlayers.delete(socket.id);
 }

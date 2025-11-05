@@ -28,7 +28,7 @@ const TabPlayers = ({players, currentPlayer}) => {
                                         <div
                                             className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
                                             <Image
-                                                src={player.avatar || "/default-avatar.png"}
+                                                src={player.isBot ? '/bot-avatar.png' : player.avatar || "/default-avatar.png"}
                                                 alt={player.nickname} width={40} height={40}
                                                 className="rounded-full"
                                             />
@@ -57,7 +57,9 @@ const TabPlayers = ({players, currentPlayer}) => {
                                                     Mort
                                                 </span>
                                             )}
-                                            {player.online ? (
+                                            {player.isBot ? (
+                                                <span className="italic">Bot</span>
+                                            ) : player.online ? (
                                                 <div className="flex items-center">
                                                     <CircleDot
                                                         size={16}

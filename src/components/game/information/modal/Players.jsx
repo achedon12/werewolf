@@ -117,21 +117,23 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
                                     </div>
                                 )}
 
-                                <div className="absolute -top-2 -right-2 z-10">
-                                    <div className={`badge badge-sm ${
-                                        (player.isAdmin || game.admin.id === player.id ) ? 'badge-warning' :
-                                            player.online ? 'badge-success' : 'badge-error'
-                                    }`}>
-                                        {(player.isAdmin || game.admin.id === player.id ) ? '👑 Admin' :
-                                            player.online ? '🟢 En ligne' : '🔴 Hors ligne'}
+                                {!player.isBot && (
+                                    <div className="absolute -top-2 -right-2 z-10">
+                                        <div className={`badge badge-sm ${
+                                            (player.isAdmin || game.admin.id === player.id ) ? 'badge-warning' :
+                                                player.online ? 'badge-success' : 'badge-error'
+                                        }`}>
+                                            {(player.isAdmin || game.admin.id === player.id ) ? '👑 Admin' :
+                                                player.online ? '🟢 En ligne' : '🔴 Hors ligne'}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                                 <div className="flex items-center space-x-4">
                                     <div className="relative">
                                         <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
                                             <Image
-                                                src={player.avatar || '/default-avatar.png'}
+                                                src={player.isBot ? '/bot-avatar.png' : player.avatar || "/default-avatar.png"}
                                                 alt={player.nickname}
                                                 width={48}
                                                 height={48}
@@ -174,7 +176,7 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
                                                 className="btn btn-sm btn-outline btn-error hover:cursor-pointer"
                                                 title="Exclure le joueur"
                                             >
-                                                🚪
+                                                🚪 Exclure
                                             </button>
                                         </>
                                     )}
@@ -239,7 +241,7 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
 
                         <div className="flex items-center space-x-3 mb-6 p-3 bg-base-300/30 rounded-lg">
                             <Image
-                                src={selectedPlayer.avatar || '/default-avatar.png'}
+                                src={selectedPlayer.isBot ? '/bot-avatar.png' : selectedPlayer.avatar || "/default-avatar.png"}
                                 alt={selectedPlayer.nickname}
                                 width={40}
                                 height={40}

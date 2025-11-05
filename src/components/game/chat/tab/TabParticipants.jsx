@@ -14,7 +14,7 @@ const TabParticipants = ({participantsForChannel, currentChannel, currentPlayer}
                             <div
                                 className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
                                 <Image
-                                    src={p.avatar || "/default-avatar.png"}
+                                    src={p.isBot ? '/bot-avatar.png' : p.avatar || "/default-avatar.png"}
                                     alt={p.nickname} width={32} height={32}
                                     className="rounded-full"
                                 />
@@ -25,8 +25,11 @@ const TabParticipants = ({participantsForChannel, currentChannel, currentPlayer}
                                 {currentPlayer?.id === p.id ? `(Vous)` : p.nickname}
                             </div>
                             <div
-                                className={p.online ? "text-green-400 text-sm" : "text-gray-400 text-sm"}>
-                                {p.online ? (
+                                className={`text-sm text-gray-400 ${p.isBot ? "italic" : p.online ? "text-green-400" : "text-gray-400"}`}
+                            >
+                                {p.isBot ? (
+                                    <span className="italic">Bot</span>
+                                ) : p.online ? (
                                     <div className="flex items-center">
                                         <CircleDot
                                             size={16}

@@ -25,6 +25,7 @@ export const ACTION_TYPES = {
     PHASE_CHANGE: 'phase_change',
     PLAYER_ELIMINATED: 'player_eliminated',
     GAME_EVENT: 'game_event',
+    GAME_HISTORY: 'game_history',
     BOT_ADDED: 'bot_added',
     SYSTEM: 'system'
 };

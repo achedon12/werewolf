@@ -4,15 +4,16 @@ import {addGameAction} from "./actionLogger.js";
 export const gameRooms = new Map();
 export const connectedPlayers = new Map();
 
-export const createGameRoom = (gameId) => {
-    const roomData = {
+export const createGameRoom = async (gameId) => {
+    let roomData = {
         id: gameId,
         createdAt: new Date(),
         lastActivity: new Date(),
         channels: {
             general: new Set(),
             werewolves: new Set(),
-            vote: new Set()
+            vote: new Set(),
+            sisters: new Set(),
         },
         players: new Map(),
         actionHistory: [],
@@ -65,7 +66,7 @@ export const removePlayerFromGame = (socket, io, gameId, playerInfo, isDisconnec
         roomData.channels[channel].delete(socket.id);
     });
 
-    if (roomData.state === 'waiting') {
+    if (roomData.state === GAME_STATES.WAITING) {
         roomData.players.delete(socket.id);
     } else {
         const player = roomData.players.get(socket.id);

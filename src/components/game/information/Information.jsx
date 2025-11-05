@@ -3,7 +3,7 @@ import {useEffect, useState} from "react";
 
 const GameInformation = ({game, configuration, players, currentPlayer, startGame = () => {}, configurationGameOverview = () => {}, configurationGame = () => {}, playersConfiguration = () => {} }) => {
 
-    const isAdmin = game.admin.id === currentPlayer.id;
+    const isAdmin = game?.admin?.id === currentPlayer.id;
     const [timer, setTimer] = useState('~');
 
 
