@@ -6,7 +6,7 @@ const Matomo = () => {
     useEffect(() => {
         if (process.env.NODE_ENV !== 'production') return;
 
-        const u = process.env.NEXT_PUBLIC_MATOMO_URL || '//89.234.182.224:82/';
+        const u = '//matomo.leoderoin.fr/';
         window._paq = window._paq || [];
         window._paq.push(['trackPageView']);
         window._paq.push(['enableLinkTracking']);
