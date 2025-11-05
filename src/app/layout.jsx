@@ -5,6 +5,7 @@ import Header from "@/components/common/header/Header";
 import Footer from "@/components/common/footer/Footer";
 import {ToastContainer} from "react-toastify";
 import {Providers} from "@/app/AuthProvider";
+import Matomo from "@/components/matomo/Matomo.jsx";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -25,6 +26,7 @@ export default function RootLayout({children}) {
             className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
         <Providers>
+            <Matomo />
             <Suspense fallback={<div className="h-16"/>}>
                 <Header/>
             </Suspense>
