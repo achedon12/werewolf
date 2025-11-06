@@ -60,7 +60,6 @@ const OverviewPage = () => {
                                     alt="Avatar"
                                     width={128}
                                     height={128}
-                                    unoptimized
                                     className="rounded-full object-cover"
                                 />
                             </div>
