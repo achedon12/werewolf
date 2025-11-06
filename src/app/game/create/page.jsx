@@ -4,6 +4,7 @@ import {classicRoles, roles} from "@/utils/Roles";
 import Image from "next/image";
 import {useAuth} from "@/app/AuthProvider";
 import {useRouter} from "next/navigation";
+import {ChartColumn, Cog, Gamepad2, MinusCircle, PlusCircle, Puzzle, Sparkles} from "lucide-react";
 
 const CreateGamePage = () => {
     const defaultSelectedRoles = roles.reduce((acc, role) => {
@@ -41,18 +42,17 @@ const CreateGamePage = () => {
 
     const updateRoleCount = (roleId, increment) => {
         setSelectedRoles(prev => {
-            const current = prev[roleId]
-            ;
+            const current = prev[roleId] ?? 0;
             const role = roles.find(r => r.id === roleId);
             if (!role) return prev;
 
             const newCount = increment ? current + 1 : current - 1;
             if (newCount < 0) return prev;
 
-            if (totalPlayers + (increment ? 1 : -1) > maxPlayers) return prev;
+            const prevTotal = Object.values(prev).reduce((sum, c) => sum + c, 0);
+            if (prevTotal + (increment ? 1 : -1) > maxPlayers) return prev;
 
-            prev[roleId] = newCount;
-            return prev;
+            return {...prev, [roleId]: newCount};
         });
     };
 
@@ -115,13 +115,16 @@ const CreateGamePage = () => {
                 <form onSubmit={handleSubmit} className="space-y-8">
                     <div className="card glass shadow-2xl backdrop-blur-sm border border-white/10">
                         <div className="card-body">
-                            <h2 className="card-title text-2xl text-white mb-6">⚙️ Configuration de base</h2>
+                            <h2 className="card-title text-2xl text-white mb-6">
+                                <Cog className="inline mr-2"/>
+                                Configuration de base
+                            </h2>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="form-control">
                                     <label className="label">
-                                            <span
-                                                className="label-text text-gray-300 font-medium">Nom de la partie</span>
+                                                        <span
+                                                            className="label-text text-gray-300 font-medium">Nom de la partie</span>
                                     </label>
                                     <input
                                         type="text"
@@ -136,9 +139,9 @@ const CreateGamePage = () => {
 
                                 <div className="form-control w-full">
                                     <label className="label">
-                                        <span className="label-text text-gray-300 font-medium">
-                                            Joueurs maximum: {maxPlayers}
-                                        </span>
+                                                    <span className="label-text text-gray-300 font-medium">
+                                                        Joueurs maximum: {maxPlayers}
+                                                    </span>
                                     </label>
                                     <input
                                         type="range"
@@ -191,45 +194,66 @@ const CreateGamePage = () => {
                     <div className="card glass shadow-2xl backdrop-blur-sm border border-white/10">
                         <div className="card-body">
                             <div className="flex justify-between items-center mb-6">
-                                <h2 className="card-title text-2xl text-white">🎴 Composition des rôles</h2>
-                                <div className="badge badge-lg badge-primary">
-                                    Total: {totalPlayers} joueurs
+                                <h2 className="card-title text-2xl text-white">
+                                    <Puzzle className="inline mr-2"/>
+                                    Composition des rôles
+                                </h2>
+                                <div className="badge badge-primary flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 min-w-0">
+                                    <span className="hidden sm:inline text-sm md:text-base">Total:</span>
+                                    <span className="hidden sm:inline text-sm md:text-base">{totalPlayers}</span>
+                                    <span className="hidden sm:inline text-sm md:text-base">joueurs</span>
+                                    <span className="inline sm:hidden text-sm">{totalPlayers}j</span>
                                 </div>
                             </div>
 
                             <div className="space-y-4">
                                 {roles.map((role) => (
-                                    <div key={role.id}
-                                         className="flex items-center justify-between p-4 bg-base-200/30 rounded-2xl backdrop-blur-sm border border-white/5">
-                                        <div className="flex items-center space-x-4">
-                                            <div
-                                                className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                                                <Image src={role.image} alt={role.name} width={40} height={40}
-                                                       className="rounded-md"/>
+                                    <div
+                                        key={role.id}
+                                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-base-200/30 rounded-2xl backdrop-blur-sm border border-white/5"
+                                    >
+                                        <div className="flex items-start sm:items-center w-full sm:w-auto min-w-0 gap-4">
+                                            <div className="flex-shrink-0 w-20 h-20 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center overflow-hidden">
+                                                <Image
+                                                    src={role.image}
+                                                    alt={role.name}
+                                                    width={80}
+                                                    height={80}
+                                                    className="object-cover w-full h-full"
+                                                />
                                             </div>
-                                            <div>
-                                                <h3 className="font-semibold text-white">{role.name}</h3>
-                                                <p className="text-gray-400 text-sm">{role.description}</p>
+
+                                            <div className="min-w-0">
+                                                <h3 className="font-semibold text-white text-sm sm:text-base truncate">{role.name}</h3>
+                                                <p className="text-gray-400 text-xs sm:text-sm truncate max-w-[18rem] sm:max-w-none">
+                                                    {role.description}
+                                                </p>
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center space-x-3">
+                                        <div className="flex items-center mt-3 sm:mt-0 space-x-3">
                                             <button
                                                 type="button"
                                                 onClick={() => updateRoleCount(role.id, false)}
                                                 disabled={gameMode !== "custom"}
                                                 className="btn btn-circle btn-sm btn-ghost text-gray-400 hover:text-white disabled:opacity-30"
-                                            >-
+                                                aria-label={`Retirer ${role.name}`}
+                                            >
+                                                <MinusCircle className="w-5 h-5"/>
                                             </button>
+
                                             <span className="text-white font-bold text-lg w-8 text-center">
                                               {selectedRoles[role.id]}
                                             </span>
+
                                             <button
                                                 type="button"
                                                 onClick={() => updateRoleCount(role.id, true)}
                                                 disabled={gameMode !== "custom" || totalPlayers >= maxPlayers}
                                                 className="btn btn-circle btn-sm btn-ghost text-gray-400 hover:text-white disabled:opacity-30"
-                                            >+
+                                                aria-label={`Ajouter ${role.name}`}
+                                            >
+                                                <PlusCircle className="w-5 h-5"/>
                                             </button>
                                         </div>
                                     </div>
@@ -242,9 +266,9 @@ const CreateGamePage = () => {
                                 </div>
                             )}
 
-                            {totalPlayers < 6 && (
+                            {totalPlayers < 8 && (
                                 <div className="alert alert-warning mt-4 bg-yellow-500/10 border-yellow-500/20">
-                                    <span>⚠️ Minimum 6 joueurs requis pour une partie équilibrée</span>
+                                    <span>⚠️ Minimum 8 joueurs requis pour une partie équilibrée</span>
                                 </div>
                             )}
                         </div>
@@ -252,7 +276,10 @@ const CreateGamePage = () => {
 
                     <div className="card glass shadow-2xl backdrop-blur-sm border border-white/10">
                         <div className="card-body">
-                            <h2 className="card-title text-2xl text-white mb-4">📊 Récapitulatif</h2>
+                            <h2 className="card-title text-2xl text-white mb-4">
+                                <ChartColumn className="inline mr-2"/>
+                                Récapitulatif
+                            </h2>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                                 <div className="stat place-items-center bg-base-200/30 rounded-2xl p-4">
@@ -290,8 +317,9 @@ const CreateGamePage = () => {
                                         </>
                                     ) : (
                                         <>
-                                            🎮 Créer la partie
-                                            <span className="text-lg">✨</span>
+                                            <Gamepad2 className="inline mr-2"/>
+                                            Créer la partie
+                                            <Sparkles className="inline ml-1"/>
                                         </>
                                     )}
                                 </button>
