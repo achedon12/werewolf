@@ -16,34 +16,42 @@ export default function Footer() {
         <footer className="footer footer-center bg-base-200 text-base-content rounded p-10">
             <div className="container mx-auto">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-                    <div className="flex flex-col items-start space-y-2">
-                        <h3 className="footer-title">Navigation</h3>
-                        <Link href="/" className="link link-hover">Accueil</Link>
-                        <Link href="/rules" className="link link-hover">Règles du jeu</Link>
-                        <Link href="/game/list" className="link link-hover">Liste des parties</Link>
-                        <Link href="/game/create" className="link link-hover">Créer une partie</Link>
-                    </div>
+                    <nav aria-label="Navigation principale" className="flex flex-col items-start space-y-2">
+                        <h2 className="footer-title">Navigation</h2>
+                        <ul className="space-y-1 flex flex-col items-start">
+                            <li><Link href="/" className="link link-hover">Accueil</Link></li>
+                            <li><Link href="/rules" className="link link-hover">Règles du jeu</Link></li>
+                            <li><Link href="/game/list" className="link link-hover">Liste des parties</Link></li>
+                            <li><Link href="/game/create" className="link link-hover">Créer une partie</Link></li>
+                        </ul>
+                    </nav>
 
-                    <div className="flex flex-col items-start space-y-2">
-                        <h3 className="footer-title">Aide</h3>
-                        <Link href="/faq" className="link link-hover">FAQ</Link>
-                        <Link href="/support" className="link link-hover">Support</Link>
-                        <Link href="/contact" className="link link-hover">Contact</Link>
-                    </div>
+                    <nav aria-label="Aide" className="flex flex-col items-start space-y-2">
+                        <h2 className="footer-title">Aide</h2>
+                        <ul className="space-y-1 flex flex-col items-start">
+                            <li><Link href="/faq" className="link link-hover">FAQ</Link></li>
+                            <li><Link href="/support" className="link link-hover">Support</Link></li>
+                            <li><Link href="/contact" className="link link-hover">Contact</Link></li>
+                        </ul>
+                    </nav>
 
-                    <div className="flex flex-col items-start space-y-2">
-                        <h3 className="footer-title">Légal</h3>
-                        <Link href="/privacy" className="link link-hover">Confidentialité</Link>
-                        <Link href="/terms" className="link link-hover">Conditions d'utilisation</Link>
-                    </div>
+                    <section aria-label="Légal" className="flex flex-col items-start space-y-2">
+                        <h2 className="footer-title">Légal</h2>
+                        <ul className="space-y-1 flex flex-col items-start">
+                            <li><Link href="/privacy" className="link link-hover">Confidentialité</Link></li>
+                            <li><Link href="/terms" className="link link-hover">Conditions d'utilisation</Link></li>
+                        </ul>
+                    </section>
 
-                    <div className="flex flex-col items-start">
-                        <h3 className="footer-title">Communauté</h3>
+                    <section aria-label="Communauté" className="flex flex-col items-start">
+                        <h2 className="footer-title">Communauté</h2>
                         <div className="flex flex-col space-y-2">
-                            <Link className="link link-hover" href={process.env.NEXT_PUBLIC_DISCORD_URL || ''} target="_blank">Discord</Link>
-                            <Link className="link link-hover" href={process.env.NEXT_PUBLIC_GITHUB_URL || ''} target="_blank">GitHub</Link>
+                            <Link className="link link-hover" href={process.env.NEXT_PUBLIC_DISCORD_URL || ''}
+                                  target="_blank" rel="noopener">Discord</Link>
+                            <Link className="link link-hover" href={process.env.NEXT_PUBLIC_GITHUB_URL || ''}
+                                  target="_blank" rel="noopener">GitHub</Link>
                         </div>
-                    </div>
+                    </section>
                 </div>
 
                 <div className="divider"></div>

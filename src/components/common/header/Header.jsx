@@ -13,10 +13,16 @@ export default function Header() {
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [roomId, setRoomId] = useState('');
     const [error, setError] = useState(null);
-    const isAuthenticated = useAuth()
+    const [isClient, setIsClient] = useState(false);
+
+    const auth = useAuth();
     const searchParams = useSearchParams();
     const router = useRouter();
-    const {token} = useAuth()
+
+    // Synchronisation client/serveur
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     useEffect(() => {
         const gameParam = searchParams.get('game');
@@ -26,7 +32,7 @@ export default function Header() {
     }, [searchParams]);
 
     const handleJoinById = async () => {
-        if (!isAuthenticated.user) {
+        if (!auth.user) {
             toast.error("Vous devez être connecté pour rejoindre une partie.");
             return;
         }
@@ -40,7 +46,7 @@ export default function Header() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${auth.token}`,
                 },
             });
             if (res.ok) {
@@ -55,7 +61,7 @@ export default function Header() {
     };
 
     const handleJoinRandom = async () => {
-        if (!isAuthenticated.user) {
+        if (!auth.user) {
             toast.error("Vous devez être connecté pour rejoindre une partie.");
             return;
         }
@@ -76,7 +82,7 @@ export default function Header() {
     };
 
     const createGame = () => {
-        if (!isAuthenticated.user) {
+        if (!auth.user) {
             toast.error("Vous devez être connecté pour créer une partie.");
             return;
         }
@@ -84,12 +90,34 @@ export default function Header() {
     }
 
     const redirectLogin = () => {
-        if (isAuthenticated.user) {
+        if (auth.user) {
             router.push('/auth/profile');
         } else {
             router.push('/auth');
         }
     }
+
+    // Rendu conditionnel basé sur l'état client
+    const renderProfileButton = () => {
+        if (!isClient) {
+            // Pendant l'hydratation, rendre la même chose que le serveur
+            return <UserRound className="w-6 h-6"/>;
+        }
+
+        return auth.user ? (
+            <div className="flex items-center space-x-2 gap-2">
+                <Image
+                    src={auth.user.avatar || '/default-avatar.png'}
+                    alt="Avatar"
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                />
+            </div>
+        ) : (
+            <UserRound className="w-6 h-6"/>
+        );
+    };
 
     return (
         <>
@@ -123,7 +151,8 @@ export default function Header() {
                                 </Link>
                             </li>
                             <li>
-                                <button onClick={createGame} className="btn btn-ghost text-base-content">
+                                <button onClick={createGame} className="btn btn-ghost text-base-content"
+                                        name="create-game-button">
                                     <Gamepad2 className="inline w-5 h-5 mr-1"/>
                                     Créer une partie
                                 </button>
@@ -132,6 +161,7 @@ export default function Header() {
                                 <button
                                     className="btn btn-ghost text-base-content"
                                     onClick={() => setShowJoinModal(true)}
+                                    name="join-game-button"
                                 >
                                     <Search className="inline w-5 h-5 mr-1"/>
                                     Rejoindre
@@ -198,6 +228,7 @@ export default function Header() {
                                                 setIsMenuOpen(false);
                                                 setShowJoinModal(true);
                                             }}
+                                            name="join-game-button-mobile"
                                         >
                                             <Search className="inline w-5 h-5 mr-1"/>
                                             Rejoindre
@@ -207,18 +238,15 @@ export default function Header() {
                             )}
                         </div>
 
-                            <button onClick={redirectLogin}
-                                    className="flex items-center justify-center text-base-content hover:bg-base-200 hover:scale-105 transition-all hover:cursor-pointer">
-                                <span className="text-sm">
-                                    {isAuthenticated.user ? (
-                                        <div className="flex items-center space-x-2 gap-2">
-                                            <Image src={isAuthenticated.user.avatar  || '/default-avatar.png'} alt="Avatar" width={40} height={40} className="rounded-full"/>
-                                        </div>
-                                    ) : (
-                                      <UserRound className="w-6 h-6" />
-                                    )}
-                                </span>
-                            </button>
+                        <button
+                            onClick={redirectLogin}
+                            className="flex items-center justify-center text-base-content hover:bg-base-200 hover:scale-105 transition-all hover:cursor-pointer"
+                            name="profile-button"
+                        >
+                            <span className="text-sm">
+                                {renderProfileButton()}
+                            </span>
+                        </button>
                     </div>
                 </div>
             </header>
@@ -233,6 +261,7 @@ export default function Header() {
                                 setError(null);
                                 setRoomId('');
                             }}
+                            name="close-join-modal-button"
                         >✕
                         </button>
                         <h2 className="text-xl font-bold mb-4 text-base-content">Rejoindre une partie</h2>
@@ -253,7 +282,11 @@ export default function Header() {
                                 </div>
                             </div>
                             <div className="divider">ou</div>
-                            <button className="btn btn-secondary w-full" onClick={handleJoinRandom}>
+                            <button
+                                className="btn btn-secondary w-full"
+                                onClick={handleJoinRandom}
+                                name="join-random-game-button"
+                            >
                                 Rejoindre une salle aléatoire
                             </button>
                             {error && <div className="text-error text-sm mt-2">{error}</div>}

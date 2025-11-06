@@ -15,6 +15,8 @@
 
 .idea
 .pgdata
+pgdata
+pgdata-prod
 # next.js
 /.next/
 /out/
