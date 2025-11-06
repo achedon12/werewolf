@@ -9,6 +9,12 @@
     "start": "NODE_ENV=production node src/server/index.js",
     "lint": "eslint"
   },
+  "browserslist": [
+    "last 1 version",
+    "> 1%",
+    "maintained node versions",
+    "not dead"
+  ],
   "dependencies": {
     "@faker-js/faker": "^10.0.0",
     "@prisma/client": "^6.16.3",
