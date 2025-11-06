@@ -108,7 +108,7 @@ export default function Header() {
             <div className="flex items-center space-x-2 gap-2">
                 <Image
                     src={auth.user.avatar || '/default-avatar.png'}
-                    alt="Avatar"
+                    alt={auth.user.name ? `${auth.user.name} — avatar` : 'Avatar utilisateur'}
                     width={40}
                     height={40}
                     className="rounded-full"
@@ -240,6 +240,7 @@ export default function Header() {
 
                         <button
                             onClick={redirectLogin}
+                            aria-label={auth?.user ? 'Ouvrir le profil' : 'Se connecter'}
                             className="flex items-center justify-center text-base-content hover:bg-base-200 hover:scale-105 transition-all hover:cursor-pointer"
                             name="profile-button"
                         >
