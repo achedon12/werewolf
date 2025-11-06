@@ -2,20 +2,19 @@
 
 import {useEffect, useState} from 'react';
 import {useAuth} from "@/app/AuthProvider";
-import {
-    Calendar,
-    ChartColumn,
-    Drama,
-    Earth,
-    Flame,
-    Gamepad2,
-    Skull,
-    Star,
-    Tag,
-    Target,
-    Trophy,
-    Zap
-} from "lucide-react";
+import {Calendar, ChartColumn, Drama, Earth, Flame, Gamepad2, Skull, Tag, Trophy, Zap} from "lucide-react";
+
+const formatDuration = (seconds) => {
+    if (!seconds || seconds <= 0) return "0s";
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    const parts = [];
+    if (h) parts.push(`${h}h`);
+    if (m) parts.push(`${m}m`);
+    if (s || parts.length === 0) parts.push(`${s}s`);
+    return parts.join(' ');
+};
 
 const StatsPage = () => {
     const [stats, setStats] = useState(null);
@@ -82,7 +81,7 @@ const StatsPage = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                 <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl">
                     <div className="card-body">
                         <div className="flex items-center justify-between">
@@ -142,6 +141,22 @@ const StatsPage = () => {
                         </div>
                     </div>
                 </div>
+
+                <div className="card bg-gradient-to-br from-teal-500 to-cyan-600 text-white shadow-xl">
+                    <div className="card-body">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="card-title text-white text-3xl">{formatDuration(stats.totalPlayTime)}</h3>
+                                <p className="text-teal-100">Temps de jeu total</p>
+                            </div>
+                            <Calendar className="text-4xl"/>
+                        </div>
+                        <div className="text-teal-200 text-sm mt-2">
+                            Depuis le début ({stats.timeRange})
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -159,8 +174,8 @@ const StatsPage = () => {
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-700 dark:text-gray-300">{role}</span>
                                             <span className="text-gray-600 dark:text-gray-400">
-                                                {count} parties ({percentage.toFixed(1)}%)
-                                            </span>
+                                                        {count} parties ({percentage.toFixed(1)}%)
+                                                    </span>
                                         </div>
                                         <progress
                                             className="progress progress-primary w-full h-2"
@@ -246,11 +261,12 @@ const StatsPage = () => {
                                             <span className="badge badge-outline">{game.role}</span>
                                         </td>
                                         <td>
-                                            <span
-                                                className={`badge ${game.result === 'win' ? 'badge-success' : 'badge-error'}`}>
-                                                {game.result === 'win' ? 'Victoire' : 'Défaite'}
-                                                {game.result === 'win' ? <Trophy size={14} /> : <Skull size={14} />}
-                                            </span>
+                                                    <span
+                                                        className={`badge ${game.result === 'win' ? 'badge-success' : 'badge-error'}`}>
+                                                        {game.result === 'win' ? 'Victoire' : 'Défaite'}
+                                                        {game.result === 'win' ? <Trophy size={14}/> :
+                                                            <Skull size={14}/>}
+                                                    </span>
                                         </td>
                                         <td>
                                             <div className="rating rating-sm">
@@ -272,70 +288,6 @@ const StatsPage = () => {
                     </div>
                 </div>
             </div>
-
-            {/*<div className="card bg-white dark:bg-gray-800 shadow-xl">
-                <div className="card-body">
-                    <h3 className="card-title text-gray-900 dark:text-white mb-4">
-                        <Target className="inline-block w-6 h-6 text-primary mr-2"/>
-                        Objectifs & Récompenses
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div
-                            className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-4 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                            <div className="flex items-center space-x-3">
-                                <Gamepad2 className="text-2xl"/>
-                                <div>
-                                    <p className="font-semibold">50 Parties</p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                        {50 - stats.gamesPlayed} restantes
-                                    </p>
-                                </div>
-                            </div>
-                            <progress
-                                className="progress progress-primary w-full mt-2"
-                                value={stats.gamesPlayed}
-                                max="50"
-                            ></progress>
-                        </div>
-
-                        <div
-                            className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
-                            <div className="flex items-center space-x-3">
-                                <Trophy className="text-2xl"/>
-                                <div>
-                                    <p className="font-semibold">75% Victoires</p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                        +{Math.max(0, 75 - stats.winRate).toFixed(1)}% à atteindre
-                                    </p>
-                                </div>
-                            </div>
-                            <progress
-                                className="progress progress-success w-full mt-2"
-                                value={stats.winRate}
-                                max="75"
-                            ></progress>
-                        </div>
-
-                        <div
-                            className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 p-4 rounded-lg border border-orange-200 dark:border-orange-800">
-                            <div className="flex items-center space-x-3">
-                                <Flame className="text-2xl"/>
-                                <div>
-                                    <p className="font-semibold">Série de 10</p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                        {10 - stats.currentStreak} victoires restantes
-                                    </p>
-                                </div>
-                            </div>
-                            <progress
-                                className="progress progress-warning w-full mt-2"
-                                value={stats.currentStreak}
-                                max="10"
-                            ></progress>
-                        </div>
-                    </div>
-                </div>
-            </div>*/}
         </div>
     );
 };

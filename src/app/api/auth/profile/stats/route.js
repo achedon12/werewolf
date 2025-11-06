@@ -131,6 +131,14 @@ export async function GET(req) {
         else break;
     }
 
+    let totalPlayTime = 0;
+    for (const p of players) {
+        if (p.game && p.game.endedAt && p.game.startedAt) {
+            const duration = (p.game.endedAt.getTime() - p.game.startedAt.getTime()) / 1000;
+            totalPlayTime += duration;
+        }
+    }
+
     const recentPlayers = Array.from(gamesList)
         .sort((a, b) => b.date - a.date)
         .slice(0, 5)
@@ -170,7 +178,7 @@ export async function GET(req) {
         gamesWon,
         winRate,
         favoriteRole,
-        totalPlayTime: null,
+        totalPlayTime,
         currentStreak,
         bestStreak,
         rolesPlayed,

@@ -51,6 +51,7 @@ async function main() {
         // Choisit la date aléatoire pour cette partie
         const createdAt = randomDateBetween(startDate, endDate);
         const startedAt = new Date(createdAt.getTime() + 1000 * 60 * 60); // +1h
+        const endedAt = new Date(startedAt.getTime() + 1000 * (60 * (30 + Math.floor(Math.random() * 31))));
 
         // Détermine le gagnant : assurer winsForAchedon victoires pour achedon
         const remainingGames = totalGames - i + 1;
@@ -93,6 +94,7 @@ async function main() {
                 state: 'Terminé',
                 createdAt,
                 startedAt,
+                endedAt,
                 admin: {connect: {id: achedon.id}},
                 users: {connect: playerIds},
                 winners: {connect: [{id: winnerId}]},
