@@ -1,5 +1,9 @@
 'use client';
 import {useEffect, useState} from "react";
+import Image from "next/image";
+import PlayButton from "@/components/common/button/playButton/PlayButton";
+import {Moon, Users, Zap} from "lucide-react";
+
 
 const Home = () => {
 
@@ -30,7 +34,7 @@ const Home = () => {
                     <div className="flex justify-center mb-6">
                         <div
                             className="w-24 h-24 bg-red-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-orange-300">
-                            <span className="text-4xl">🐺</span>
+                            <Image src="/logo.png" alt="Loup-Garou Logo" width={64} height={64} />
                         </div>
                     </div>
                     <h1 className="text-5xl md:text-7xl font-bold text-white mb-4">
@@ -40,6 +44,14 @@ const Home = () => {
                         Plongez dans l'univers mystérieux du Loup-Garou. Créez des parties,
                         invitez vos amis et découvrez qui ment et qui dit la vérité.
                     </p>
+
+                    <div className="mt-12 flex justify-center">
+                        <PlayButton
+                            href="/game/list"
+                            label="Jouer Maintenant"
+                            subtitle="Rejoignez une partie ou créez la vôtre"
+                        />
+                    </div>
                 </div>
 
                 {error && <div className="text-red-400 mt-2">{error}</div>}
@@ -47,7 +59,7 @@ const Home = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
                     <div className="card bg-base-100/10 backdrop-blur shadow-xl">
                         <div className="card-body items-center text-center">
-                            <div className="text-3xl mb-4">👥</div>
+                            <Users className="text-3xl mb-4" />
                             <h3 className="card-title text-white mb-2">Multijoueur</h3>
                             <p className="text-gray-300">Jusqu'à 18 joueurs par partie</p>
                         </div>
@@ -55,7 +67,7 @@ const Home = () => {
 
                     <div className="card bg-base-100/10 backdrop-blur shadow-xl">
                         <div className="card-body items-center text-center">
-                            <div className="text-3xl mb-4">⚡</div>
+                            <Zap className="text-3xl mb-4" />
                             <h3 className="card-title text-white mb-2">Rapide</h3>
                             <p className="text-gray-300">Configuration en moins de 2 minutes</p>
                         </div>
@@ -63,7 +75,7 @@ const Home = () => {
 
                     <div className="card bg-base-100/10 backdrop-blur shadow-xl">
                         <div className="card-body items-center text-center">
-                            <div className="text-3xl mb-4">🌙</div>
+                            <Moon className="text-3xl mb-4" />
                             <h3 className="card-title text-white mb-2">Immersif</h3>
                             <p className="text-gray-300">Ambiance mystérieuse et thématique</p>
                         </div>
