@@ -2,7 +2,7 @@
 import {useEffect, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import Head from 'next/head';
-import {io} from 'socket.io-client';
+import {socket} from "@/socket";
 import {formatDate} from "@/utils/Date";
 import {Calendar, Clock8, Cog, Target, UserRound} from "lucide-react";
 
@@ -11,48 +11,51 @@ const GameListPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [filter, setFilter] = useState('all');
-    const [socket, setSocket] = useState(null);
     const [connected, setConnected] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
-        const newSocket = io({
-            path: '/socket.io',
-            transports: ['websocket', 'polling']
-        });
+        if (!socket) return;
 
-        newSocket.on('connect', () => {
+        const handleConnect = () => {
             setConnected(true);
             setLoading(false);
+            socket.emit('get-available-games');
+        };
 
-            newSocket.emit('get-available-games');
-        });
-
-        newSocket.on('disconnect', () => {
+        const handleDisconnect = () => {
             setConnected(false);
-        });
+        };
 
-        newSocket.on('available-games', (gamesData) => {
+        const handleAvailableGames = (gamesData) => {
             setGames(gamesData || []);
             setLoading(false);
-        });
+        };
 
-        newSocket.on('connection-error', (error) => {
-            setError(error.message);
+        const handleConnectionError = (err) => {
+            setError(err?.message || 'Erreur de connexion');
             setLoading(false);
-        });
+        };
 
-        setSocket(newSocket);
+        socket.on('connect', handleConnect);
+        socket.on('disconnect', handleDisconnect);
+        socket.on('available-games', handleAvailableGames);
+        socket.on('connection-error', handleConnectionError);
+
+        // Si déjà connecté au moment du montage, demander les parties
+        if (socket.connected) {
+            handleConnect();
+        }
 
         return () => {
-            newSocket.close();
+            socket.off('connect', handleConnect);
+            socket.off('disconnect', handleDisconnect);
+            socket.off('available-games', handleAvailableGames);
+            socket.off('connection-error', handleConnectionError);
         };
     }, []);
 
-
     const joinGame = (gameId) => {
-        if (!socket) return;
-
         const game = games.find(g => g.id === gameId);
         if (!game) {
             setError('Partie non trouvée');
@@ -99,8 +102,8 @@ const GameListPage = () => {
             <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${config.color}`}
             >
-                {config.label}
-            </span>
+                        {config.label}
+                    </span>
         );
     };
 
@@ -144,8 +147,8 @@ const GameListPage = () => {
                             <div
                                 className={`w-3 h-3 rounded-full mr-2 ${connected ? 'bg-green-400' : 'bg-red-400'} animate-pulse`}></div>
                             <span className={`text-sm font-medium ${connected ? 'text-green-300' : 'text-red-300'}`}>
-                                {connected ? 'Connecté au serveur' : 'Déconnecté'}
-                              </span>
+                                        {connected ? 'Connecté au serveur' : 'Déconnecté'}
+                                      </span>
                         </div>
 
                         <h1 className="text-4xl font-extrabold text-white mb-2">
@@ -337,8 +340,8 @@ const GameCard = ({game, onJoin, playerCount, maxPlayers, getStatusBadge, connec
                         </div>
                         <span
                             className={`font-semibold ${playerCount === maxPlayers ? 'text-green-600' : 'text-blue-600'}`}>
-                          {playerCount}/{maxPlayers}
-                        </span>
+                                  {playerCount}/{maxPlayers}
+                                </span>
                     </div>
 
                     {game.phase && (
@@ -383,9 +386,10 @@ const GameCard = ({game, onJoin, playerCount, maxPlayers, getStatusBadge, connec
                     >
                         {joining ? (
                             <span className="flex items-center justify-center">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Connexion...
-                          </span>
+                                    <div
+                                        className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    Connexion...
+                                  </span>
                         ) : isInProgress ? (
                             '👁️ Spectateur'
                         ) : isFull ? (

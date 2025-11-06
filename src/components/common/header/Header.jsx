@@ -97,11 +97,9 @@ export default function Header() {
         }
     }
 
-    // Rendu conditionnel basé sur l'état client
     const renderProfileButton = () => {
         if (!isClient) {
-            // Pendant l'hydratation, rendre la même chose que le serveur
-            return <UserRound className="w-6 h-6"/>;
+            return <UserRound className="w-6 h-6" suppressHydrationWarning/>;
         }
 
         return auth.user ? (
@@ -257,6 +255,7 @@ export default function Header() {
                             aria-label={auth?.user ? 'Ouvrir le profil' : 'Se connecter'}
                             className="flex items-center justify-center text-base-content hover:bg-base-200 hover:scale-105 transition-all hover:cursor-pointer"
                             name="profile-button"
+                            suppressHydrationWarning
                         >
                             <span className="text-sm">
                                 {renderProfileButton()}
