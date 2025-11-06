@@ -1,13 +1,14 @@
 {
   "name": "werewolf",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "private": true,
   "scripts": {
     "dev": "nodemon src/server/index.js",
     "build": "next build --turbopack",
     "start": "NODE_ENV=production node src/server/index.js",
-    "lint": "eslint"
+    "lint": "eslint",
+    "analyze": "ANALYZE=true next build"
   },
   "browserslist": [
     "last 1 version",
@@ -34,10 +35,12 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^16.0.1",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "24.7.0",
     "@types/react": "19.2.0",
+    "critters": "^0.0.23",
     "daisyui": "^5.1.29",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
