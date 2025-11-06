@@ -80,7 +80,14 @@ export async function PUT(req) {
             }
             const fileName = `${user.id}.${ext}`;
             const filePath = path.join(uploadDir, fileName);
-            fs.writeFileSync(filePath, buffer);
+            try {
+                fs.writeFileSync(filePath, buffer);
+                const stats = fs.statSync(filePath);
+                console.log(`Avatar écrit: ${filePath} (${stats.size} bytes)`);
+            } catch (error) {
+                console.error("Erreur lors de l'écriture du fichier avatar :", error);
+                return NextResponse.json({error: "Erreur lors de l'upload de l'avatar"}, {status: 500});
+            }
             avatarPath = `/uploads/user/${fileName}`;
         }
     }
