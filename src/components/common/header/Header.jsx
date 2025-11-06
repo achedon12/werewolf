@@ -173,8 +173,13 @@ export default function Header() {
                     <div className="navbar-end">
                         <div className="dropdown dropdown-end lg:hidden">
                             <button
+                                id="mobile-menu-button"
                                 className="btn btn-ghost btn-circle"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                aria-label={isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+                                aria-expanded={isMenuOpen}
+                                aria-controls="mobile-menu"
+                                title={isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
                             >
                                 <svg
                                     className="w-5 h-5 text-base-content"
@@ -182,6 +187,8 @@ export default function Header() {
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
                                     xmlns="http://www.w3.org/2000/svg"
+                                    aria-hidden="true"
+                                    focusable="false"
                                 >
                                     <path
                                         strokeLinecap="round"
@@ -193,7 +200,13 @@ export default function Header() {
                             </button>
 
                             {isMenuOpen && (
-                                <ul className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                                <ul
+                                    id="mobile-menu"
+                                    role="menu"
+                                    aria-labelledby="mobile-menu-button"
+                                    aria-hidden={!isMenuOpen}
+                                    className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+                                >
                                     <li>
                                         <Link href="/" onClick={() => setIsMenuOpen(false)}
                                               className="text-base-content">
@@ -209,7 +222,8 @@ export default function Header() {
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link href="/game/list" className="text-base-content">
+                                        <Link href="/game/list" onClick={() => setIsMenuOpen(false)}
+                                              className="text-base-content">
                                             <Joystick className="inline w-5 h-5 mr-1"/>
                                             Parties
                                         </Link>
