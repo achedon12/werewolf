@@ -50,7 +50,6 @@ const OverviewPage = () => {
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Carte profil */}
             <div className="lg:col-span-1">
                 <div className="card bg-white dark:bg-slate-800 shadow-xl sticky top-8">
                     <div className="card-body items-center text-center">
@@ -82,7 +81,6 @@ const OverviewPage = () => {
                             {user?.bio || 'Aucune bio disponible.'}
                         </p>
 
-                        {/* Statistiques rapides */}
                         <div className="stats shadow mt-6 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 w-full">
                             <div className="stat place-items-center">
                                 <div className="stat-title">Victoires</div>
@@ -91,7 +89,6 @@ const OverviewPage = () => {
                             </div>
                         </div>
 
-                        {/* Informations supplémentaires */}
                         <div className="w-full mt-4 space-y-2 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-gray-500 dark:text-gray-400">Membre depuis</span>
@@ -119,35 +116,33 @@ const OverviewPage = () => {
                 </div>
             </div>
 
-            {/* Contenu principal */}
             <div className="lg:col-span-2 space-y-6">
-                {/* Statistiques détaillées */}
                 <div className="card bg-white dark:bg-slate-800 shadow-xl">
                     <div className="card-body">
                         <h3 className="card-title text-2xl mb-6 dark:text-white">📈 Mes Statistiques</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="stat place-items-center bg-base-100 dark:bg-slate-700 rounded-lg p-4">
-                                <div className="stat-figure text-primary">
+                            <div className="flex flex-col items-center justify-center bg-base-100 dark:bg-slate-700 rounded-lg p-4 text-center">
+                                <div className="text-primary mb-2">
                                     <span className="text-2xl">🎮</span>
                                 </div>
-                                <div className="stat-title">Parties jouées</div>
-                                <div className="stat-value text-lg">{user?.games?.length || 0}</div>
+                                <div className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Parties jouées</div>
+                                <div className="text-xl font-bold text-gray-900 dark:text-white">{user?.games?.length || 0}</div>
                             </div>
 
-                            <div className="stat place-items-center bg-base-100 dark:bg-slate-700 rounded-lg p-4">
-                                <div className="stat-figure text-secondary">
+                            <div className="flex flex-col items-center justify-center bg-base-100 dark:bg-slate-700 rounded-lg p-4 text-center">
+                                <div className="text-secondary mb-2">
                                     <span className="text-2xl">🏆</span>
                                 </div>
-                                <div className="stat-title">Victoires</div>
-                                <div className="stat-value text-lg">{user?.victories || 0}</div>
+                                <div className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Victoires</div>
+                                <div className="text-xl font-bold text-gray-900 dark:text-white">{user?.victories || 0}</div>
                             </div>
 
-                            <div className="stat place-items-center bg-base-100 dark:bg-slate-700 rounded-lg p-4">
-                                <div className="stat-figure text-accent">
+                            <div className="flex flex-col items-center justify-center bg-base-100 dark:bg-slate-700 rounded-lg p-4 text-center">
+                                <div className="text-accent mb-2">
                                     <span className="text-2xl">📊</span>
                                 </div>
-                                <div className="stat-title">Taux de victoire</div>
-                                <div className="stat-value text-lg">
+                                <div className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Taux de victoire</div>
+                                <div className="text-xl font-bold text-gray-900 dark:text-white">
                                     {user && user.games && user.games.length > 0
                                         ? Math.round((user.victories / user.games.length) * 100)
                                         : 0
@@ -155,12 +150,12 @@ const OverviewPage = () => {
                                 </div>
                             </div>
 
-                            <div className="stat place-items-center bg-base-100 dark:bg-slate-700 rounded-lg p-4">
-                                <div className="stat-figure text-info">
+                            <div className="flex flex-col items-center justify-center bg-base-100 dark:bg-slate-700 rounded-lg p-4 text-center">
+                                <div className="text-info mb-2">
                                     <span className="text-2xl">⭐</span>
                                 </div>
-                                <div className="stat-title">Classement</div>
-                                <div className="stat-value text-lg">{rank ? `#${rank}` : 'N/A'}</div>
+                                <div className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Classement</div>
+                                <div className="text-xl font-bold text-gray-900 dark:text-white">{rank ? `#${rank}` : 'N/A'}</div>
                             </div>
                         </div>
 
@@ -173,7 +168,6 @@ const OverviewPage = () => {
                     </div>
                 </div>
 
-                {/* Activités récentes */}
                 <div className="card bg-white dark:bg-slate-800 shadow-xl">
                     <div className="card-body">
                         <h3 className="card-title text-2xl mb-6 dark:text-white">🕐 Activités récentes</h3>
