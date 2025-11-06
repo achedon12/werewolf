@@ -1,0 +1,14 @@
+User-agent: *
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /_next/
+Disallow: /node_modules/
+Disallow: /internal/
+Disallow: /private/
+Disallow: /tmp/
+Disallow: /*.env$
+Disallow: /*?session=
+Allow: /
+
+Sitemap: https://werewolf.leoderoin.fr/sitemap.xml

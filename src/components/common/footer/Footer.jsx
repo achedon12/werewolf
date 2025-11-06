@@ -1,6 +1,7 @@
 "use client";
 import Link from 'next/link';
 import {useState} from "react";
+import packageJson from '../../../../package.json';
 
 export default function Footer() {
 
@@ -11,6 +12,8 @@ export default function Footer() {
         setTheme(newTheme);
         document.documentElement.setAttribute('data-theme', newTheme === 'light' ? 'light' : 'dark');
     };
+
+    const version = packageJson?.version || '0.0.0';
 
     return (
         <footer className="footer footer-center bg-base-200 text-base-content rounded p-10">
@@ -69,8 +72,9 @@ export default function Footer() {
                         </button>
                     </div>
 
-                    <div>
+                    <div className="text-sm text-center">
                         <p>Copyright © {new Date().getFullYear()} - Tous droits réservés</p>
+                        <p className="opacity-70">v{version}</p>
                     </div>
                 </div>
             </div>
