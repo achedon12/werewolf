@@ -175,6 +175,38 @@ export async function GET(req) {
             })()
         }));
 
+    const monthStart = startOfMonth();
+    const daysInMonth = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate();
+
+    const monthPlayers = await prisma.player.findMany({
+        where: {
+            userId: payload.id,
+            game: { createdAt: { gte: monthStart } }
+        },
+        include: {
+            game: { select: { id: true, createdAt: true, winners: { select: { id: true } } } }
+        }
+    });
+
+    const playedPerDay = Array(daysInMonth).fill(0);
+    const winsPerDay = Array(daysInMonth).fill(0);
+
+    for (const p of monthPlayers) {
+        const g = p.game;
+        if (!g || !g.createdAt) continue;
+        const d = new Date(g.createdAt);
+        const day = d.getDate(); // 1..daysInMonth
+        playedPerDay[day - 1] += 1;
+        if (Array.isArray(g.winners) && g.winners.some(w => w.id === payload.id)) {
+            winsPerDay[day - 1] += 1;
+        }
+    }
+
+    const labels = [];
+    for (let i = 1; i <= daysInMonth; i++) {
+        labels.push(i.toString().padStart(2, '0'));
+    }
+
     const higherCount = await prisma.user.count({
         where: {victories: {gt: userRecord.victories || 0}}
     });
@@ -210,7 +242,12 @@ export async function GET(req) {
         },
         timeRange: range,
         previousPeriodGames: prevGamesPlayed,
-        gamesDelta
+        gamesDelta,
+        monthlyProgress: {
+            labels,
+            played: playedPerDay,
+            wins: winsPerDay
+        }
     };
 
     return NextResponse.json(stats, {

@@ -5,12 +5,26 @@ import Image from 'next/image';
 import {formatDate} from "@/utils/Date";
 import {useAuth} from "@/app/AuthProvider";
 import {ChartColumn, Clock2, DoorOpen, Gamepad2, Star, Trophy} from "lucide-react";
+import {Line} from 'react-chartjs-2';
+import {
+    CategoryScale,
+    Chart as ChartJS,
+    Legend,
+    LinearScale,
+    LineElement,
+    PointElement,
+    Title,
+    Tooltip
+} from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const OverviewPage = () => {
     const [user, setUser] = useState(null);
     const [rank, setRank] = useState(null);
     const [activities, setActivities] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [monthlyProgress, setMonthlyProgress] = useState(null);
     const {logout} = useAuth();
 
     useEffect(() => {
@@ -52,9 +66,21 @@ const OverviewPage = () => {
             }
         };
 
+        const fetchStats = async () => {
+            try {
+                const res = await fetch('/api/auth/profile/stats?timeRange=month', {
+                    headers: {Authorization: `Bearer ${token}`},
+                });
+                const d = await res.json();
+                if (d && d.monthlyProgress) setMonthlyProgress(d.monthlyProgress);
+            } catch (e) {
+                console.error('Erreur stats:', e);
+            }
+        };
+
         const init = async () => {
             setIsLoading(true);
-            await Promise.all([fetchUserData(), fetchRank(), fetchActivities(3)]);
+            await Promise.all([fetchUserData(), fetchRank(), fetchActivities(3), fetchStats()]);
             setIsLoading(false);
         };
 
@@ -68,6 +94,40 @@ const OverviewPage = () => {
             </div>
         );
     }
+
+    const chartData = monthlyProgress ? {
+        labels: monthlyProgress.labels,
+        datasets: [
+            {
+                label: 'Parties jouées',
+                data: monthlyProgress.played,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59,130,246,0.15)',
+                tension: 0.3,
+                pointRadius: 2
+            },
+            {
+                label: 'Victoires',
+                data: monthlyProgress.wins,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16,185,129,0.12)',
+                tension: 0.3,
+                pointRadius: 2
+            }
+        ]
+    } : null;
+
+    const chartOptions = {
+        responsive: true,
+        plugins: {
+            legend: {position: 'top'},
+            title: {display: false}
+        },
+        scales: {
+            x: {display: true},
+            y: {display: true, beginAtZero: true, ticks: {stepSize: 1}}
+        }
+    };
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -114,14 +174,14 @@ const OverviewPage = () => {
                             <div className="flex justify-between">
                                 <span className="text-gray-500 dark:text-gray-400">Membre depuis</span>
                                 <span className="text-gray-700 dark:text-gray-300">
-                          {user ? formatDate(user.createdAt) : '...'}
-                        </span>
+                                  {user ? formatDate(user.createdAt) : '...'}
+                                </span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-500 dark:text-gray-400">Classement</span>
                                 <span className="text-primary font-semibold">
-                          {rank ? `#${rank}` : '...'}
-                        </span>
+                                  {rank ? `#${rank}` : '...'}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -193,10 +253,15 @@ const OverviewPage = () => {
 
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4 dark:text-white">Progression mensuelle</h4>
-                            <div
-                                className="bg-gray-100 dark:bg-slate-700 rounded-lg h-32 flex items-center justify-center">
-                                <p className="text-gray-500 dark:text-gray-300">Graphique de progression à
-                                    implémenter</p>
+                            <div className="bg-gray-100 dark:bg-slate-700 rounded-lg p-4">
+                                {monthlyProgress ? (
+                                    <Line data={chartData} options={chartOptions}/>
+                                ) : (
+                                    <div className="h-48 flex items-center justify-center">
+                                        <span
+                                            className="text-gray-500 dark:text-gray-300">Chargement du graphique...</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
