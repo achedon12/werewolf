@@ -15,12 +15,18 @@ const SettingsPage = () => {
     const [themeEnabled, setThemeEnabled] = useState(true);
     const {token, setUser} = useAuth()
 
+    const availableThemes = [
+        'light',
+        'dark'
+    ];
+
     const [formData, setFormData] = useState({
         name: '',
         nickname: '',
         email: '',
         bio: '',
-        avatar: ''
+        avatar: '',
+        theme: 'dark'
     });
 
     useEffect(() => {
@@ -41,7 +47,8 @@ const SettingsPage = () => {
                     nickname: data.nickname || '',
                     email: data.email || '',
                     bio: data.bio || '',
-                    avatar: data.avatar || ''
+                    avatar: data.avatar || '',
+                    theme: data.theme || 'dark'
                 });
             } catch (error) {
                 console.error('Erreur lors du chargement du profil:', error);
@@ -56,6 +63,10 @@ const SettingsPage = () => {
         if(!userProfile) return;
         setSoundEnabled(userProfile.ambientSoundsEnabled);
         setThemeEnabled(userProfile.ambientThemeEnabled);
+
+        if(userProfile.theme) {
+            document.documentElement.setAttribute('data-theme', userProfile.theme);
+        }
     }, [userProfile]);
 
     const handleSubmit = async (e) => {
@@ -78,11 +89,15 @@ const SettingsPage = () => {
                 setUserProfile(updatedUser);
                 setUser(updatedUser);
                 setIsEditing(false);
+
+                document.documentElement.setAttribute('data-theme', formData.theme);
+                toast.success('Profil et thème mis à jour avec succès !');
             } else {
                 throw new Error('Erreur lors de la mise à jour');
             }
         } catch (error) {
             console.error('Erreur lors de la mise à jour:', error);
+            toast.error('Erreur lors de la mise à jour');
         }
         setIsSaving(false);
     };
@@ -93,6 +108,10 @@ const SettingsPage = () => {
             ...prev,
             [name]: value
         }));
+
+        if (name === 'theme') {
+            document.documentElement.setAttribute('data-theme', value);
+        }
     };
 
     const handleAvatarChange = (e) => {
@@ -124,6 +143,7 @@ const SettingsPage = () => {
             if (response.ok) {
                 setUserProfile(data);
                 setUser(data);
+                setSoundEnabled(!soundEnabled);
                 toast.success(`Effets sonores ${!soundEnabled ? 'activés' : 'désactivés'}`);
             } else {
                 throw new Error('Erreur lors de la mise à jour des sons');
@@ -149,6 +169,7 @@ const SettingsPage = () => {
             if (response.ok) {
                 setUserProfile(data);
                 setUser(data);
+                setThemeEnabled(!themeEnabled);
                 toast.success(`Thème ambiant ${!themeEnabled ? 'activé' : 'désactivé'}`);
             } else {
                 throw new Error('Erreur lors de la mise à jour du thème');
@@ -168,7 +189,7 @@ const SettingsPage = () => {
     }
 
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-6">
             <div className="card bg-white dark:bg-slate-800 shadow-xl">
                 <div className="card-body">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
@@ -205,23 +226,6 @@ const SettingsPage = () => {
                                         accept="image/*"
                                         onChange={handleAvatarChange}
                                     />
-                                </div>
-
-                                <div className="flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0">
-                                    <button
-                                        className={`btn ${soundEnabled ? 'btn-success' : 'btn-outline'}`}
-                                        onClick={toggleSound}
-                                        type="button"
-                                    >
-                                        {soundEnabled ? '🔊 Effets sonores activés' : '🔇 Effets sonores désactivés'}
-                                    </button>
-                                    <button
-                                        className={`btn ${themeEnabled ? 'btn-success' : 'btn-outline'}`}
-                                        onClick={toggleTheme}
-                                        type="button"
-                                    >
-                                        {themeEnabled ? '🌅 Thème ambiant activé' : '🌃 Thème ambiant désactivé'}
-                                    </button>
                                 </div>
                             </div>
 
@@ -336,6 +340,71 @@ const SettingsPage = () => {
                             </div>
                         </div>
                     )}
+                </div>
+            </div>
+
+            <div className="card bg-white dark:bg-slate-800 shadow-xl">
+                <div className="card-body">
+                    <h3 className="card-title text-2xl dark:text-white mb-6">Configuration du thème</h3>
+
+                    <div className="space-y-6">
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text font-semibold text-lg">Choisir un thème</span>
+                            </label>
+                            <select
+                                name="theme"
+                                value={formData.theme}
+                                onChange={handleChange}
+                                className="select select-bordered w-full"
+                            >
+                                {availableThemes.map((theme) => (
+                                    <option key={theme} value={theme}>
+                                        {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                                    </option>
+                                ))}
+                            </select>
+                            <label className="label">
+                                <span className="label-text-alt">Le thème sera appliqué immédiatement</span>
+                            </label>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row gap-4 pt-4">
+                            <button
+                                className={`btn ${soundEnabled ? 'btn-success' : 'btn-outline'} flex-1`}
+                                onClick={toggleSound}
+                                type="button"
+                            >
+                                {soundEnabled ? '🔊 Sons activés' : '🔇 Sons désactivés'}
+                            </button>
+                            <button
+                                className={`btn ${themeEnabled ? 'btn-success' : 'btn-outline'} flex-1`}
+                                onClick={toggleTheme}
+                                type="button"
+                            >
+                                {themeEnabled ? '🌅 Thème activé' : '🌃 Thème désactivé'}
+                            </button>
+                        </div>
+
+                        {isEditing && (
+                            <div className="card-actions justify-end pt-4">
+                                <button
+                                    onClick={handleSubmit}
+                                    className="btn btn-primary"
+                                    disabled={isSaving}
+                                >
+                                    {isSaving ? (
+                                        <>
+                                            <span className="loading loading-spinner"></span>
+                                            Sauvegarde...
+                                        </>
+                                    ) : (
+                                        '💾 Sauvegarder le thème'
+                                    )}
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
