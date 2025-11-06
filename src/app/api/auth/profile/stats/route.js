@@ -12,14 +12,25 @@ const startOfWeek = () => {
     const monday = new Date(d.setDate(diff));
     monday.setHours(0, 0, 0, 0);
     return monday;
-}
+};
+const startOfWeekAgo = () => {
+    const s = startOfWeek();
+    s.setDate(s.getDate() - 7);
+    return s;
+};
 
 const startOfMonth = () => {
     const d = new Date();
     const first = new Date(d.getFullYear(), d.getMonth(), 1);
     first.setHours(0, 0, 0, 0);
     return first;
-}
+};
+const startOfPrevMonth = () => {
+    const d = new Date();
+    const prev = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+    prev.setHours(0, 0, 0, 0);
+    return prev;
+};
 
 export async function GET(req) {
     const authHeader = req.headers.get("authorization");
@@ -40,12 +51,8 @@ export async function GET(req) {
 
     const userRecord = await prisma.user.findUnique({
         where: {id: payload.id},
-        select: {
-            id: true,
-            victories: true,
-        }
+        select: {id: true, victories: true}
     });
-
     if (!userRecord) {
         return NextResponse.json({error: "Utilisateur introuvable"}, {status: 404});
     }
@@ -91,7 +98,6 @@ export async function GET(req) {
     }
     const gamesList = Array.from(gamesMap.values()).sort((a, b) => a.date - b.date);
 
-    // basic stats
     const gamesPlayed = gamesList.length;
     const gamesWon = winGames.length;
     const winRate = gamesPlayed > 0 ? Number(((gamesWon / gamesPlayed) * 100).toFixed(1)) : 0;
@@ -113,7 +119,7 @@ export async function GET(req) {
         }
     }
 
-    // streaks (best and current) based on filtered gamesList
+    // streaks
     let bestStreak = 0;
     let currentRun = 0;
     for (const g of gamesList) {
@@ -124,13 +130,13 @@ export async function GET(req) {
             currentRun = 0;
         }
     }
-
     let currentStreak = 0;
     for (let i = gamesList.length - 1; i >= 0; i--) {
         if (gamesList[i].won) currentStreak += 1;
         else break;
     }
 
+    // total play time (seconds)
     let totalPlayTime = 0;
     for (const p of players) {
         if (p.game && p.game.endedAt && p.game.startedAt) {
@@ -138,6 +144,24 @@ export async function GET(req) {
             totalPlayTime += duration;
         }
     }
+
+    let prevGamesPlayed = null;
+    if (cutoff) {
+        let prevStart = null;
+        if (range === "week") prevStart = startOfWeekAgo();
+        else if (range === "month") prevStart = startOfPrevMonth();
+
+        if (prevStart) {
+            prevGamesPlayed = await prisma.player.count({
+                where: {
+                    userId: payload.id,
+                    game: {createdAt: {gte: prevStart, lt: cutoff}}
+                }
+            });
+        }
+    }
+
+    const gamesDelta = prevGamesPlayed === null ? null : (gamesPlayed - prevGamesPlayed);
 
     const recentPlayers = Array.from(gamesList)
         .sort((a, b) => b.date - a.date)
@@ -151,15 +175,11 @@ export async function GET(req) {
             })()
         }));
 
-    // global rank (unchanged)
     const higherCount = await prisma.user.count({
-        where: {
-            victories: {gt: userRecord.victories || 0}
-        }
+        where: {victories: {gt: userRecord.victories || 0}}
     });
     const globalRank = higherCount + 1;
 
-    // monthly / weekly wins (kept global regardless of selected range)
     const monthlyWins = await prisma.game.count({
         where: {
             winners: {some: {id: payload.id}},
@@ -188,7 +208,9 @@ export async function GET(req) {
             monthly: monthlyWins,
             weekly: weeklyWins
         },
-        timeRange: range
+        timeRange: range,
+        previousPeriodGames: prevGamesPlayed,
+        gamesDelta
     };
 
     return NextResponse.json(stats, {

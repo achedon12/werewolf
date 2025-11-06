@@ -3,18 +3,7 @@
 import {useEffect, useState} from 'react';
 import {useAuth} from "@/app/AuthProvider";
 import {Calendar, ChartColumn, Drama, Earth, Flame, Gamepad2, Skull, Tag, Trophy, Zap} from "lucide-react";
-
-const formatDuration = (seconds) => {
-    if (!seconds || seconds <= 0) return "0s";
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    const parts = [];
-    if (h) parts.push(`${h}h`);
-    if (m) parts.push(`${m}m`);
-    if (s || parts.length === 0) parts.push(`${s}s`);
-    return parts.join(' ');
-};
+import {formationHoursDuration} from "@/utils/Date.js";
 
 const StatsPage = () => {
     const [stats, setStats] = useState(null);
@@ -55,6 +44,10 @@ const StatsPage = () => {
         );
     }
 
+    const delta = stats.gamesDelta;
+    const deltaText = delta === null ? null : `${delta > 0 ? '+' + delta : delta} ${timeRange === 'week' ? 'cette semaine' : timeRange === 'month' ? 'ce mois' : 'vs précédent'}`;
+    const deltaClass = delta === null ? 'text-gray-400' : (delta > 0 ? 'text-green-200' : (delta < 0 ? 'text-red-200' : 'text-yellow-200'));
+
     return (
         <div className="max-w-7xl mx-auto space-y-6 p-4">
             <div className="text-center mb-8">
@@ -91,8 +84,8 @@ const StatsPage = () => {
                             </div>
                             <Gamepad2 className="text-4xl"/>
                         </div>
-                        <div className="text-blue-200 text-sm mt-2">
-                            +5 cette semaine
+                        <div className={`${deltaClass} text-sm mt-2`}>
+                            {deltaText ? deltaText : 'Pas de comparaison disponible'}
                         </div>
                     </div>
                 </div>
@@ -131,7 +124,7 @@ const StatsPage = () => {
                     <div className="card-body">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="card-title text-white text-xl">{stats.favoriteRole}</h3>
+                                <h3 className="card-title text-white text-xl">{stats.favoriteRole || '~'}</h3>
                                 <p className="text-orange-100">Rôle favori</p>
                             </div>
                             <Drama className="text-4xl"/>
@@ -146,7 +139,7 @@ const StatsPage = () => {
                     <div className="card-body">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="card-title text-white text-3xl">{formatDuration(stats.totalPlayTime)}</h3>
+                                <h3 className="card-title text-white text-3xl">{formationHoursDuration(stats.totalPlayTime)}</h3>
                                 <p className="text-teal-100">Temps de jeu total</p>
                             </div>
                             <Calendar className="text-4xl"/>
