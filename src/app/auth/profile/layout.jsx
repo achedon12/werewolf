@@ -48,11 +48,11 @@ const ProfileLayout = ({ children }) => {
                 </div>
 
                 <div className="flex justify-center mb-8">
-                    <div className="tabs tabs-boxed bg-white/80 backdrop-blur-sm dark:bg-slate-800/80 flex space-x-4 rounded-lg shadow-md pl-2 pr-2">
+                    <div className="tabs tabs-boxed bg-white/80 backdrop-blur-sm dark:bg-slate-800/80 flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 rounded-lg shadow-md">
                         {TABS.map(tab => (
                             <button
                                 key={tab.key}
-                                className={`tab flex items-center space-x-2 ${
+                                className={`tab flex items-center justify-start md:justify-center space-x-2 w-full md:w-auto ${
                                     activeTab === tab.key
                                         ? 'tab-active text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30'
                                         : 'text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400'

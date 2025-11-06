@@ -171,12 +171,12 @@ const SettingsPage = () => {
         <div className="max-w-4xl mx-auto">
             <div className="card bg-white dark:bg-slate-800 shadow-xl">
                 <div className="card-body">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="card-title text-2xl dark:text-white">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
+                        <h3 className="card-title text-2xl dark:text-white w-full text-center">
                             {isEditing ? 'Modifier le profil' : 'Informations personnelles'}
                         </h3>
                         <button
-                            className={`btn ${isEditing ? 'btn-ghost' : 'btn-primary'}`}
+                            className={`btn ${isEditing ? 'btn-ghost' : 'btn-primary'} w-full md:w-auto`}
                             onClick={() => setIsEditing(!isEditing)}
                             disabled={isSaving}
                         >
