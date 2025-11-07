@@ -66,4 +66,4 @@ export const parseTimeRange = (raw) => {
     if (/^\d+$/.test(s)) return parseInt(s, 10) * 24 * 60 * 60 * 1000;
 
     return 7 * 24 * 60 * 60 * 1000;
-};
+}

@@ -15,7 +15,7 @@ import {
     User
 } from 'lucide-react';
 import {useAuth} from "@/app/AuthProvider.jsx";
-import {useRouter} from "next/navigation.d.ts";
+import {useRouter} from "next/navigation";
 
 const AdminLayout = ({ children }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
