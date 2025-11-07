@@ -21,9 +21,7 @@ export default function Header() {
     const router = useRouter();
     const pathname = usePathname();
 
-    if (pathname?.startsWith('/admin')) return null;
 
-    // Synchronisation client/serveur
     useEffect(() => {
         setIsClient(true);
     }, []);
@@ -34,6 +32,8 @@ export default function Header() {
             setRoomId(gameParam);
         }
     }, [searchParams]);
+
+    if (pathname?.startsWith('/admin')) return null;
 
     const handleJoinById = async () => {
         if (!auth.user) {
