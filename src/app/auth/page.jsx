@@ -287,9 +287,7 @@ const AuthPage = () => {
                                                         </svg>
                                                     </div>
                                                 </div>
-                                                <label className="label">
-                                                    <span className="label-text-alt text-gray-400">Ce pseudo sera visible par les autres joueurs</span>
-                                                </label>
+                                                <p className="label-text-alt text-gray-400 mt-2">Ce pseudo sera visible par les autres joueurs</p>
                                             </div>
 
                                             <button
@@ -403,10 +401,10 @@ const AuthPage = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="flex gap-3 mt-6">
+                                            <div className="flex flex-col md:flex-row gap-3 mt-6">
                                                 <button
                                                     type="button"
-                                                    className="btn btn-lg flex-1 bg-base-200/50 border-white/20 text-gray-300 hover:bg-base-200/80 transition-all duration-300"
+                                                    className="btn btn-lg flex-1 bg-base-200/50 border-white/20 text-gray-300 hover:bg-base-200/80 transition-all duration-300 p-2 md:p-0"
                                                     onClick={prevStep}
                                                 >
                                                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor"
@@ -418,7 +416,7 @@ const AuthPage = () => {
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    className="btn btn-lg flex-1 bg-gradient-to-r from-purple-500 to-blue-500 border-none text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                                                    className="btn btn-lg flex-1 bg-gradient-to-r from-purple-500 to-blue-500 border-none text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 p-2 md:p-0"
                                                     onClick={nextStep}
                                                 >
                                                     Continuer
@@ -499,10 +497,10 @@ const AuthPage = () => {
                                                 </ul>
                                             </div>
 
-                                            <div className="flex gap-3 mt-6">
+                                            <div className="flex flex-col md:flex-row gap-3 mt-6">
                                                 <button
                                                     type="button"
-                                                    className="btn btn-lg flex-1 bg-base-200/50 border-white/20 text-gray-300 hover:bg-base-200/80 transition-all duration-300"
+                                                    className="btn btn-lg flex-1 bg-base-200/50 border-white/20 text-gray-300 hover:bg-base-200/80 transition-all duration-300 p-2 md:p-0"
                                                     onClick={prevStep}
                                                 >
                                                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor"
@@ -514,7 +512,7 @@ const AuthPage = () => {
                                                 </button>
                                                 <button
                                                     type="submit"
-                                                    className="btn btn-lg flex-1 bg-gradient-to-r from-purple-500 to-blue-500 border-none text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                                                    className="btn btn-lg flex-1 bg-gradient-to-r from-purple-500 to-blue-500 border-none text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 p-2 md:p-0"
                                                 >
                                                     Créer mon compte
                                                     <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor"

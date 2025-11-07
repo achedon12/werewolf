@@ -2,10 +2,14 @@
 import Link from 'next/link';
 import {useState} from "react";
 import packageJson from '../../../../package.json';
+import { usePathname } from 'next/navigation';
 
 export default function Footer() {
 
     const [theme, setTheme] = useState('dark');
+    const pathname = usePathname();
+
+    if (pathname?.startsWith('/admin')) return null;
 
     const handleThemeToggle = () => {
         const newTheme = theme === 'dark' ? 'light' : 'dark';

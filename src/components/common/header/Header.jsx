@@ -7,6 +7,7 @@ import {useAuth} from "@/app/AuthProvider";
 import {toast} from 'react-toastify';
 import {Gamepad2, House, Joystick, NotebookText, Search, UserRound} from "lucide-react";
 import Image from "next/image";
+import {usePathname} from "next/navigation.d.ts";
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -18,6 +19,9 @@ export default function Header() {
     const auth = useAuth();
     const searchParams = useSearchParams();
     const router = useRouter();
+    const pathname = usePathname();
+
+    if (pathname?.startsWith('/admin')) return null;
 
     // Synchronisation client/serveur
     useEffect(() => {

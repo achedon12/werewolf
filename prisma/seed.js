@@ -1,5 +1,6 @@
 import {PrismaClient} from '../src/generated/prisma/index.js';
 import {roles} from '../src/utils/Roles.js';
+import {GAME_STATES} from "../src/server/config/constants.js";
 
 const prisma = new PrismaClient();
 
@@ -8,9 +9,9 @@ function randomDateBetween(start, end) {
 }
 
 async function main() {
-    const achedonId = 'cmgfby3e40001vzcs3l9oqmsx';
+    const achedonNickname = 'achedon12';
     const achedon = await prisma.user.findUnique({
-        where: {id: achedonId}
+        where: {nickname: achedonNickname}
     });
 
     const createdUsers = [];
@@ -91,7 +92,7 @@ async function main() {
                 type: 'classic',
                 configuration: '{}',
                 phase: 'Nuit',
-                state: 'Terminé',
+                state: GAME_STATES.FINISHED,
                 createdAt,
                 startedAt,
                 endedAt,

@@ -30,7 +30,7 @@ export async function POST(req) {
             `
         });
 
-        const token = jwt.sign({id: user.id}, JWT_SECRET, {expiresIn: "7d"});
+        const token = jwt.sign({id: user.id, role: user.role}, JWT_SECRET, {expiresIn: "7d"});
         return NextResponse.json({user: {id: user.id, email: user.email, name: user.name}, token});
     }
 
@@ -39,7 +39,7 @@ export async function POST(req) {
         if (!user) return NextResponse.json({error: "Identifiants invalides"}, {status: 401});
         if (!user || !(await bcrypt.compare(password, user.password)))
             return NextResponse.json({error: "Identifiants invalides"}, {status: 401});
-        const token = jwt.sign({id: user.id}, JWT_SECRET, {expiresIn: "7d"});
+        const token = jwt.sign({id: user.id, role: user.role}, JWT_SECRET, {expiresIn: "7d"});
         return NextResponse.json({user, token});
     }
 

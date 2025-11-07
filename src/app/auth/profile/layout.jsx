@@ -64,6 +64,19 @@ const ProfileLayout = ({ children }) => {
                                 {tab.label}
                             </button>
                         ))}
+                        {user?.role === 'admin' && (
+                            <button
+                                className="tab flex items-center justify-start md:justify-center space-x-2 w-full md:w-auto text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-600"
+                                onClick={() => router.push('/admin/dashboard')}
+                                type="button"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 2.03a1 1 0 011.42 1.42l-.71.7a1 1 0 11-1.42-1.42l.71-.7zM18 9a1 1 0 110 2h-1a1 1 0 110-2h1zm-2.03 4.22a1 1 0 11-1.42 1.42l-.7-.71a1 1 0 111.42-1.42l.7.71zM10 16a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm-4.22-2.03a1 1 0 00-1.42 1.42l.71.7a1 1 0 101.42-1.42l-.71-.7zM4 11a1 1 0 100-2H3a1 1 0 100 2h1zm2.03-4.22a1 1 0 101.42-1.42l.7.71a1 1 0 11-1.42 1.42l-.7-.71z" />
+                                    <path d="M10 5a5 5 0 100 10 5 5 0 000-10zM2 10a8 8 0 1116 0A8 8 0 012 10z" />
+                                </svg>
+                                Admin Dashboard
+                            </button>
+                        )}
                     </div>
                 </div>
 
