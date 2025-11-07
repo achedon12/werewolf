@@ -81,10 +81,7 @@ const AdminLayout = ({ children }) => {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                    Admin User
-                                </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                    Super Admin
+                                    {user?.nickname || 'Utilisateur'}
                                 </p>
                             </div>
                         </div>

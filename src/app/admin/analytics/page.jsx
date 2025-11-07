@@ -18,70 +18,64 @@ import {
 import {Clock, Download, Eye, Gamepad2, TrendingUp, Users,} from 'lucide-react';
 
 const AdminAnalyticsPage = () => {
-    const [timeRange, setTimeRange] = useState('7days');
+    const [timeRange, setTimeRange] = useState('7');
     const [loading, setLoading] = useState(true);
     const [analyticsData, setAnalyticsData] = useState(null);
+    const [activityByHour, setActivityByHour] = useState([]);
+    const [userGrowth, setUserGrowth] = useState([]);
+    const [popularRoles, setPopularRoles] = useState([]);
+    const [overview, setOverview] = useState(null);
+    const [gameStats, setGameStats] = useState([]);
+    const [playerBehavior, setPlayerBehavior] = useState([]);
 
     useEffect(() => {
         const fetchAnalytics = async () => {
             setLoading(true);
+            const token = localStorage.getItem('token');
             try {
-                const mockData = {
-                    overview: {
-                        totalUsers: 1247,
-                        activeUsers: 289,
-                        totalGames: 1560,
-                        activeGames: 23,
-                        avgSessionDuration: '12m 34s',
-                        retentionRate: 68.5
-                    },
-                    userGrowth: [
-                        {date: '2024-01-01', users: 1000, newUsers: 45},
-                        {date: '2024-01-02', users: 1020, newUsers: 32},
-                        {date: '2024-01-03', users: 1050, newUsers: 48},
-                        {date: '2024-01-04', users: 1080, newUsers: 52},
-                        {date: '2024-01-05', users: 1120, newUsers: 61},
-                        {date: '2024-01-06', users: 1160, newUsers: 55},
-                        {date: '2024-01-07', users: 1200, newUsers: 58},
-                        {date: '2024-01-08', users: 1247, newUsers: 67}
-                    ],
-                    gameStats: [
-                        {status: 'Terminées', count: 1240, percentage: 79.5},
-                        {status: 'En cours', count: 23, percentage: 1.5},
-                        {status: 'Annulées', count: 297, percentage: 19.0}
-                    ],
-                    popularRoles: [
-                        {role: 'Loup-Garou', count: 2450, color: '#ef4444'},
-                        {role: 'Villageois', count: 3120, color: '#3b82f6'},
-                        {role: 'Voyante', count: 980, color: '#8b5cf6'},
-                        {role: 'Chasseur', count: 760, color: '#f59e0b'},
-                        {role: 'Cupidon', count: 540, color: '#ec4899'}
-                    ],
-                    activityByHour: [
-                        {hour: '00h', games: 45, users: 89},
-                        {hour: '02h', games: 32, users: 67},
-                        {hour: '04h', games: 18, users: 34},
-                        {hour: '06h', games: 23, users: 45},
-                        {hour: '08h', games: 67, users: 123},
-                        {hour: '10h', games: 89, users: 167},
-                        {hour: '12h', games: 124, users: 234},
-                        {hour: '14h', games: 156, users: 289},
-                        {hour: '16h', games: 178, users: 312},
-                        {hour: '18h', games: 195, users: 345},
-                        {hour: '20h', games: 167, users: 298},
-                        {hour: '22h', games: 98, users: 187}
-                    ],
-                    playerBehavior: [
-                        {metric: 'Parties/joueur', value: 4.2},
-                        {metric: 'Victoires/joueur', value: 2.1},
-                        {metric: 'Temps moyen/partie', value: 25.7},
-                        {metric: 'Taux de complétion', value: 81.3}
-                    ]
-                };
+                // activity by hour
+                const activityByOurRes = await fetch('/api/admin/analytics/activityByHour?timeRange=' + timeRange, {
+                    headers: {'Authorization': `Bearer ${token}`},
+                });
+                const activityByHourData = await activityByOurRes.json();
+                setActivityByHour(activityByHourData.activityByHour);
 
-                setAnalyticsData(mockData);
+                // user growth
+                const userGrowthRes = await fetch('/api/admin/analytics/userGrowth?timeRange=' + timeRange, {
+                    headers: {'Authorization': `Bearer ${token}`},
+                });
+                const userGrowthData = await userGrowthRes.json();
+                setUserGrowth(userGrowthData.userGrowth);
+
+                // popular roles
+                const popularRolesRes = await fetch('/api/admin/analytics/popularRoles?timeRange=' + timeRange, {
+                    headers: {'Authorization': `Bearer ${token}`},
+                });
+                const popularRolesData = await popularRolesRes.json();
+                setPopularRoles(popularRolesData.popularRoles);
+
+                // overview
+                const overviewRes = await fetch('/api/admin/analytics/overview?timeRange=' + timeRange, {
+                    headers: {'Authorization': `Bearer ${token}`},
+                });
+                const overviewData = await overviewRes.json();
+                setOverview(overviewData.overview);
+
+                // game stats
+                const gameStatsRes = await fetch('/api/admin/analytics/gameStats?timeRange=' + timeRange, {
+                    headers: {'Authorization': `Bearer ${token}`},
+                });
+                const gameStatsData = await gameStatsRes.json();
+                setGameStats(gameStatsData.gameStats);
+
+                // player behavior
+                const playerBehaviorRes = await fetch('/api/admin/analytics/playerBehavior?timeRange=' + timeRange, {
+                    headers: {'Authorization': `Bearer ${token}`},
+                });
+                const playerBehaviorData = await playerBehaviorRes.json();
+                setPlayerBehavior(playerBehaviorData.playerBehavior);
+
             } catch (error) {
-                console.error('Erreur lors du chargement des analytics:', error);
             }
             setLoading(false);
         };
@@ -144,7 +138,7 @@ const AdminAnalyticsPage = () => {
         );
     }
 
-    if (!analyticsData) {
+    if (!overview || !userGrowth.length || !activityByHour.length || !popularRoles.length || !gameStats.length) {
         return (
             <div className="text-center py-12">
                 <p className="text-gray-600 dark:text-gray-400">Aucune donnée disponible</p>
@@ -170,10 +164,10 @@ const AdminAnalyticsPage = () => {
                         value={timeRange}
                         onChange={(e) => setTimeRange(e.target.value)}
                     >
-                        <option value="24h">24 dernières heures</option>
-                        <option value="7days">7 derniers jours</option>
-                        <option value="30days">30 derniers jours</option>
-                        <option value="90days">3 derniers mois</option>
+                        <option value="2">24 dernières heures</option>
+                        <option value="7">7 derniers jours</option>
+                        <option value="30">30 derniers jours</option>
+                        <option value="90">3 derniers mois</option>
                     </select>
 
                     <button className="btn btn-outline">
@@ -186,29 +180,29 @@ const AdminAnalyticsPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
                     title="Utilisateurs totaux"
-                    value={analyticsData.overview.totalUsers.toLocaleString()}
-                    change={12.5}
+                    value={overview.totalUsers.toLocaleString()}
+                    change={overview.totalUsersChange}
                     icon={Users}
                     color="blue"
                 />
                 <StatCard
                     title="Utilisateurs actifs"
-                    value={analyticsData.overview.activeUsers}
-                    change={8.2}
+                    value={overview.activeUsers}
+                    change={overview.activeUsersChange}
                     icon={TrendingUp}
                     color="green"
                 />
                 <StatCard
                     title="Parties totales"
-                    value={analyticsData.overview.totalGames.toLocaleString()}
-                    change={15.3}
+                    value={overview.totalGames.toLocaleString()}
+                    change={overview.totalGamesChange}
                     icon={Gamepad2}
                     color="purple"
                 />
                 <StatCard
                     title="Taux de rétention"
-                    value={`${analyticsData.overview.retentionRate}%`}
-                    change={3.1}
+                    value={`${overview.retentionRate}%`}
+                    change={overview.totalGamesChange}
                     icon={Eye}
                     color="orange"
                 />
@@ -220,7 +214,7 @@ const AdminAnalyticsPage = () => {
                         <h3 className="card-title text-lg mb-4">📈 Croissance des utilisateurs</h3>
                         <div className="h-80">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={analyticsData.userGrowth}>
+                                <LineChart data={userGrowth}>
                                     <CartesianGrid strokeDasharray="3 3" className="opacity-30"/>
                                     <XAxis
                                         dataKey="date"
@@ -259,7 +253,7 @@ const AdminAnalyticsPage = () => {
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
-                                        data={analyticsData.gameStats}
+                                        data={gameStats}
                                         cx="50%"
                                         cy="50%"
                                         labelLine={false}
@@ -268,7 +262,7 @@ const AdminAnalyticsPage = () => {
                                         fill="#8884d8"
                                         dataKey="count"
                                     >
-                                        {analyticsData.gameStats.map((entry, index) => (
+                                        {gameStats.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={
                                                 index === 0 ? '#10b981' :
                                                     index === 1 ? '#3b82f6' : '#ef4444'
@@ -290,14 +284,17 @@ const AdminAnalyticsPage = () => {
                         <h3 className="card-title text-lg mb-4">🎭 Rôles les plus populaires</h3>
                         <div className="h-80">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={analyticsData.popularRoles}>
+                                <BarChart data={popularRoles}>
                                     <CartesianGrid strokeDasharray="3 3" className="opacity-30"/>
                                     <XAxis dataKey="role"/>
                                     <YAxis/>
                                     <Tooltip/>
                                     <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                                        {analyticsData.popularRoles.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color}/>
+                                        {popularRoles.map((entry, index) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={entry.color}
+                                            />
                                         ))}
                                     </Bar>
                                 </BarChart>
@@ -311,7 +308,7 @@ const AdminAnalyticsPage = () => {
                         <h3 className="card-title text-lg mb-4">🕒 Activité par heure de la journée</h3>
                         <div className="h-80">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={analyticsData.activityByHour}>
+                                <BarChart data={activityByHour}>
                                     <CartesianGrid strokeDasharray="3 3" className="opacity-30"/>
                                     <XAxis dataKey="hour"/>
                                     <YAxis/>
@@ -340,7 +337,7 @@ const AdminAnalyticsPage = () => {
                 <div className="card-body">
                     <h3 className="card-title text-lg mb-4">📊 Comportement des joueurs</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {analyticsData.playerBehavior.map((item, index) => (
+                        {playerBehavior.map((item, index) => (
                             <div key={index} className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                 <p className="text-2xl font-bold text-primary mb-1">
                                     {typeof item.value === 'number' ? item.value.toFixed(1) : item.value}
@@ -361,7 +358,7 @@ const AdminAnalyticsPage = () => {
                     <div className="card-body text-center">
                         <Clock className="h-8 w-8 text-blue-500 mx-auto mb-2"/>
                         <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                            {analyticsData.overview.avgSessionDuration}
+                            {overview.avgSessionDuration}
                         </p>
                         <p className="text-gray-600 dark:text-gray-400">Durée moyenne de session</p>
                     </div>
@@ -371,7 +368,7 @@ const AdminAnalyticsPage = () => {
                     <div className="card-body text-center">
                         <Gamepad2 className="h-8 w-8 text-green-500 mx-auto mb-2"/>
                         <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                            {Math.round(analyticsData.overview.totalGames / analyticsData.overview.totalUsers)}
+                            {Math.round(overview.totalGames / overview.totalUsers)}
                         </p>
                         <p className="text-gray-600 dark:text-gray-400">Parties par utilisateur</p>
                     </div>
@@ -381,7 +378,7 @@ const AdminAnalyticsPage = () => {
                     <div className="card-body text-center">
                         <TrendingUp className="h-8 w-8 text-purple-500 mx-auto mb-2"/>
                         <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                            +{analyticsData.userGrowth[analyticsData.userGrowth.length - 1].newUsers}
+                            +{userGrowth[userGrowth.length - 1].newUsers}
                         </p>
                         <p className="text-gray-600 dark:text-gray-400">Nouveaux utilisateurs (24h)</p>
                     </div>

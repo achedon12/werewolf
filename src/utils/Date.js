@@ -40,3 +40,30 @@ export const formatDateTime = (date) => {
         minute: '2-digit'
     });
 }
+
+export const formatDurationMs = (ms) => {
+    if (!ms || ms <= 0) return "0m 0s";
+    const totalSec = Math.round(ms / 1000);
+    const minutes = Math.floor(totalSec / 60);
+    const seconds = totalSec % 60;
+    return `${minutes}m ${String(seconds).padStart(2, '0')}s`;
+}
+
+export const parseTimeRange = (raw) => {
+    if (!raw) return 7 * 24 * 60 * 60 * 1000;
+    const s = String(raw).trim().toLowerCase();
+
+    if (s === "24" || s === "24h" || s === "24hours" || s === "24hour") {
+        return 24 * 60 * 60 * 1000;
+    }
+
+    const hMatch = s.match(/^(\d+)\s*(h|hours?)$/);
+    if (hMatch) return parseInt(hMatch[1], 10) * 60 * 60 * 1000;
+
+    const dMatch = s.match(/^(\d+)\s*(d|days?)$/);
+    if (dMatch) return parseInt(dMatch[1], 10) * 24 * 60 * 60 * 1000;
+
+    if (/^\d+$/.test(s)) return parseInt(s, 10) * 24 * 60 * 60 * 1000;
+
+    return 7 * 24 * 60 * 60 * 1000;
+};
