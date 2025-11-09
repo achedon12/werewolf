@@ -142,23 +142,17 @@ export default function Header() {
                     <div className="navbar-center hidden lg:flex">
                         <ul className="menu menu-horizontal px-1 space-x-2">
                             <li>
-                                <Link href="/rules" className="btn btn-ghost text-base-content">
-                                    <NotebookText className="inline w-5 h-5 mr-1"/>
-                                    Règles
-                                </Link>
+                                <button onClick={createGame} className="btn btn-ghost text-base-content"
+                                        name="create-game-button">
+                                    <Gamepad2 className="inline w-5 h-5 mr-1"/>
+                                    Créer une partie
+                                </button>
                             </li>
                             <li>
                                 <Link href="/game/list" className="btn btn-ghost text-base-content">
                                     <Joystick className="inline w-5 h-5 mr-1"/>
                                     Parties
                                 </Link>
-                            </li>
-                            <li>
-                                <button onClick={createGame} className="btn btn-ghost text-base-content"
-                                        name="create-game-button">
-                                    <Gamepad2 className="inline w-5 h-5 mr-1"/>
-                                    Créer une partie
-                                </button>
                             </li>
                             <li>
                                 <button
@@ -174,6 +168,12 @@ export default function Header() {
                                 <Link href="/leaderboard" className="btn btn-ghost text-base-content">
                                     <Trophy className="inline w-5 h-5 mr-1"/>
                                     Classement
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/rules" className="btn btn-ghost text-base-content">
+                                    <NotebookText className="inline w-5 h-5 mr-1"/>
+                                    Règles
                                 </Link>
                             </li>
                         </ul>
@@ -217,10 +217,10 @@ export default function Header() {
                                     className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
                                 >
                                     <li>
-                                        <Link href="/rules" onClick={() => setIsMenuOpen(false)}
+                                        <Link href="/game/create" onClick={() => setIsMenuOpen(false)}
                                               className="text-base-content">
-                                            <NotebookText className="inline w-5 h-5 mr-1"/>
-                                            Règles
+                                            <Gamepad2 className="inline w-5 h-5 mr-1"/>
+                                            Créer une partie
                                         </Link>
                                     </li>
                                     <li>
@@ -228,13 +228,6 @@ export default function Header() {
                                               className="text-base-content">
                                             <Joystick className="inline w-5 h-5 mr-1"/>
                                             Parties
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/game/create" onClick={() => setIsMenuOpen(false)}
-                                              className="text-base-content">
-                                            <Gamepad2 className="inline w-5 h-5 mr-1"/>
-                                            Créer une partie
                                         </Link>
                                     </li>
                                     <li>
@@ -255,6 +248,13 @@ export default function Header() {
                                               className="text-base-content">
                                             <Trophy className="inline w-5 h-5 mr-1"/>
                                             Classement
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link href="/rules" onClick={() => setIsMenuOpen(false)}
+                                              className="text-base-content">
+                                            <NotebookText className="inline w-5 h-5 mr-1"/>
+                                            Règles
                                         </Link>
                                     </li>
                                 </ul>
