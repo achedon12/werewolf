@@ -5,6 +5,7 @@ import Head from 'next/head';
 import {socket} from "@/socket";
 import {formatDate} from "@/utils/Date";
 import {Calendar, Clock8, Cog, Target, UserRound} from "lucide-react";
+import {useAuth} from "@/app/AuthProvider.jsx";
 
 const GameListPage = () => {
     const [games, setGames] = useState([]);
@@ -13,6 +14,7 @@ const GameListPage = () => {
     const [filter, setFilter] = useState('all');
     const [connected, setConnected] = useState(false);
     const router = useRouter();
+    const [user, setUser] = useState(null);
 
     useEffect(() => {
         if (!socket) return;
@@ -53,6 +55,13 @@ const GameListPage = () => {
             socket.off('available-games', handleAvailableGames);
             socket.off('connection-error', handleConnectionError);
         };
+    }, []);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
     }, []);
 
     const joinGame = (gameId) => {
@@ -242,6 +251,21 @@ const GameListPage = () => {
                         </div>
                     )}
 
+                    {!user && (
+                        <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <div className="flex items-center">
+                                <svg className="w-5 h-5 text-yellow-400 mr-2" fill="none" stroke="currentColor"
+                                     viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span className="text-yellow-800">
+                                    Vous n'êtes pas connecté. Veuillez vous connecter ou créer un compte pour rejoindre une partie.
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
                     {filteredGames.length === 0 ? (
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
                             <div className="w-24 h-24 mx-auto mb-6 text-gray-400">
@@ -278,6 +302,7 @@ const GameListPage = () => {
                                     maxPlayers={getMaxPlayers(game)}
                                     getStatusBadge={getStatusBadge}
                                     connected={connected}
+                                    user={user}
                                 />
                             ))}
                         </div>
@@ -288,7 +313,7 @@ const GameListPage = () => {
     );
 }
 
-const GameCard = ({game, onJoin, playerCount, maxPlayers, getStatusBadge, connected}) => {
+const GameCard = ({game, onJoin, playerCount, maxPlayers, getStatusBadge, connected, user}) => {
     const [joining, setJoining] = useState(false);
 
     const handleJoin = async () => {
@@ -302,7 +327,7 @@ const GameCard = ({game, onJoin, playerCount, maxPlayers, getStatusBadge, connec
         }
     };
 
-    const canJoin = game.state === 'En attente' && playerCount < maxPlayers;
+    const canJoin = game.state === 'En attente' && playerCount < maxPlayers && user;
     const isFull = game.state === 'En attente' && playerCount >= maxPlayers;
     const isInProgress = game.state === 'En cours';
     const isFinished = game.state === 'terminée';
@@ -375,17 +400,17 @@ const GameCard = ({game, onJoin, playerCount, maxPlayers, getStatusBadge, connec
                 <div className="flex space-x-2">
                     <button
                         onClick={handleJoin}
-                        disabled={!connected || joining || isFinished || (isFull && !isInProgress)}
+                        disabled={!canJoin && !isInProgress}
                         className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
                             canJoin
-                                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg'
+                                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg hover:cursor-pointer'
                                 : isInProgress
                                     ? 'bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg'
                                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         } ${joining ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         {joining ? (
-                            <span className="flex items-center justify-center">
+                            <span className="flex items-center justify-center hover:cursor-wait">
                                     <div
                                         className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                                     Connexion...
