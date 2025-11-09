@@ -14,6 +14,7 @@ services:
       - werewolf_node
     networks:
       - werewolf_network
+    restart: unless-stopped
 
   werewolf_node:
     container_name: werewolf_node
@@ -30,6 +31,7 @@ services:
       - werewolf_db
     networks:
       - werewolf_network
+    restart: unless-stopped
 
   werewolf_db:
     image: postgres:15
@@ -49,6 +51,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
 networks:
   werewolf_network:

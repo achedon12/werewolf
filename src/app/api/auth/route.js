@@ -23,7 +23,7 @@ export async function POST(req) {
         const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/verify/${verificationToken}`;
         await mailer({
             to: email,
-            subject: "Bienvenue sur Werewolf.app !",
+            subject: "Bienvenue sur werewolf.leoderoin.fr !",
             html: `
                 <p>Merci pour votre inscription, ${name} !</p>
                 <p>Veuillez vérifier votre compte en cliquant sur ce lien : <a href="${verifyUrl}">Vérifier mon compte</a></p>

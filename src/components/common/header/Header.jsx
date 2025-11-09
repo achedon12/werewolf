@@ -5,7 +5,7 @@ import {useEffect, useState} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {useAuth} from "@/app/AuthProvider";
 import {toast} from 'react-toastify';
-import {Gamepad2, House, Joystick, NotebookText, Search, UserRound} from "lucide-react";
+import {Gamepad2, House, Joystick, NotebookText, Search, Trophy, UserRound} from "lucide-react";
 import Image from "next/image";
 import {usePathname} from "next/navigation";
 
@@ -135,12 +135,6 @@ export default function Header() {
                     <div className="navbar-center hidden lg:flex">
                         <ul className="menu menu-horizontal px-1 space-x-2">
                             <li>
-                                <Link href="/" className="btn btn-ghost text-base-content">
-                                    <House className="inline w-5 h-5 mr-1"/>
-                                    Accueil
-                                </Link>
-                            </li>
-                            <li>
                                 <Link href="/rules" className="btn btn-ghost text-base-content">
                                     <NotebookText className="inline w-5 h-5 mr-1"/>
                                     Règles
@@ -168,6 +162,12 @@ export default function Header() {
                                     <Search className="inline w-5 h-5 mr-1"/>
                                     Rejoindre
                                 </button>
+                            </li>
+                            <li>
+                                <Link href="/leaderboard" className="btn btn-ghost text-base-content">
+                                    <Trophy className="inline w-5 h-5 mr-1"/>
+                                    Classement
+                                </Link>
                             </li>
                         </ul>
                     </div>
@@ -210,13 +210,6 @@ export default function Header() {
                                     className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
                                 >
                                     <li>
-                                        <Link href="/" onClick={() => setIsMenuOpen(false)}
-                                              className="text-base-content">
-                                            <House className="inline w-5 h-5 mr-1"/>
-                                            Accueil
-                                        </Link>
-                                    </li>
-                                    <li>
                                         <Link href="/rules" onClick={() => setIsMenuOpen(false)}
                                               className="text-base-content">
                                             <NotebookText className="inline w-5 h-5 mr-1"/>
@@ -249,6 +242,13 @@ export default function Header() {
                                             <Search className="inline w-5 h-5 mr-1"/>
                                             Rejoindre
                                         </button>
+                                    </li>
+                                    <li>
+                                        <Link href="/leaderboard" onClick={() => setIsMenuOpen(false)}
+                                              className="text-base-content">
+                                            <Trophy className="inline w-5 h-5 mr-1"/>
+                                            Classement
+                                        </Link>
                                     </li>
                                 </ul>
                             )}
