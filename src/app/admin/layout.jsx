@@ -138,11 +138,10 @@ const AdminLayout = ({children}) => {
                         </div>
 
                         <div className="flex items-center gap-4">
-                            <button
-                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                            <Link href="/auth/profile/overview" className="btn btn-ghost flex items-center gap-2">
                                 <LogOut className="h-4 w-4"/>
                                 Déconnexion
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </div>
