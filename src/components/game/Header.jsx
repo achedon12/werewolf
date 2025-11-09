@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import {GAME_STATES} from "@/server/config/constants.js";
 
 const GameHeader = ({game, players, configuration, creator}) => {
 
@@ -7,31 +8,28 @@ const GameHeader = ({game, players, configuration, creator}) => {
     return (
         <div className="bg-base-200/20 backdrop-blur-sm border-b border-white/10">
             <div className="container mx-auto px-4 py-4">
-                <div className="flex flex-col md:flex-row justify-between items-center">
-                    <div>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+                    <div className="text-left">
                         <h1 className="text-2xl font-bold text-white">{game.name}</h1>
-                        <div className="flex items-center gap-4 mt-2">
-                            <span className={`badge ${
-                                game.state === "En attente" ? "badge-warning" :
-                                    game.state === "En cours" ? "badge-success" : "badge-error"
+                        <div className="flex flex-col md:flex-row items-center gap-4 mt-2">
+                            <div className="flex items-center gap-2">
+                                <span className={`badge ${
+                                    game.state === GAME_STATES.WAITING ? "badge-warning" :
+                                        game.state === GAME_STATES.IN_PROGRESS ? "badge-success" : "badge-error"
                                 }`}
-                            >
+                                >
                                 {game.state}
                             </span>
-                            {game.state !== "En attente" ? (
-                                <>
-                                    <span className="badge badge-info">{game.phase}</span>
-                                    <span className="text-gray-400">
-                                        {alivePlayers.length} / {configuration ? Object.values(configuration).reduce((a, b) => a + b, 0) : 0} joueurs vivants
-                                    </span>
-                                </>
+                                <span className="badge badge-info">{GAME_STATES.WAITING ? game.type : game.phase}</span>
+                            </div>
+                            {game.state !== GAME_STATES.WAITING ? (
+                                <span className="text-gray-400">
+                                    {alivePlayers.length} / {configuration ? Object.values(configuration).reduce((a, b) => a + b, 0) : 0} joueurs vivants
+                                </span>
                             ) : (
-                                <>
-                                    <span className="badge badge-info">{game.type}</span>
-                                    <span>
-                                        {players.length} / {configuration ? Object.values(configuration).reduce((a, b) => a + b, 0) : 0} joueurs inscrits
-                                    </span>
-                                </>
+                                <span>
+                                    {players.length} / {configuration ? Object.values(configuration).reduce((a, b) => a + b, 0) : 0} joueurs inscrits
+                                </span>
 
                             )}
                         </div>

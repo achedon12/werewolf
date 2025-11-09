@@ -25,8 +25,6 @@ const TabGame = ({ game, players, currentPlayer, performAction, numberCanBeSelec
 
     const currentPhase = phaseInfo[game.phase];
 
-    console.log('Rendering TabGame with game:', game);
-
     return (
         <div className="space-y-6">
             {game.state === GAME_STATES.IN_PROGRESS && (
@@ -60,7 +58,7 @@ const TabGame = ({ game, players, currentPlayer, performAction, numberCanBeSelec
             )}
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div className="xl:col-span-2 space-y-6">
+                <div className={game.state === GAME_STATES.WAITING ? "xl:col-span-3 span-y-3" : "xl:col-span-2 space-y-6"}>
                     {game.state === GAME_STATES.IN_PROGRESS && (
                         <div className={`alert bg-${currentPhase.color}-500/10 border-${currentPhase.color}-500/20`}>
                             <div className="flex items-center gap-3">

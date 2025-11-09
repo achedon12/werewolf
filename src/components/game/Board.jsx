@@ -9,13 +9,16 @@ const GameBoard = ({
                        selectedPlayers = [],
                        setSelectedPlayers
                    }) => {
-
     const [configuration, setConfiguration] = useState({});
     const [maxPlayers, setMaxPlayers] = useState(0);
     const [radius, setRadius] = useState(160);
     const [boardSize, setBoardSize] = useState(400);
+    const [viewport, setViewport] = useState({w: 0, h: 0});
+
     const baseRadius = 160;
     const referencePlayers = 8;
+    const paddingHorizontal = 32;
+    const paddingVertical = 120;
 
     useEffect(() => {
         if (!game) return;
@@ -29,12 +32,31 @@ const GameBoard = ({
     }, [configuration]);
 
     useEffect(() => {
-        setRadius(baseRadius * (maxPlayers / referencePlayers))
-    }, [maxPlayers])
+        const onResize = () => {
+            setViewport({w: window.innerWidth, h: window.innerHeight});
+        };
+        onResize();
+        window.addEventListener("resize", onResize);
+        return () => window.removeEventListener("resize", onResize);
+    }, []);
 
     useEffect(() => {
-        setBoardSize(radius * 2 + 100);
-    }, [radius])
+        const desired = baseRadius * Math.max(0.6, maxPlayers / referencePlayers);
+
+        const maxDiameterW = viewport.w ? Math.max(0, viewport.w - paddingHorizontal) : desired * 2;
+        const maxDiameterH = viewport.h ? Math.max(0, viewport.h - paddingVertical) : desired * 2;
+        const maxDiameter = Math.min(maxDiameterW, maxDiameterH);
+
+        const maxRadiusFromViewport = Math.max(80, (maxDiameter - 100) / 2);
+
+        const finalRadius = Math.min(desired, maxRadiusFromViewport, baseRadius * 1.8);
+
+        setRadius(finalRadius);
+    }, [maxPlayers, viewport]);
+
+    useEffect(() => {
+        setBoardSize(Math.round(radius * 2 + 100));
+    }, [radius]);
 
     if (!players || players.length === 0) {
         return (
@@ -80,17 +102,25 @@ const GameBoard = ({
     };
 
     return (
-        <div className="relative my-8">
-            <div className="relative mx-auto"
-                 style={{width: `${boardSize}px`, height: `${boardSize}px`}}>
-                <div className="absolute inset-0 rounded-full border-2 border-purple-500/20 animate-pulse"
-                     style={{
-                         width: `${radius * 2}px`,
-                         height: `${radius * 2}px`,
-                         left: '50%',
-                         top: '50%',
-                         transform: 'translate(-50%, -50%)'
-                     }}>
+        <div className="relative flex justify-center my-8">
+            <div
+                className="relative"
+                style={{
+                    width: `${boardSize}px`,
+                    height: `${boardSize}px`,
+                    maxWidth: "100%",
+                }}
+            >
+                <div
+                    className="absolute inset-0 rounded-full border-2 border-purple-500/20 animate-pulse"
+                    style={{
+                        width: `${radius * 2}px`,
+                        height: `${radius * 2}px`,
+                        left: "50%",
+                        top: "50%",
+                        transform: "translate(-50%, -50%)",
+                    }}
+                >
                     <div className="absolute inset-4 rounded-full border border-white/10"></div>
                 </div>
 
@@ -141,22 +171,21 @@ const GameBoard = ({
                                 tabIndex={0}
                                 onClick={() => handleSelect(player, pid)}
                                 onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') handleSelect(player, pid);
+                                    if (e.key === "Enter" || e.key === " ") handleSelect(player, pid);
                                 }}
                                 className={`relative group cursor-pointer ${
-                                    !player.isAlive ? 'grayscale cursor-not-allowed opacity-60' : ''
+                                    !player.isAlive ? "grayscale cursor-not-allowed opacity-60" : ""
                                 }`}
                                 aria-pressed={selected}
                                 aria-disabled={!player.isAlive}
                             >
                                 <div
                                     className={`w-16 h-16 md:w-20 md:h-20 rounded-full border-4 transition-all duration-300 ${
-                                        player.isAlive
-                                            ? 'border-green-600'
-                                            : 'border-red-600'
-                                    } p-1 ${selected ? 'ring-4 ring-purple-400 scale-105' : ''} ${notSelectable ? 'opacity-70' : ''}`}>
+                                        player.isAlive ? "border-green-600" : "border-red-600"
+                                    } p-1 ${selected ? "ring-4 ring-purple-400 scale-105" : ""} ${notSelectable ? "opacity-70" : ""}`}
+                                >
                                     <Image
-                                        src={player.isBot ? '/bot-avatar.png' : player.avatar || "/default-avatar.png"}
+                                        src={player.isBot ? "/bot-avatar.png" : player.avatar || "/default-avatar.png"}
                                         alt={player.nickname}
                                         width={80}
                                         height={80}
@@ -169,10 +198,9 @@ const GameBoard = ({
                                     <div
                                         className="bg-gray-900/95 backdrop-blur-sm text-white text-sm rounded-lg px-3 py-2 whitespace-nowrap border border-white/10 shadow-2xl">
                                         <div className="font-semibold">{player.nickname}</div>
-                                        <div className={`text-xs mt-1 ${
-                                            player.isAlive ? 'text-green-400' : 'text-red-400'
-                                        }`}>
-                                            {player.isAlive ? '🟢 En vie' : '🔴 Mort'}
+                                        <div
+                                            className={`text-xs mt-1 ${player.isAlive ? "text-green-400" : "text-red-400"}`}>
+                                            {player.isAlive ? "🟢 En vie" : "🔴 Mort"}
                                         </div>
                                     </div>
                                     <div
@@ -181,14 +209,13 @@ const GameBoard = ({
                             </div>
 
                             <div className="text-center mt-2 transition-all duration-300">
-                                                                <span
-                                                                    className={`text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm ${
-                                                                        player.isAlive
-                                                                            ? 'text-white bg-black/30'
-                                                                            : 'text-gray-400 bg-red-900/30'
-                                                                    } ${isCurrentUser ? 'text-purple-300 bg-purple-900/50' : ''} ${selected ? 'ring-2 ring-purple-300' : ''}`}>
-                                                                    {isCurrentUser ? '(Vous)' : player.nickname}
-                                                                </span>
+                    <span
+                        className={`text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm ${
+                            player.isAlive ? "text-white bg-black/30" : "text-gray-400 bg-red-900/30"
+                        } ${isCurrentUser ? "text-purple-300 bg-purple-900/50" : ""} ${selected ? "ring-2 ring-purple-300" : ""}`}
+                    >
+                      {isCurrentUser ? "(Vous)" : player.nickname}
+                    </span>
                             </div>
                         </div>
                     );
@@ -206,6 +233,6 @@ const GameBoard = ({
             </div>
         </div>
     );
-}
+};
 
 export default GameBoard;

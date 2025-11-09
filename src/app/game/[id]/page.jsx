@@ -45,6 +45,8 @@ const GamePage = ({params}) => {
     const chatContainerRef = useRef(null);
     const [roleCallRemaining, setRoleCallRemaining] = useState(null);
     const router = useRouter();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const mobileMenuRef = useRef(null);
 
     useEffect(() => {
         if (!id || !socket) return;
@@ -290,6 +292,16 @@ const GamePage = ({params}) => {
         return () => clearTimeout(timer);
     }, [startingSoon]);
 
+    useEffect(() => {
+        const onOutsideClick = (e) => {
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
+                setMobileMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', onOutsideClick);
+        return () => document.removeEventListener('mousedown', onOutsideClick);
+    }, []);
+
     const handleRoleCallTick = (data) => {
         if (!data) return;
         const remaining = typeof data.remaining === 'number' ? data.remaining : (data.duration ?? null);
@@ -430,31 +442,70 @@ const GamePage = ({params}) => {
 
             {ambientThemeEnabled && <AmbientForest/>}
 
-            <div className="absolute top-4 right-4 z-20 flex gap-2">
-                <button
-                    onClick={toggleAmbientTheme}
-                    className={`p-2 rounded-lg backdrop-blur-sm border transition-all ${
-                        ambientThemeEnabled
-                            ? 'bg-green-500/20 border-green-500/50 text-green-300'
-                            : 'bg-gray-500/20 border-gray-500/50 text-gray-300'
-                    }`}
-                    title="Thème forêt"
-                >
-                    🌲
-                </button>
-                <button
-                    onClick={toggleAmbientSounds}
-                    className={`p-2 rounded-lg backdrop-blur-sm border transition-all ${
-                        ambientSoundsEnabled
-                            ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
-                            : 'bg-gray-500/20 border-gray-500/50 text-gray-300'
-                    }`}
-                    title="Sons d'ambiance"
-                >
-                    🎵
-                </button>
-            </div>
+            <div>
+                <div className="hidden lg:flex absolute top-4 right-4 z-20 gap-2">
+                    <button
+                        onClick={toggleAmbientTheme}
+                        className={`p-2 rounded-lg backdrop-blur-sm border transition-all ${
+                            ambientThemeEnabled
+                                ? 'bg-green-500/20 border-green-500/50 text-green-300'
+                                : 'bg-gray-500/20 border-gray-500/50 text-gray-300'
+                        }`}
+                        title="Thème forêt"
+                    >
+                        🌲
+                    </button>
+                    <button
+                        onClick={toggleAmbientSounds}
+                        className={`p-2 rounded-lg backdrop-blur-sm border transition-all ${
+                            ambientSoundsEnabled
+                                ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
+                                : 'bg-gray-500/20 border-gray-500/50 text-gray-300'
+                        }`}
+                        title="Sons d'ambiance"
+                    >
+                        🎵
+                    </button>
+                </div>
 
+                <div className="flex lg:hidden absolute top-4 right-4 z-50" ref={mobileMenuRef}>
+                    <button
+                        onClick={() => setMobileMenuOpen(v => !v)}
+                        className="p-2 rounded-lg backdrop-blur-sm border bg-gray-500/20 border-gray-500/50 text-gray-300"
+                        title="Options"
+                        aria-expanded={mobileMenuOpen}
+                        aria-haspopup="true"
+                    >
+                        ⚙️
+                    </button>
+
+                    {mobileMenuOpen && (
+                        <div className="absolute right-0 mt-2 w-44 bg-base-100/90 backdrop-blur-sm border border-white/10 rounded-lg shadow-lg p-2 space-y-2">
+                            <button
+                                onClick={() => { toggleAmbientTheme(); setMobileMenuOpen(false); }}
+                                className={`w-full text-left p-2 rounded-md transition-all ${
+                                    ambientThemeEnabled
+                                        ? 'bg-green-500/20 border border-green-500/50 text-green-300'
+                                        : 'bg-gray-500/20 border border-gray-500/50 text-gray-300'
+                                }`}
+                            >
+                                🌲 Thème forêt
+                            </button>
+
+                            <button
+                                onClick={() => { toggleAmbientSounds(); setMobileMenuOpen(false); }}
+                                className={`w-full text-left p-2 rounded-md transition-all ${
+                                    ambientSoundsEnabled
+                                        ? 'bg-blue-500/20 border border-blue-500/50 text-blue-300'
+                                        : 'bg-gray-500/20 border border-gray-500/50 text-gray-300'
+                                }`}
+                            >
+                                🎵 Sons d'ambiance
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
 
             <div className="relative z-10 container mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
