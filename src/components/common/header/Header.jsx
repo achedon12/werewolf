@@ -70,8 +70,15 @@ export default function Header() {
             return;
         }
         setError(null);
+        const token = localStorage.getItem('token');
         try {
-            const res = await fetch('/api/game/list');
+            const res = await fetch('/api/game/list', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
             const data = await res.json();
             const game = data.games.find(g => g.state === 'En attente');
             if (game) {

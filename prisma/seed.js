@@ -1,14 +1,64 @@
 import {PrismaClient} from '../src/generated/prisma/index.js';
 import {roles} from '../src/utils/Roles.js';
-import {GAME_STATES} from "../src/server/config/constants.js";
+import {ACTION_TYPES, GAME_STATES} from "../src/server/config/constants.js";
 
 const prisma = new PrismaClient();
 
-function randomDateBetween(start, end) {
+const randomDateBetween = (start, end) => {
     return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 }
 
-async function main() {
+const randomInt = (min, max) => {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+const pickRandom = (arr) => {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+const makeActorName = (user) => {
+    return user?.name || user?.nickname || 'Utilisateur inconnu';
+}
+
+const generateLogMessage = (action, actor, target) => {
+    const actorName = makeActorName(actor);
+    const targetName = target ? makeActorName(target) : null;
+
+    switch (action) {
+        case ACTION_TYPES.PLAYER_JOINED:
+            return `${actorName} a rejoint la partie.`;
+        case ACTION_TYPES.PLAYER_LEFT:
+            return `${actorName} a quitté la partie.`;
+        case ACTION_TYPES.PLAYER_EXCLUDED:
+            return `${actorName} a été exclu.`;
+        case ACTION_TYPES.CHAT_MESSAGE:
+            return `${actorName} : "Message simulé"`;
+        case ACTION_TYPES.PLAYER_VOTE:
+            return `${actorName} a voté pour ${targetName}.`;
+        case ACTION_TYPES.WEREWOLF_ATTACK:
+            return `Attaque des loups‑garous sur ${targetName}.`;
+        case ACTION_TYPES.SEER_REVEAL:
+            return `${actorName} (voyante) a révélé ${targetName}.`;
+        case ACTION_TYPES.DOCTOR_HEAL:
+            return `${actorName} (docteur) a soigné ${targetName}.`;
+        case ACTION_TYPES.PHASE_CHANGE:
+            return `Changement de phase : ${actorName || 'Système'} a déclenché un changement.`;
+        case ACTION_TYPES.PLAYER_ELIMINATED:
+            return `${targetName} a été éliminé.`;
+        case ACTION_TYPES.GAME_EVENT:
+            return `Événement : action ${action} par ${actorName}.`;
+        case ACTION_TYPES.GAME_HISTORY:
+            return `Historique : ${actorName} action ${action}.`;
+        case ACTION_TYPES.BOT_ADDED:
+            return `Un bot a été ajouté par ${actorName}.`;
+        case ACTION_TYPES.SYSTEM:
+            return `Système : événement généré.`;
+        default:
+            return `${actorName || 'Système'} : ${action}`;
+    }
+}
+
+const main = async () => {
     const achedonNickname = 'achedon12';
     const achedon = await prisma.user.findUnique({
         where: {nickname: achedonNickname}
@@ -46,6 +96,8 @@ async function main() {
     // compteur de victoires par utilisateur
     const victoryCounts = {};
     for (const u of playerUsers) victoryCounts[u.id] = 0;
+
+    const actionValues = Object.values(ACTION_TYPES);
 
     // Génère les jeux
     for (let i = 1; i <= totalGames; i++) {
@@ -85,7 +137,36 @@ async function main() {
             };
         });
 
-        // Crée la game avec users connectés et winner connecté
+        // Génération aléatoire des game logs
+        const minLogs = 10;
+        const maxLogs = 80;
+        const numLogs = randomInt(minLogs, maxLogs);
+
+        const logs = [];
+        for (let l = 0; l < numLogs; l++) {
+            const action = pickRandom(actionValues);
+            const actor = pickRandom(playerUsers);
+            // certain actions nécessitent une cible
+            let target = null;
+            if ([ACTION_TYPES.PLAYER_VOTE, ACTION_TYPES.WEREWOLF_ATTACK, ACTION_TYPES.SEER_REVEAL, ACTION_TYPES.DOCTOR_HEAL, ACTION_TYPES.PLAYER_ELIMINATED].includes(action)) {
+                // choisir une cible différente de l'acteur quand possible
+                const possibleTargets = playerUsers.filter(u => u.id !== actor.id);
+                target = possibleTargets.length ? pickRandom(possibleTargets) : actor;
+            }
+
+            const logCreatedAt = randomDateBetween(startedAt, endedAt);
+            const message = generateLogMessage(action, actor, target);
+
+            logs.push({
+                message,
+                createdAt: logCreatedAt
+            });
+        }
+
+        // Trier les logs par date avant d'insérer
+        logs.sort((a, b) => a.createdAt - b.createdAt);
+
+        // Crée la game avec users connectés, winner connecté, players et game logs
         await prisma.game.create({
             data: {
                 name: `Partie #${i}`,
@@ -99,7 +180,8 @@ async function main() {
                 admin: {connect: {id: achedon.id}},
                 users: {connect: playerIds},
                 winners: {connect: [{id: winnerId}]},
-                players: {create: playersCreate}
+                players: {create: playersCreate},
+                gameLog: {create: logs}
             }
         });
 

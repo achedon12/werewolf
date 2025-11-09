@@ -2,10 +2,11 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../AuthProvider";
 import { useRouter, usePathname } from "next/navigation";
-import {ChartColumnBig, LayoutDashboard, Settings} from "lucide-react";
+import {ChartColumnBig, Gamepad2, LayoutDashboard, Settings} from "lucide-react";
 
 const TABS = [
     { key: "overview", label: "Vue d'ensemble", icon: <LayoutDashboard /> },
+    { key: "game", label: "Parties", icon: <Gamepad2 /> },
     { key: "settings", label: "Paramètres", icon: <Settings /> },
     { key: "stats", label: "Statistiques", icon: <ChartColumnBig /> }
 ];
@@ -25,10 +26,21 @@ const ProfileLayout = ({ children }) => {
 
     const handleTabChange = (tabKey) => {
         setActiveTab(tabKey);
+        if(tabKey === 'game') {
+            router.push('/auth/profile/game/list');
+            return;
+        }
         router.push(`/auth/profile/${tabKey}`);
     };
 
     useEffect(() => {
+        if(!pathname) return;
+
+        if (pathname.endsWith("/game/list")) {
+            setActiveTab("game");
+            return;
+        }
+
         const currentTab = pathname.split('/').pop();
         if (TABS.some(tab => tab.key === currentTab)) {
             setActiveTab(currentTab);
