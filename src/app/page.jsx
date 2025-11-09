@@ -3,7 +3,7 @@ import {useEffect, useState} from "react";
 import Image from "next/image";
 import PlayButton from "@/components/common/button/playButton/PlayButton";
 import {Moon, Users, Zap} from "lucide-react";
-
+import {socket} from "@/socket";
 
 const Home = () => {
 
@@ -12,19 +12,55 @@ const Home = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const computePlayersOnline = (games) => {
+        return (games || []).reduce((sum, g) => {
+            if (!g) return sum;
+            if (Array.isArray(g.players)) return sum + g.players.length;
+            if (g.players && typeof g.players === 'object') return sum + Object.keys(g.players).length;
+            return sum;
+        }, 0);
+    };
 
     useEffect(() => {
         setLoading(true);
-        fetch('/api/game/list')
-            .then(res => res.json())
-            .then(data => {
-                setGameCount(data.games.length);
-                setPlayersOnline(data.playersOnline);
-            })
-            .catch(err => {
-                setError('Failed to load data');
-            })
-            .finally(() => setLoading(false));
+        if (!socket) {
+            setError('Socket non disponible');
+            setLoading(false);
+            return;
+        }
+
+        const handleConnect = () => {
+            socket.emit('get-available-games');
+        };
+
+        const handleAvailableGames = (gamesData) => {
+            const games = Array.isArray(gamesData) ? gamesData : (gamesData?.games || []);
+            setGameCount(games.length);
+            setPlayersOnline(computePlayersOnline(games));
+            setError(null);
+            setLoading(false);
+        };
+
+        const handleConnectionError = (err) => {
+            setError(err?.message || 'Erreur de connexion');
+            setLoading(false);
+        };
+
+        socket.on('connect', handleConnect);
+        socket.on('available-games', handleAvailableGames);
+        socket.on('connection-error', handleConnectionError);
+        socket.on('disconnect', () => setLoading(false));
+
+        if (socket.connected) {
+            handleConnect();
+        }
+
+        return () => {
+            socket.off('connect', handleConnect);
+            socket.off('available-games', handleAvailableGames);
+            socket.off('connection-error', handleConnectionError);
+            socket.off('disconnect', () => setLoading(false));
+        };
     }, []);
 
     return (
@@ -34,7 +70,7 @@ const Home = () => {
                     <div className="flex justify-center mb-6">
                         <div
                             className="w-24 h-24 bg-red-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-orange-300">
-                            <Image src="/logo.png" alt="Loup-Garou Logo" width={64} height={64} />
+                            <Image src="/logo.png" alt="Loup-Garou Logo" width={64} height={64}/>
                         </div>
                     </div>
                     <h1 className="text-5xl md:text-7xl font-bold text-white mb-4">
@@ -59,7 +95,7 @@ const Home = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
                     <div className="card bg-base-100/10 backdrop-blur shadow-xl">
                         <div className="card-body items-center text-center">
-                            <Users className="text-3xl mb-4" />
+                            <Users className="text-3xl mb-4"/>
                             <h3 className="card-title text-white mb-2">Multijoueur</h3>
                             <p className="text-gray-300">Jusqu'à 18 joueurs par partie</p>
                         </div>
@@ -67,7 +103,7 @@ const Home = () => {
 
                     <div className="card bg-base-100/10 backdrop-blur shadow-xl">
                         <div className="card-body items-center text-center">
-                            <Zap className="text-3xl mb-4" />
+                            <Zap className="text-3xl mb-4"/>
                             <h3 className="card-title text-white mb-2">Rapide</h3>
                             <p className="text-gray-300">Configuration en moins de 2 minutes</p>
                         </div>
@@ -75,7 +111,7 @@ const Home = () => {
 
                     <div className="card bg-base-100/10 backdrop-blur shadow-xl">
                         <div className="card-body items-center text-center">
-                            <Moon className="text-3xl mb-4" />
+                            <Moon className="text-3xl mb-4"/>
                             <h3 className="card-title text-white mb-2">Immersif</h3>
                             <p className="text-gray-300">Ambiance mystérieuse et thématique</p>
                         </div>
