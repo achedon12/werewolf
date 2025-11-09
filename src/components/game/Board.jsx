@@ -185,7 +185,7 @@ const GameBoard = ({
                                     } p-1 ${selected ? "ring-4 ring-purple-400 scale-105" : ""} ${notSelectable ? "opacity-70" : ""}`}
                                 >
                                     <Image
-                                        src={player.isBot ? "/bot-avatar.png" : player.avatar || "/default-avatar.png"}
+                                        src={player.isBot ? "/bot-avatar.png" : player.avatar ? process.env.NEXT_PUBLIC_APP_URL + player.avatar : "/default-avatar.png"}
                                         alt={player.nickname}
                                         width={80}
                                         height={80}

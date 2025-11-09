@@ -14,7 +14,7 @@ const TabParticipants = ({participantsForChannel, currentChannel, currentPlayer}
                             <div
                                 className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
                                 <Image
-                                    src={p.isBot ? '/bot-avatar.png' : p.avatar || "/default-avatar.png"}
+                                    src={p.isBot ? '/bot-avatar.png' : p.avatar ? process.env.NEXT_PUBLIC_APP_URL + p.avatar : "/default-avatar.png"}
                                     alt={p.nickname} width={32} height={32}
                                     className="rounded-full"
                                 />

@@ -28,7 +28,7 @@ const TabPlayers = ({players, currentPlayer}) => {
                                         <div
                                             className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
                                             <Image
-                                                src={player.isBot ? '/bot-avatar.png' : player.avatar || "/default-avatar.png"}
+                                                src={player.isBot ? '/bot-avatar.png' : player.avatar ? process.env.NEXT_PUBLIC_APP_URL + player.avatar : "/default-avatar.png"}
                                                 alt={player.nickname} width={40} height={40}
                                                 className="rounded-full"
                                             />

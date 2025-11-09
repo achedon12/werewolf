@@ -133,7 +133,7 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
                                     <div className="relative">
                                         <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
                                             <Image
-                                                src={player.isBot ? '/bot-avatar.png' : player.avatar || "/default-avatar.png"}
+                                                src={player.isBot ? '/bot-avatar.png' : player.avatar ? process.env.NEXT_PUBLIC_APP_URL +  player.avatar : "/default-avatar.png"}
                                                 alt={player.nickname}
                                                 width={48}
                                                 height={48}
@@ -241,7 +241,7 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
 
                         <div className="flex items-center space-x-3 mb-6 p-3 bg-base-300/30 rounded-lg">
                             <Image
-                                src={selectedPlayer.isBot ? '/bot-avatar.png' : selectedPlayer.avatar || "/default-avatar.png"}
+                                src={selectedPlayer.isBot ? '/bot-avatar.png' : selectedPlayer.avatar ? process.env.NEXT_PUBLIC_APP_URL + selectedPlayer.avatar : "/default-avatar.png"}
                                 alt={selectedPlayer.nickname}
                                 width={40}
                                 height={40}
