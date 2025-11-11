@@ -1,11 +1,12 @@
 import Image from "next/image";
 import {useEffect, useState} from "react";
+import {getRoleByName} from "@/utils/Roles.js";
 
 const GameBoard = ({
                        players,
                        currentPlayer,
                        game,
-                       numberCanBeSelected = 1,
+                       numberCanBeSelected = 0,
                        selectedPlayers = [],
                        setSelectedPlayers
                    }) => {
@@ -82,6 +83,7 @@ const GameBoard = ({
     };
 
     const handleSelect = (player, id) => {
+        if (currentPlayer && id === currentPlayer.id) return;
         if (!player.isAlive) return;
         const current = Array.isArray(selectedPlayers) ? selectedPlayers.slice() : [];
 
@@ -156,7 +158,15 @@ const GameBoard = ({
                                 transform: `translate(${x}px, ${y}px) translate(-50%, -50%)`,
                             }}
                         >
-                            {player.role && (
+                            {player.role && player.id === currentPlayer.id ? (
+                                <Image
+                                    className="absolute bottom-6 -right-10 z-10"
+                                    src={getRoleByName(player.role).image}
+                                    alt={player.role}
+                                    width={60}
+                                    height={90}
+                                />
+                            ) : (
                                 <Image
                                     className="absolute bottom-6 -right-10 z-10"
                                     src={"/cards/card.jpeg"}

@@ -13,7 +13,7 @@ import {useRouter} from "next/navigation";
 import ConfigurationOverviewModal from "@/components/game/information/modal/ConfigurationOverview";
 import AdminConfigurationModal from "@/components/game/information/modal/Configuration";
 import StartingCounter from "@/components/game/StartingCounter";
-import {ACTION_TYPES, GAME_PHASES} from "@/server/config/constants";
+import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "@/server/config/constants";
 import {History} from "lucide-react";
 
 const GamePage = ({params}) => {
@@ -64,6 +64,7 @@ const GamePage = ({params}) => {
 
         const handleGameUpdate = (gameData) => {
             setGame(gameData);
+            console.log("Game data received:", gameData);
             try {
                 setConfiguration(JSON.parse(gameData.configuration));
                 setCreator(gameData.admin)
@@ -71,6 +72,7 @@ const GamePage = ({params}) => {
                 setConfiguration({});
             }
         };
+        console.log("game", game);
 
         const handleGameHistory = (historyData) => {
             setHistory(historyData || []);
@@ -219,6 +221,7 @@ const GamePage = ({params}) => {
         socket.on('role-call-end', handleRoleCallEnd);
         socket.on('role-call-stopped', handleRoleCallStopped);
         socket.on('role-call-finished', handleRoleCallFinished);
+        socket.on('game-set-number-can-be-selected', (number) => setNumberCanBeSelected(number));
 
         socket.emit("join-game", id, userFromLocalStorage, "");
         socket.emit("join-channel", id, "general");
@@ -390,15 +393,12 @@ const GamePage = ({params}) => {
         socket.emit("start-game", id);
     }
 
-    const performAction = (action, targetPlayerId = null) => {
+    const performAction = () => {
         socket.emit("player-action", {
             gameId: id,
-            type: action,
-            targetPlayerId,
-            playerName: currentPlayer?.nickname,
-            playerRole: currentPlayer?.role,
-            details: {}
+            selectedPlayers
         });
+        setSelectedPlayers([]);
     };
 
     if (loading) {
@@ -514,7 +514,6 @@ const GamePage = ({params}) => {
                         players={players}
                         currentPlayer={currentPlayer}
                         game={game}
-                        performAction={performAction}
                         activeTab={activeTab}
                         setActiveTab={setActiveTab}
                         numberCanBeSelected={numberCanBeSelected}
@@ -549,7 +548,7 @@ const GamePage = ({params}) => {
                             sendChatMessage={sendChatMessage}
                             currentPlayer={currentPlayer}/>
 
-                        {game.phase === GAME_PHASES.NIGHT && (
+                        {game.state === GAME_STATES.IN_PROGRESS && (
                             <div className="card glass shadow-2xl backdrop-blur-sm border border-white/10 mt-6">
                                 <div className="card-body p-4">
                                     <h3 className="card-title text-white text-lg mb-4">

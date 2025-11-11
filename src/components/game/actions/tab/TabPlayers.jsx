@@ -80,11 +80,13 @@ const TabPlayers = ({players, currentPlayer}) => {
                                     </div>
                                 </div>
 
-                                <div className="text-right">
-                                    <div className="badge badge-outline">
-                                        {player.isAlive ? player.role : <Skull/>}
+                                {process.env.NODE_ENV ==='dev' || process.env.NODE_ENV === 'development' && (
+                                    <div className="text-right">
+                                        <div className="badge badge-outline">
+                                            {player.role}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
                     ))}

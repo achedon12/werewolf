@@ -1,4 +1,4 @@
-import {gameRoleCallOrder} from '../../../utils/Roles.js';
+import {gameRoleCallOrder, RoleActionDescriptions, RoleSelectionCount} from '../../../utils/Roles.js';
 import {getGameRoom} from '../../socket/utils/roomManager.js';
 import {addGameAction, getGameHistory} from './actionLogger.js';
 import {ACTION_TYPES} from '../../config/constants.js';
@@ -7,7 +7,17 @@ const sanitizeRoleChannel = (roleName) =>
     roleName.toLowerCase().replace(/\s+/g, '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w-]/g, '');
 
 const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
 const pickRandom = (arr) => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
+
+const getSelectionCountForRole = (roleName, players) => {
+    const base = RoleSelectionCount.hasOwnProperty(roleName) ? RoleSelectionCount[roleName] : 1;
+
+    if (base > 0 && players && players.length === 1) {
+        return Math.min(base, players.length);
+    }
+    return base;
+};
 
 const simulateBotAction = (roleName, bot, roomData, io, gameId) => {
     const allPlayers = Array.from(roomData.players.values()).filter(p => p.isAlive !== false);
@@ -90,7 +100,7 @@ const simulateBotAction = (roleName, bot, roomData, io, gameId) => {
             target = pickRandom(others);
             message = target ? `🦊 ${bot.nickname} (bot) a testé ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
             break;
-        case 'Sorcière':
+        case 'Sorciere':
             if (Math.random() < 0.4) {
                 target = pickRandom(others);
                 message = target ? `☠️ ${bot.nickname} (bot) empoisonne ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
@@ -184,6 +194,8 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
 
     const emitStartForRole = (roleName, players, roleIdx) => {
         console.log(`🔔 Début du tour pour le rôle ${roleName} (${players.length} joueur(s)) dans la partie ${gameId}`);
+        roomData.turn = roleIdx;
+        io.in(`game-${gameId}`).emit('game-update', roomData);
 
         const payload = {
             role: roleName,
@@ -195,6 +207,13 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
         const channel = sanitizeRoleChannel(roleName);
         io.in(`game-${gameId}-${channel}`).emit && io.in(`game-${gameId}-${channel}`).emit('role-call-start', payload);
 
+        const selectionCount = getSelectionCountForRole(roleName, players);
+        for (const p of players) {
+            if (p && p.socketId) {
+                io.to(p.socketId).emit('game-set-number-can-be-selected', selectionCount);
+            }
+        }
+
         addGameAction(gameId, {
             type: ACTION_TYPES.GAME_EVENT,
             playerName: "Système",
@@ -205,7 +224,6 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
 
         io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 
-        // Planifier actions aléatoires pour les bots pendant la durée du rôle
         const bots = players.filter(p => p.isBot);
         const timeouts = [];
         const now = Date.now();
@@ -213,7 +231,6 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
         const endTs = now + perRoleSeconds * 1000;
         const maxDelay = Math.max(1, perRoleSeconds - 1);
         const meta = { timeouts, startTs, endTs, executed: 0, totalBots: bots.length };
-        // stocker méta pour ce roleIdx
         if (timeouts.length || bots.length) scheduledBotTimeouts.set(roleIdx, meta);
 
         for (const bot of bots) {
@@ -226,7 +243,6 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
                     console.log(`🤖 Action simulée pour le bot ${bot.nickname} (${roleName}) après ${delaySec}s dans la partie ${gameId}`);
                 }
 
-                // Mettre à jour méta et émettre un tick avec temps restant
                 const entry = scheduledBotTimeouts.get(roleIdx);
                 if (entry) {
                     entry.executed = (entry.executed || 0) + 1;
@@ -272,12 +288,16 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
     };
 
     const emitEndForRole = (roleName, roleIdx) => {
-        // annuler les timeouts planifiés pour ce rôle si existant
         clearBotTimeoutsForIndex(roleIdx);
 
         io.in(`game-${gameId}`).emit('role-call-end', {role: roleName});
         const channel = sanitizeRoleChannel(roleName);
         io.in(`game-${gameId}-${channel}`).emit && io.in(`game-${gameId}-${channel}`).emit('role-call-end', {role: roleName});
+
+        io.in(`game-${gameId}`).emit('game-set-number-can-be-selected', 0);
+        if (channel) {
+            io.in(`game-${gameId}-${channel}`).emit && io.in(`game-${gameId}-${channel}`).emit('game-set-number-can-be-selected', 0);
+        }
     };
 
     const advance = () => {
@@ -286,6 +306,12 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
         if (index >= gameRoleCallOrder.length) {
             clearAllBotTimeouts();
             io.in(`game-${gameId}`).emit('role-call-finished');
+
+            const allPlayers = Array.from(roomData.players.values());
+            for (const p of allPlayers) {
+                if (p && p.socketId) io.to(p.socketId).emit('game-set-number-can-be-selected', 0);
+            }
+
             addGameAction(gameId, {
                 type: ACTION_TYPES.GAME_EVENT,
                 playerName: "Système",
@@ -324,7 +350,6 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
             if (remaining <= 0) {
                 clearInterval(timer);
                 timer = null;
-                // on passe l'index courant pour clear correctement ses bots
                 emitEndForRole(roleName, roleIdx);
                 index += 1;
                 setTimeout(advance, 300);
@@ -342,6 +367,11 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
         }
         clearAllBotTimeouts();
         io.in(`game-${gameId}`).emit('role-call-stopped');
+
+        const allPlayers = Array.from(roomData.players.values());
+        for (const p of allPlayers) {
+            if (p && p.socketId) io.to(p.socketId).emit('game-set-number-can-be-selected', 0);
+        }
     };
 
     const next = () => {

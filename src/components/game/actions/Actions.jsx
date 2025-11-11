@@ -3,7 +3,17 @@ import TabPlayers from "@/components/game/actions/tab/TabPlayers";
 import TabRules from "@/components/game/actions/tab/TabRules";
 import {Gamepad2, NotebookText, UsersRound} from "lucide-react";
 
-const GameActions = ({ players, currentPlayer, game, performAction, activeTab, setActiveTab, numberCanBeSelected, selectedPlayers, setSelectedPlayers, roleCallRemaining }) => {
+const GameActions = ({
+                         players,
+                         currentPlayer,
+                         game,
+                         activeTab,
+                         setActiveTab,
+                         numberCanBeSelected,
+                         selectedPlayers,
+                         setSelectedPlayers,
+                         roleCallRemaining,
+                     }) => {
 
     return (
         <div className="lg:col-span-3 space-y-6">
@@ -34,11 +44,14 @@ const GameActions = ({ players, currentPlayer, game, performAction, activeTab, s
                 </div>
             )}
 
-            {activeTab === "game" && <TabGame game={game} players={players} currentPlayer={currentPlayer} performAction={performAction} numberCanBeSelected={numberCanBeSelected} selectedPlayers={selectedPlayers} setSelectedPlayers={setSelectedPlayers} roleCallRemaining={roleCallRemaining} />}
+            {activeTab === "game" && <TabGame game={game} players={players} currentPlayer={currentPlayer}
+                                              numberCanBeSelected={numberCanBeSelected}
+                                              selectedPlayers={selectedPlayers} setSelectedPlayers={setSelectedPlayers}
+                                              roleCallRemaining={roleCallRemaining}/>}
 
-            {activeTab === "players" && <TabPlayers players={players} currentPlayer={currentPlayer} />}
+            {activeTab === "players" && <TabPlayers players={players} currentPlayer={currentPlayer}/>}
 
-            {activeTab === "rules" && <TabRules />}
+            {activeTab === "rules" && <TabRules/>}
         </div>
     );
 }

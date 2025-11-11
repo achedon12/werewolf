@@ -13,7 +13,7 @@ export const roles = [
         name: "Voyante",
         team: "Équipe du Village",
         description: "Chaque nuit, vous pouvez découvrir si un joueur est un loup-garou ou non. Utilisez cette information avec sagesse pour guider le village.",
-        image: "/cards/voyante.webp",
+        image: "/cards/voyante.jpeg",
         nightAction: "Désigne un joueur pour découvrir son affiliation",
         strategy: "Ne révélez pas votre identité trop tôt. Vérifiez les joueurs suspects ou ceux qui parlent beaucoup."
     }, // voyante
@@ -28,7 +28,7 @@ export const roles = [
     }, // villageois
     {
         id: 5,
-        name: "Sorcière",
+        name: "Sorciere",
         team: "Équipe du Village",
         description: "Vous disposez d'une potion de vie pour sauver une victime et d'une potion de mort pour éliminer un joueur. Vous ne pouvez utiliser chaque potion qu'une seule fois.",
         image: "/cards/sorciere.jpeg",
@@ -94,7 +94,7 @@ export const roles = [
         name: "Salvateur",
         team: "Équipe du Village",
         description: "Vous pouvez protéger un joueur chaque nuit, le rendant immunisé contre les attaques des loups-garous. Vous ne pouvez pas protéger 2 fois d'affilé la même personne.",
-        image: "/cards/salvateur.png",
+        image: "/cards/salvateur.jpeg",
         nightAction: "Peut protéger un joueur chaque nuit",
         strategy: "Protégez les joueurs clés comme la Voyante ou le Docteur pour maximiser votre impact."
     }, // salvateur
@@ -136,7 +136,7 @@ export const roles = [
     } // montreur d'ours
 ];
 
-export const gameRoleCallOrder =  [
+export const gameRoleCallOrder = [
     "Cupidon",
     "Voyante",
     "Salvateur",
@@ -144,9 +144,32 @@ export const gameRoleCallOrder =  [
     "Enfant Sauvage",
     "Loup-Garou Blanc",
     "Loup-Garou",
-    "Sorcière",
+    "Sorciere",
     "Voleur"
 ]
+
+export const RoleSelectionCount = {
+    "Cupidon": 2,
+    "Voyante": 1,
+    "Salvateur": 1,
+    "Renard": 2,
+    "Enfant Sauvage": 1,
+    "Loup Garou Blanc": 1,
+    "Loup Garou": 1,
+    "Sorciere": 1,
+    "Voleur": 1
+}
+
+export const RoleActionDescriptions = {
+    "Loup-Garou": "Choisissez une victime à éliminer.",
+    "Voyante": "Découvrez le rôle d'un joueur.",
+    "Salvateur": "Protégez un joueur contre les attaques des loups-garous.",
+    "Renard": "Détectez si un joueur est un loup-garou.",
+    "Enfant Sauvage": "Choisissez un modèle parmi les autres joueurs.",
+    "Loup-Garou Blanc": "Tuez un autre loup-garou.",
+    "Sorciere": "Utilisez une potion de vie ou de mort.",
+    "Voleur": "Échangez une avec celle d'un autre joueur au début du jeu."
+}
 
 export const defaultGameConfig = {
     day: 0,

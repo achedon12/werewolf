@@ -61,6 +61,7 @@ export const startGameLogic = async (socket, io, gameId) => {
 
     roomData.state = GAME_STATES.IN_PROGRESS;
     roomData.phase = GAME_PHASES.NIGHT;
+    roomData.turn = 1;
     roomData.lastActivity = new Date();
     roomData.startedAt = new Date().toISOString();
 
