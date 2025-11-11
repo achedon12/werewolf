@@ -64,7 +64,6 @@ const GamePage = ({params}) => {
 
         const handleGameUpdate = (gameData) => {
             setGame(gameData);
-            console.log("Game data received:", gameData);
             try {
                 setConfiguration(JSON.parse(gameData.configuration));
                 setCreator(gameData.admin)
@@ -72,7 +71,6 @@ const GamePage = ({params}) => {
                 setConfiguration({});
             }
         };
-        console.log("game", game);
 
         const handleGameHistory = (historyData) => {
             setHistory(historyData || []);
