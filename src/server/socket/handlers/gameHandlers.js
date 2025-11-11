@@ -31,15 +31,24 @@ export const handleJoinGame = async (socket, io, gameId, userData, playerRole) =
         );
 
         if (existingEntry) {
+            console.log('⚠️ Session en double détectée pour le joueur', userData.nickname);
             const [oldSid] = existingEntry;
             if (oldSid !== socket.id) {
+                console.log('🔄 Remplacement de l\'ancienne session:', oldSid, 'par la nouvelle:', socket.id);
                 const oldPlayer = roomData.players.get(oldSid);
                 if (oldPlayer) {
                     userData.role = oldPlayer.role || userData.role;
                     userData.isAdmin = oldPlayer.isAdmin || false;
                 }
                 roomData.players.delete(oldSid);
+                roomData.players.set(socket.id, userData);
                 connectedPlayers.delete(oldSid);
+                connectedPlayers.set(socket.id, {
+                    ...userData,
+                    gameId,
+                    socketId: socket.id
+                });
+                roomData.lastActivity = new Date();
 
                 const oldSocket = io.sockets.sockets.get(oldSid);
                 if (oldSocket) {
