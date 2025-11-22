@@ -599,7 +599,6 @@ const AdminSettingsPage = () => {
                 </div>
             </div>
 
-            {/* Section actions critiques */}
             <div className="card bg-white dark:bg-gray-800 shadow-lg border border-red-200 dark:border-red-800">
                 <div className="card-body">
                     <h3 className="card-title text-red-600 dark:text-red-400">

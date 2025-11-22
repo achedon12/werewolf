@@ -2,10 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Eye, Send } from "lucide-react";
-import { CKEditor } from '@ckeditor/ckeditor5-react';
-import { ClassicEditor, Essentials, Bold, Italic, Heading, List, Link, Paragraph } from 'ckeditor5';
-import 'ckeditor5/ckeditor5.css';
 import { fromAddress, siteUrl } from "@/utils/publicEmail.js";
+import dynamic from "next/dynamic";
+const NewsletterEditor = dynamic(() => import("@/app/admin/newsletter/NewsletterEditor.client"), { ssr: false });
 
 const AdminNewsletterPage = () => {
     const [subject, setSubject] = useState('');
@@ -26,26 +25,6 @@ const AdminNewsletterPage = () => {
             <a href="mailto:${fromAddress}" target="_blank" style="color: #3b82f6; text-decoration: none;"> Nous contacter</a>
         </p>
     </div>`;
-
-    const editorConfiguration = {
-        licenseKey: 'GPL',
-        plugins: [Essentials, Paragraph, Bold, Italic, Heading, List, Link],
-        toolbar: {
-            items: [
-                'heading', '|', 'bold', 'italic', '|', 'bulletedList', 'numberedList', '|', 'link', '|', 'undo', 'redo'
-            ]
-        },
-        heading: {
-            options: [
-                { model: 'paragraph', title: 'Paragraphe', class: 'ck-heading_paragraph' },
-                { model: 'heading1', view: 'h1', title: 'Titre 1', class: 'ck-heading_heading1' },
-                { model: 'heading2', view: 'h2', title: 'Titre 2', class: 'ck-heading_heading2' },
-                { model: 'heading3', view: 'h3', title: 'Titre 3', class: 'ck-heading_heading3' }
-            ]
-        },
-        placeholder: 'Rédigez votre newsletter ici...',
-        initialData: message
-    };
 
     useEffect(() => {
         setEditorLoaded(true);
@@ -156,15 +135,13 @@ const AdminNewsletterPage = () => {
                     <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
                         {editorLoaded ? (
                             <div className="ck-editor-dark">
-                                <CKEditor
-                                    editor={ClassicEditor}
-                                    config={editorConfiguration}
+                                <NewsletterEditor
                                     data={message}
                                     onChange={handleEditorChange}
                                     onReady={(editor) => {
                                         const editorElement = editor.ui.getEditableElement();
                                         if (editorElement) {
-                                            editorElement.classList.add('dark:bg-gray-800', 'dark:text-white');
+                                            editorElement.classList.add("dark:bg-gray-800", "dark:text-white");
                                         }
                                     }}
                                 />
