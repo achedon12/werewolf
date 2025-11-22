@@ -1,6 +1,7 @@
 import Image from "next/image";
 import {useEffect, useState} from "react";
 import {getRoleByName} from "@/utils/Roles.js";
+import {Heart} from "lucide-react";
 
 const GameBoard = ({
                        players,
@@ -8,7 +9,8 @@ const GameBoard = ({
                        game,
                        numberCanBeSelected = 0,
                        selectedPlayers = [],
-                       setSelectedPlayers
+                       setSelectedPlayers,
+                       revealedCards = [],
                    }) => {
     const [configuration, setConfiguration] = useState({});
     const [maxPlayers, setMaxPlayers] = useState(0);
@@ -77,6 +79,8 @@ const GameBoard = ({
 
     const alivePlayers = players.filter(p => p.isAlive);
     const deadPlayers = players.filter(p => !p.isAlive);
+    const lovers = game?.config?.lovers?.exists ? game.config.lovers.players : [];
+    const currentPlayerIsLover = lovers.includes(currentPlayer.id);
 
     const isSelected = (id) => {
         return Array.isArray(selectedPlayers) && selectedPlayers.includes(id);
@@ -150,6 +154,8 @@ const GameBoard = ({
                     const selected = isSelected(pid);
                     const notSelectable = !player.isAlive || (Array.isArray(selectedPlayers) && !selected && selectedPlayers.length >= numberCanBeSelected && numberCanBeSelected !== 1);
 
+                    const revealed = Array.isArray(revealedCards) && revealedCards.includes(String(player.id));
+
                     return (
                         <div
                             key={pid}
@@ -158,22 +164,27 @@ const GameBoard = ({
                                 transform: `translate(${x}px, ${y}px) translate(-50%, -50%)`,
                             }}
                         >
-                            {player.role && player.id === currentPlayer.id ? (
+                            { (player.role && player.id === currentPlayer.id) || revealed ? (
                                 <Image
-                                    className="absolute bottom-6 -right-10 z-10"
+                                    className="absolute bottom-6 -right-5 z-10"
                                     src={getRoleByName(player.role).image}
                                     alt={player.role}
-                                    width={60}
-                                    height={90}
+                                    width={40}
+                                    height={70}
                                 />
                             ) : (
                                 <Image
-                                    className="absolute bottom-6 -right-10 z-10"
+                                    className="absolute bottom-6 -right-5 z-10"
                                     src={"/cards/card.jpeg"}
                                     alt={"Card Back"}
-                                    width={60}
-                                    height={90}
+                                    width={40}
+                                    height={70}
                                 />
+                            )}
+                            {currentPlayerIsLover && lovers.includes(player.id) && (
+                                <div className="absolute bottom-6 -left-0 z-10">
+                                    <Heart size={24} fill="currentColor" stroke="none" className="text-pink-500 animate-pulse"/>
+                                </div>
                             )}
 
                             <div

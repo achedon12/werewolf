@@ -46,6 +46,7 @@ const GamePage = ({params}) => {
     const [roleCallRemaining, setRoleCallRemaining] = useState(null);
     const router = useRouter();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [revealedCards, setRevealedCards] = useState([]);
     const mobileMenuRef = useRef(null);
 
     useEffect(() => {
@@ -196,7 +197,7 @@ const GamePage = ({params}) => {
             router.push('/');
         }
 
-        const handleAdminConfirmAction = (message) => {
+        const handleNotify = (message) => {
             toast.info(message || "Action administrateur éxécutée.");
         }
 
@@ -209,7 +210,8 @@ const GamePage = ({params}) => {
         socket.on("new-action", handleNewAction);
         socket.on("players-update", handlePlayersUpdate);
         socket.on("exclude-player-confirm", handleExcludePlayerConfirm);
-        socket.on("admin-confirm-action", handleAdminConfirmAction);
+        socket.on("game-notify", handleNotify);
+        socket.on("seer-reveal-result", handleSeerReveal);
         socket.on("game-error", handleGameError);
         socket.on("channel-joined", handleChannelJoined);
         socket.on("chat-error", handleChatError);
@@ -241,7 +243,8 @@ const GamePage = ({params}) => {
             socket.off("howl", handleHowl);
             socket.off("ambient-settings", handleAmbientSettings);
             socket.off('exclude-player-confirm', handleExcludePlayerConfirm);
-            socket.off('admin-confirm-action', handleAdminConfirmAction)
+            socket.off('game-notify', handleNotify)
+            socket.off('seer-reveal-result', handleSeerReveal);
             socket.off('starting-soon', handleStartingSoon);
             socket.emit("leave-game", id, userFromLocalStorage);
             socket.off('role-call-start', handleRoleCallStart);
@@ -294,18 +297,21 @@ const GamePage = ({params}) => {
     }, [startingSoon]);
 
     useEffect(() => {
-        toast.warning(
-            <div style={{ cursor: 'pointer' }} onClick={openDiscord}>
-                App is still in development. <br />
-                Bugs may occur!<br />
-                Join our Discord for support.<br />
-                Click this message to open Discord.
-            </div>,
-            {
-                autoClose: 10000,
-                closeOnClick: true,
-            }
-        );
+        if (process.env.NODE_ENV === 'production') {
+            toast.warning(
+                <div style={{ cursor: 'pointer' }} onClick={openDiscord}>
+                    App is still in development. <br />
+                    Bugs may occur!<br />
+                    Join our Discord for support.<br />
+                    Click this message to open Discord.
+                </div>,
+                {
+                    autoClose: 10000,
+                    closeOnClick: true,
+                }
+            );
+        }
+
         const onOutsideClick = (e) => {
             if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
                 setMobileMenuOpen(false);
@@ -323,6 +329,18 @@ const GamePage = ({params}) => {
             window.location.href = url;
         }
     };
+
+    const handleSeerReveal = (data) => {
+        const {message, id} = data || {};
+        if (id !== undefined && id !== null) {
+            const sid = String(id);
+            setRevealedCards(prev => Array.from(new Set([...prev, sid])));
+            setTimeout(() => {
+                setRevealedCards(prev => prev.filter(x => x !== sid));
+            }, 5000);
+        }
+        toast.info(message || "Résultat de la révélation de la Voyante.");
+    }
 
     const handleRoleCallTick = (data) => {
         if (!data) return;
@@ -539,6 +557,8 @@ const GamePage = ({params}) => {
                         selectedPlayers={selectedPlayers}
                         setSelectedPlayers={setSelectedPlayers}
                         roleCallRemaining={roleCallRemaining}
+                        performAction={performAction}
+                        revealedCards={revealedCards}
                     />
 
                     <div className="lg:col-span-1">

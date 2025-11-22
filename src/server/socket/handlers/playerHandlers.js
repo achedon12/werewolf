@@ -1,11 +1,13 @@
 import {connectedPlayers, getGameRoom, removePlayerFromGame} from "../utils/roomManager.js";
 import {addGameAction} from "../utils/actionLogger.js";
 import {updatedGameData} from "../utils/gameManager.js";
+import {ACTION_TYPES} from "../../config/constants.js";
 
 export const handlePlayerAction = async (socket, io, data) => {
     try {
-        const {gameId, action, targetPlayerId, type, playerName, playerRole, details = {}} = data;
+        const {gameId, selectedPlayers} = data;
         const playerInfo = connectedPlayers.get(socket.id);
+        console.log("🔔 handlePlayerAction called with data:", data, "from playerInfo:", playerInfo);
 
         if (!gameId || !playerInfo) {
             throw new Error("Données manquantes");
@@ -14,29 +16,33 @@ export const handlePlayerAction = async (socket, io, data) => {
         const roomData = getGameRoom(gameId);
         if (!roomData) return;
 
-        const {actionMessage, actionType} = getActionDetails(type, playerName, details);
+        await processAction(io, socket, playerInfo, data, roomData);
+        socket.emit('game-set-number-can-be-selected', 0);
+        console.log(`➡️ Action reçue de ${playerInfo.nickname}(${playerInfo.role}) dans le jeu ${gameId}:`, data);
 
-        const newAction = addGameAction(gameId, {
+        const {actionMessage, actionType} = getActionDetails(playerInfo.role);
+
+        addGameAction(gameId, {
             type: actionType,
-            playerName: playerName,
-            playerRole: playerRole,
-            message: actionMessage,
-            details: details,
+            playerName: playerInfo.nickname,
+            playerRole: playerInfo.role,
+            message: `${playerInfo.nickname} ${actionMessage}`,
+            details: 'Sélectionné(s): ' + (selectedPlayers && selectedPlayers.length > 0 ? selectedPlayers.map(p => p.nickname).join(", ") : "Aucun"),
             phase: roomData.phase || "game"
         });
 
-        io.to(`game-${gameId}`).emit("new-action", newAction);
-
-        if (type !== "chat_message") {
-            const gameData = await updatedGameData(gameId);
-            io.to(`game-${gameId}`).emit("game-update", gameData);
+        try {
+            if (roomData && roomData.roleCallController && typeof roomData.roleCallController.next === 'function') {
+                roomData.roleCallController.next();
+            }
+        } catch (err) {
+            console.error("❌ Erreur en avançant au rôle suivant:", err);
         }
 
     } catch (error) {
         console.error("❌ Erreur lors du traitement de l'action:", error);
         socket.emit("action-error", {
-            error: "Échec de l'action",
-            details: error.message
+            error: "Échec de l'action", details: error.message
         });
     }
 }
@@ -49,42 +55,65 @@ export const handleDisconnect = (socket, io, reason) => {
     io.emit('game-updated', updatedGameData);
 }
 
-const getActionDetails = (type, playerName, details) => {
-    switch (type) {
-        case "vote":
+const getActionDetails = (role) => {
+    switch (role) {
+        case "Loup-Garou":
             return {
-                actionMessage: `🗳️ ${playerName} a voté contre un joueur`,
-                actionType: "player_vote"
+                actionMessage: "a effectué son choix de Loup-Garou.", actionType: ACTION_TYPES.WEREWOLF_ATTACK
             };
-        case "attack":
+        case "Voyante":
             return {
-                actionMessage: `🐺 ${playerName} a attaqué un villageois`,
-                actionType: "werewolf_attack"
+                actionMessage: "a consulté une carte en tant que Voyante.", actionType: ACTION_TYPES.SEER_REVEAL
             };
-        case "reveal":
+        case "Chasseur":
             return {
-                actionMessage: `🔮 ${playerName} a utilisé son pouvoir de voyante`,
-                actionType: "seer_reveal"
+                actionMessage: "a pris une décision en tant que Chasseur.", actionType: ACTION_TYPES.HUNTER_SHOT
             };
-        case "heal":
+        case "Sorciere":
             return {
-                actionMessage: `🏥 ${playerName} a soigné un joueur`,
-                actionType: "doctor_heal"
-            };
-        case "phase_change":
-            return {
-                actionMessage: `🔄 La phase change: ${details.phase}`,
-                actionType: "phase_change"
-            };
-        case "player_eliminated":
-            return {
-                actionMessage: `💀 ${playerName} a été éliminé`,
-                actionType: "player_eliminated"
+                actionMessage: "a utilisé une potion en tant que Sorcière.", actionType: ACTION_TYPES.WITCH_POTION
             };
         default:
             return {
-                actionMessage: `⚡ ${playerName} a effectué une action`,
-                actionType: "game_action"
+                actionMessage: "a effectué une action.", actionType: ACTION_TYPES.GENERAL_ACTION
             };
+    }
+}
+
+const processAction = async (io, socket, playerInfo, data, roomData) => {
+    const {gameId, selectedPlayers} = data;
+
+    const findPlayerById = (id) => {
+        if (!id) return null;
+        if (roomData.players && typeof roomData.players.get === 'function') {
+            const p = roomData.players.get(id);
+            if (p) return p;
+            return Array.from(roomData.players.values()).find(pl => String(pl.id) === id) || null;
+        } else if (Array.isArray(roomData.players)) {
+            return roomData.players.find(pl => String(pl.id) === id) || null;
+        }
+        return null;
+    };
+
+    switch (playerInfo.role) {
+        case 'Voyante':
+            const targetPlayer = findPlayerById(selectedPlayers[0]);
+
+            const message = `Le rôle de ${targetPlayer.nickname} est ${targetPlayer.role}.`;
+
+            socket.emit('seer-reveal-result', {message, id: targetPlayer.id});
+            console.log(`🔮 Voyante ${playerInfo.nickname} a consulté le rôle de ${targetPlayer.nickname}: ${targetPlayer.role}`);
+
+            addGameAction(gameId, {
+                type: ACTION_TYPES.SEER_REVEAL,
+                playerName: playerInfo.nickname,
+                playerRole: playerInfo.role,
+                message: `${playerInfo.nickname} a consulté le rôle de ${targetPlayer.nickname} en tant que Voyante.`,
+                details: `Rôle révélé: ${targetPlayer.role}`,
+                phase: roomData.phase || "game"
+            });
+            break;
+        default:
+            break;
     }
 }

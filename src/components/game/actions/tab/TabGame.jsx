@@ -12,6 +12,8 @@ const TabGame = ({
                      selectedPlayers,
                      setSelectedPlayers,
                      roleCallRemaining,
+                     performAction,
+                     revealedCards
                  }) => {
     const alivePlayers = players.filter(p => p.isAlive);
     const deadPlayers = players.filter(p => !p.isAlive);
@@ -106,8 +108,7 @@ const TabGame = ({
                                     game.phase === GAME_PHASES.NIGHT && numberCanBeSelected > 0 && selectedPlayers.length > 0 && (
                                         <button
                                             disabled={selectedPlayers.length === 0}
-                                            onClick={() => {
-                                            }}
+                                            onClick={performAction}
                                             className="ml-auto btn btn-sm btn-primary">
                                             Confirmer la sélection
                                         </button>
@@ -125,6 +126,7 @@ const TabGame = ({
                         numberCanBeSelected={numberCanBeSelected}
                         selectedPlayers={selectedPlayers}
                         setSelectedPlayers={setSelectedPlayers}
+                        revealedCards={revealedCards}
                     />
                 </div>
 

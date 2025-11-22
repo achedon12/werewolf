@@ -34,51 +34,36 @@ const simulateBotAction = (roleName, bot, roomData, io, gameId) => {
             if (pool.length < 2) {
                 message = `${bot.nickname} (bot) n'a pas trouvé assez de joueurs à lier`;
             } else {
-                // choisir deux cibles distinctes
                 const first = pickRandom(pool);
                 const secondPool = pool.filter(p => p.id !== first.id);
                 const second = pickRandom(secondPool.length ? secondPool : others.filter(p => p.id !== first.id));
 
                 if (first && second) {
-                    // initialiser la config lovers si nécessaire
                     if (!roomData.config) roomData.config = {};
                     if (!roomData.config.lovers) roomData.config.lovers = { exists: false, players: [] };
 
                     roomData.config.lovers.exists = true;
                     roomData.config.lovers.players = [first.id, second.id];
 
-                    // marquer les joueurs dans roomData.players (itérer sur la map)
                     for (const p of roomData.players.values()) {
                         if (p.id === first.id) {
                             p.isLover = true;
                             p.loverWith = second.id;
+                            if (p.socketId) {
+                                io.to(p.socketId).emit('game-notify', `💘 Vous êtes maintenant lié(e) à ${second.nickname} !`);
+                            }
                         }
                         if (p.id === second.id) {
                             p.isLover = true;
                             p.loverWith = first.id;
+                            if (p.socketId) {
+                                io.to(p.socketId).emit('game-notify', `💘 Vous êtes maintenant lié(e) à ${first.nickname} !`);
+                            }
                         }
                     }
 
                     message = `💘 ${bot.nickname} (bot) a lié ${first.nickname} et ${second.nickname}`;
-                    const payload = {
-                        role: roleName,
-                        playerId: bot.id,
-                        playerName: bot.nickname,
-                        targets: [
-                            { id: first.id, nickname: first.nickname },
-                            { id: second.id, nickname: second.nickname }
-                        ],
-                        message,
-                        automated: true,
-                        createdAt: new Date().toISOString()
-                    };
-
-                    io.in(`game-${gameId}`).emit('role-action', payload);
-                    const channel = sanitizeRoleChannel(roleName);
-                    if (channel) {
-                        const roomChannel = `game-${gameId}-${channel}`;
-                        io.in(roomChannel).emit && io.in(roomChannel).emit('role-action', payload);
-                    }
+                    io.in(`game-${gameId}`).emit('game-update', roomData);
                 }
             }
             break;
@@ -127,12 +112,12 @@ const simulateBotAction = (roleName, bot, roomData, io, gameId) => {
         createdAt: new Date().toISOString()
     };
 
-    io.in(`game-${gameId}`).emit('role-action', payload);
-    const channel = sanitizeRoleChannel(roleName);
-    if (channel) {
-        const roomChannel = `game-${gameId}-${channel}`;
-        io.in(roomChannel).emit && io.in(roomChannel).emit('role-action', payload);
-    }
+    // io.in(`game-${gameId}`).emit('role-action', payload);
+    // const channel = sanitizeRoleChannel(roleName);
+    // if (channel) {
+    //     const roomChannel = `game-${gameId}-${channel}`;
+    //     io.in(roomChannel).emit && io.in(roomChannel).emit('role-action', payload);
+    // }
 
     addGameAction(gameId, {
         type: ACTION_TYPES.GAME_HISTORY,

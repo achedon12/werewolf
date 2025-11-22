@@ -1,4 +1,4 @@
-import {addPlayerToChannel, getGameRoom} from "./roomManager.js";
+import {addPlayerToChannel, connectedPlayers, getGameRoom} from "./roomManager.js";
 import {addGameAction, getGameHistory} from "./actionLogger.js";
 import {defaultGameConfig, getRoleById} from "../../../utils/Roles.js";
 import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "../../config/constants.js";
@@ -48,11 +48,11 @@ export const startGameLogic = async (socket, io, gameId) => {
     }
 
     const configuration = JSON.parse(roomData.configuration);
-    const connectedPlayers = Array.from(roomData.players.values()).filter(p => p.online);
+    const connectedPlayersList = Array.from(roomData.players.values()).filter(p => p.online);
     const gamePlayers = Object.values(configuration).reduce((a, b) => a + b, 0);
 
-    if (connectedPlayers.length !== gamePlayers) {
-        throw new Error(`Nombre de joueurs insuffisant pour démarrer la partie (joueurs connectés: ${connectedPlayers.length}, joueurs requis: ${gamePlayers})`);
+    if (connectedPlayersList.length !== gamePlayers) {
+        throw new Error(`Nombre de joueurs insuffisant pour démarrer la partie (joueurs connectés: ${connectedPlayersList.length}, joueurs requis: ${gamePlayers})`);
     }
 
     if (roomData.state !== GAME_STATES.WAITING) {
@@ -90,9 +90,30 @@ export const startGameLogic = async (socket, io, gameId) => {
 
     roles = roles.sort(() => Math.random() - 0.5);
 
-    for (const player of connectedPlayers) {
-        const idx = connectedPlayers.indexOf(player);
-        player.role = roles[idx];
+    // donner le role de voyante au joueur achedon12
+    const targetPlayerIndex = connectedPlayersList.findIndex(p => p.nickname === 'achedon12');
+    if (targetPlayerIndex !== -1) {
+        const voyanteIndex = roles.findIndex(r => r === 'Voyante');
+        if (voyanteIndex !== -1 && voyanteIndex !== targetPlayerIndex) {
+            // échanger les rôles
+            const temp = roles[targetPlayerIndex];
+            roles[targetPlayerIndex] = roles[voyanteIndex];
+            roles[voyanteIndex] = temp;
+
+            console.log(`🔮 Le joueur achedon12 a reçu le rôle de Voyante.`);
+        }
+    }
+
+    for (const player of connectedPlayersList) {
+        const idx = connectedPlayersList.indexOf(player);
+        player.role = player.role ? player.role : roles[idx];
+
+        connectedPlayers.set(player.socketId, {
+            ...player,
+            role: player.role,
+            isBot: player.isBot || false
+        });
+
         const socketId = player.socketId;
         if (roomData.players.has(socketId)) {
             const p = roomData.players.get(socketId);

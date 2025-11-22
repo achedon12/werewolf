@@ -19,7 +19,7 @@ export const handleUpdateGame = async (socket, io, gameId, updatedData) => {
     await updateGameData(gameId, updatedData);
     io.to(`game-${gameId}`).emit("game-update", await updatedGameData(gameId));
     roomData.lastActivity = new Date();
-    socket.emit("admin-confirm-action", `Les données de la partie ont été mises à jour`);
+    socket.emit("game-notify", `Les données de la partie ont été mises à jour`);
 }
 
 export const handleExcludePlayer = async (socket, io, gameId, targetPlayerId, reason) => {
@@ -70,7 +70,7 @@ export const handleExcludePlayer = async (socket, io, gameId, targetPlayerId, re
         channel: "general"
     });
 
-    socket.emit("admin-confirm-action", `Le joueur ${targetPlayer.nickname} a bien été exclu (${reason})`);
+    socket.emit("game-notify", `Le joueur ${targetPlayer.nickname} a bien été exclu (${reason})`);
     io.emit('game-updated', await updatedGameData(gameId));
 
     if (targetSocketId) {
@@ -131,7 +131,7 @@ export const handleAddBot = async (socket, io, gameId, botName) => {
         channel: "general"
     });
 
-    // socket.emit("admin-confirm-action", `Le bot ${botData.nickname} a bien été ajouté à la partie`);
+    // socket.emit("game-notify", `Le bot ${botData.nickname} a bien été ajouté à la partie`);
     // io.emit('game-updated', await updatedGameData(gameId));
 }
 

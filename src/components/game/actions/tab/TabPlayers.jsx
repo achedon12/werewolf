@@ -1,7 +1,9 @@
 import Image from 'next/image';
 import {Circle, CircleDot, Skull, UsersRound} from 'lucide-react';
 
-const TabPlayers = ({players, currentPlayer}) => {
+const TabPlayers = ({game, players, currentPlayer}) => {
+    const lovers = game?.config?.lovers?.exists ? game.config.lovers.players : [];
+
     return (
         <div className="card glass shadow-2xl backdrop-blur-sm border border-white/10">
             <div className="card-body">
@@ -80,12 +82,22 @@ const TabPlayers = ({players, currentPlayer}) => {
                                     </div>
                                 </div>
 
-                                {process.env.NODE_ENV ==='dev' || process.env.NODE_ENV === 'development' && (
-                                    <div className="text-right">
-                                        <div className="badge badge-outline">
-                                            {player.role}
+                                {process.env.NODE_ENV === 'dev' || process.env.NODE_ENV === 'development' && (
+                                    <div className="flex items-end gap-2">
+                                        <div className="text-right">
+                                            <div className="badge badge-outline">
+                                                {player.role}
+                                            </div>
                                         </div>
+                                        {lovers.includes(player.id) && (
+                                            <div className="text-right">
+                                                <div className="badge badge-secondary">
+                                                    Amoureux
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
+
                                 )}
                             </div>
                         </div>
