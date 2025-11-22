@@ -76,7 +76,7 @@ const ProfileLayout = ({ children }) => {
                                 {tab.label}
                             </button>
                         ))}
-                        {user?.role === 'admin' && (
+                        {user?.role === 'admin' || user?.role === 'moderator' && (
                             <button
                                 className="tab flex items-center justify-start md:justify-center space-x-2 w-full md:w-auto text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-600"
                                 onClick={() => router.push('/admin/dashboard')}

@@ -20,7 +20,6 @@ import {Clock, Download, Eye, Gamepad2, TrendingUp, Users,} from 'lucide-react';
 const AdminAnalyticsPage = () => {
     const [timeRange, setTimeRange] = useState('7');
     const [loading, setLoading] = useState(true);
-    const [analyticsData, setAnalyticsData] = useState(null);
     const [activityByHour, setActivityByHour] = useState([]);
     const [userGrowth, setUserGrowth] = useState([]);
     const [popularRoles, setPopularRoles] = useState([]);
@@ -134,14 +133,6 @@ const AdminAnalyticsPage = () => {
                     <div className="loading loading-spinner loading-lg text-primary mb-4"></div>
                     <p className="text-gray-600 dark:text-gray-400">Chargement des analytics...</p>
                 </div>
-            </div>
-        );
-    }
-
-    if (!overview || !userGrowth.length || !activityByHour.length || !popularRoles.length || !gameStats.length) {
-        return (
-            <div className="text-center py-12">
-                <p className="text-gray-600 dark:text-gray-400">Aucune donnée disponible</p>
             </div>
         );
     }

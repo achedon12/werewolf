@@ -113,7 +113,8 @@ const AdminUsersPage = () => {
             <td className="px-4 py-3">
                 <div className="flex items-center gap-3">
                     <div className="avatar">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                        <div
+                            className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                             <img src={user?.avatar ? user.avatar : '/default-avatar.png'} alt={user.name}
                                  className="rounded-full object-cover w-full h-full"/>
                         </div>
@@ -137,8 +138,14 @@ const AdminUsersPage = () => {
 
             <td className="px-4 py-3">
                 <div className="flex flex-col gap-1">
-                    <div className={`badge badge-sm ${user.verified ? 'badge-success' : 'badge-warning'}`}>
-                        {user.verified ? 'Vérifié' : 'Non vérifié'}
+                    <div
+                        className={`badge badge-sm flex items-center gap-2 px-2 py-1 text-xs sm:text-sm ${user.verified ? 'badge-success' : 'badge-warning'}`}
+                        aria-label={user.verified ? 'Vérifié' : 'Non vérifié'}
+                    >
+                        {user.verified ? <CheckCircle className="h-4 w-4"/> : <XCircle className="h-4 w-4"/>}
+                        <span className="truncate max-w-[100px] sm:max-w-[150px]">
+                            {user.verified ? 'Vérifié' : 'Non vérifié'}
+                        </span>
                     </div>
                     <div className={`badge badge-sm badge-outline ${user.role === 'admin' ? 'badge-primary' : ''}`}>
                         {user.role}
@@ -164,7 +171,7 @@ const AdminUsersPage = () => {
             </td>
 
             <td className="px-4 py-3">
-                <div className="flex gap-1">
+                <div className="flex flex-col md:flex-row gap-1">
                     {user.ambientSoundsEnabled && (
                         <div className="tooltip" data-tip="Sons activés">
                             <div className="badge badge-sm badge-outline">🎵</div>

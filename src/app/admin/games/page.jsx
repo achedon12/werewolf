@@ -15,6 +15,7 @@ import {
     Users,
 } from 'lucide-react';
 import {GAME_PHASES, GAME_STATES} from "@/server/config/constants.js";
+import {useIsMobile} from "@/utils/Screen.js";
 
 const AdminGamesPage = () => {
     const [games, setGames] = useState([]);
@@ -31,6 +32,7 @@ const AdminGamesPage = () => {
     const [total, setTotal] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const [stats, setStats] = useState({waiting: 0, inProgress: 0, finished: 0});
+    const isMobile = useIsMobile();
 
 
     useEffect(() => {
@@ -92,6 +94,19 @@ const AdminGamesPage = () => {
 
         const config = statusConfig[status] || statusConfig[GAME_STATES.WAITING];
         const IconComponent = config.icon;
+
+        if (isMobile) {
+            return (
+                <div
+                    className={`badge badge-sm gap-1 ${config.color} px-2 py-1`}
+                    aria-label={config.text}
+                    title={config.text}
+                >
+                    <IconComponent className="h-3 w-3" />
+                    <span className="text-xs truncate max-w-[80px]">{config.text}</span>
+                </div>
+            );
+        }
 
         return (
             <div className={`badge badge-sm gap-1 ${config.color}`}>
@@ -410,7 +425,7 @@ const AdminGamesPage = () => {
                     <div className="stat-figure text-error">
                         <Users className="h-8 w-8"/>
                     </div>
-                    <div className="stat-title">Joueurs totaux</div>
+                    <div className="stat-title">Joueurs</div>
                     <div className="stat-value text-error text-xl">
                         {games.reduce((acc, game) => acc + game.currentPlayers, 0)}
                     </div>

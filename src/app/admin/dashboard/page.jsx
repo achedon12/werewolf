@@ -109,21 +109,6 @@ const AdminDashboardPage = () => {
         </div>
     );
 
-    const StatusIndicator = ({status}) => {
-        const config = {
-            success: {color: 'text-green-600', bg: 'bg-green-100', icon: CheckCircle2},
-            warning: {color: 'text-yellow-600', bg: 'bg-yellow-100', icon: AlertTriangle},
-            error: {color: 'text-red-600', bg: 'bg-red-100', icon: XCircle},
-        };
-        const {color, bg, icon: StatusIcon} = status === 'ok' ? config.success : config.error;
-        return (
-            <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${bg} ${color}`}>
-                <StatusIcon className="h-3 w-3"/>
-                {status === 'ok' ? 'Opérationnel' : 'Indisponible'}
-            </div>
-        );
-    };
-
     return (
         <div className="space-y-6">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
@@ -268,7 +253,6 @@ const AdminDashboardPage = () => {
                                             </p>
                                         </div>
                                     </div>
-                                    <StatusIndicator status={activity.status}/>
                                 </div>
                             ))}
                         </div>
@@ -292,11 +276,11 @@ const AdminDashboardPage = () => {
                                 <span>Tous les systèmes sont opérationnels</span>
                             </div>
 
-                            <div className="flex gap-2 mt-4">
-                                <button className="btn btn-primary btn-sm flex-1">
+                            <div className="flex flex-col md:flex-row gap-2 mt-4">
+                                <button className="btn btn-primary btn-sm flex-1 py-2 md:py-3">
                                     Voir les signalements
                                 </button>
-                                <button className="btn btn-outline btn-sm flex-1">
+                                <button className="btn btn-outline btn-sm flex-1 py-2 md:py-3">
                                     Exporter les données
                                 </button>
                             </div>
