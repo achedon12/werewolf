@@ -36,6 +36,10 @@ export const metadata = {
         'multijoueur',
         'plateforme',
         'amis',
+        'online',
+        'werewolf',
+        'gratuit',
+        'friends
     ],
     authors: [{ name: 'Achedon12 - leo deroin', url: 'https://leoderoin.fr' }],
     openGraph: {
