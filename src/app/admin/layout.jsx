@@ -39,7 +39,7 @@ const AdminLayout = ({children}) => {
 
     useEffect(() => {
         if (loading) return;
-        if (!user || !token || user.role !== 'admin') {
+        if (!user || !token || (user.role !== 'admin' && user.role !== 'moderator')) {
             router.push('/auth');
         }
     }, [loading, user, token, router]);

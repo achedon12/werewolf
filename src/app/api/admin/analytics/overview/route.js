@@ -26,7 +26,7 @@ export async function GET(req) {
         return NextResponse.json({error: "Token invalide"}, {status: 401});
     }
 
-    if (!payload.role || payload.role !== "admin") {
+    if (!payload.role || (payload.role !== "admin" && payload.role !== "moderator")) {
         return NextResponse.json({error: "Accès admin requis"}, {status: 403});
     }
 
