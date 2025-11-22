@@ -294,6 +294,18 @@ const GamePage = ({params}) => {
     }, [startingSoon]);
 
     useEffect(() => {
+        toast.warning(
+            <div style={{ cursor: 'pointer' }} onClick={openDiscord}>
+                App is still in development. <br />
+                Bugs may occur!<br />
+                Join our Discord for support.<br />
+                Click this message to open Discord.
+            </div>,
+            {
+                autoClose: 10000,
+                closeOnClick: true,
+            }
+        );
         const onOutsideClick = (e) => {
             if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
                 setMobileMenuOpen(false);
@@ -302,6 +314,15 @@ const GamePage = ({params}) => {
         document.addEventListener('mousedown', onOutsideClick);
         return () => document.removeEventListener('mousedown', onOutsideClick);
     }, []);
+
+    const openDiscord = () => {
+        const url = process.env.NEXT_PUBLIC_DISCORD_URL
+        try {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        } catch (e) {
+            window.location.href = url;
+        }
+    };
 
     const handleRoleCallTick = (data) => {
         if (!data) return;

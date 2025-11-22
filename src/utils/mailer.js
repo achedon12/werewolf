@@ -1,8 +1,9 @@
 import nodemailer from "nodemailer";
 import dotenv from 'dotenv';
 import path from "path";
+import {fromAddress} from "@/utils/publicEmail.js";
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+dotenv.config({path: path.resolve(process.cwd(), '.env')});
 
 const SMTP_HOST = process.env.SMTP_HOST || "localhost";
 const SMTP_PORT = Number(process.env.SMTP_PORT) || (SMTP_HOST === "localhost" ? 1025 : 587);
@@ -33,8 +34,6 @@ if (SMTP_USER && SMTP_PASSWORD) {
 const transporter = nodemailer.createTransport(transporterConfig);
 
 export const mailer = async ({to, subject, html}) => {
-    const fromAddress =
-        (SMTP_HOST === "localhost") ? "contact@werewolf.app" : SMTP_USER;
 
     const mailOptions = {
         from: `"Support" <${fromAddress}>`,

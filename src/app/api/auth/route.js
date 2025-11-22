@@ -2,7 +2,7 @@ import {NextResponse} from "next/server";
 import {PrismaClient} from "@/generated/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import {mailer} from "@/lib/mailer";
+import {mailer} from "@/utils/mailer.js";
 import crypto from "crypto";
 
 const prisma = new PrismaClient();

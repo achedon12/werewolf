@@ -62,8 +62,6 @@ const CreateGamePage = () => {
         e.preventDefault();
         setIsCreating(true);
 
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
         try {
             const response = await fetch('/api/game', {
                 method: 'POST',

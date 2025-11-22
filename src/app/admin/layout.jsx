@@ -38,6 +38,7 @@ const AdminLayout = ({children}) => {
         {href: '/admin/users', icon: Users, label: 'Utilisateurs'},
         {href: '/admin/games', icon: Gamepad2, label: 'Parties'},
         {href: '/admin/analytics', icon: BarChart3, label: 'Analytics'},
+        {href: '/admin/newsletter', icon: Shield, label: 'Newsletter'},
         {href: '/admin/settings', icon: Settings, label: 'Paramètres'},
     ];
 
