@@ -22,7 +22,7 @@ export async function POST(req) {
         }
 
 
-        if (!payload.role || payload.role !== "admin") {
+        if (!payload.role || (payload.role !== 'admin' && payload.role !== 'moderator')) {
             return NextResponse.json({error: "Accès admin requis"}, {status: 403});
         }
 
