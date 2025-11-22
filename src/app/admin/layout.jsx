@@ -54,7 +54,7 @@ const AdminLayout = ({children}) => {
     ];
 
     const handleLogout = () => {
-        router.push('/auth');
+        router.push('/auth/profile');
     };
 
     return (
