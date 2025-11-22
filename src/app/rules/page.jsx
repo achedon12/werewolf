@@ -23,7 +23,7 @@ const RulesPage = () => {
     const filteredRoles = getFilteredRoles(roles, activeFilter);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-8">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 dark:from-gray-900 dark:to-purple-900 py-4 sm:py-8">
             <div className="container mx-auto px-4">
                 <div className="text-center mb-12">
                     <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
