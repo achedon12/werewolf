@@ -1,6 +1,6 @@
 import Image from "next/image";
-import {useEffect, useState} from "react";
-import {getRoleByName} from "@/utils/Roles.js";
+import {useEffect, useMemo, useState} from "react";
+import {getRoleByName, playerIsWolf} from "@/utils/Roles.js";
 import {Heart} from "lucide-react";
 
 const GameBoard = ({
@@ -62,25 +62,59 @@ const GameBoard = ({
     }, [radius]);
 
     if (!players || players.length === 0) {
-        return (
-            <div className="flex justify-center items-center my-12">
+        return (<div className="flex justify-center items-center my-12">
+            <div
+                className="text-center text-gray-400 bg-base-200/30 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
                 <div
-                    className="text-center text-gray-400 bg-base-200/30 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
-                    <div
-                        className="w-16 h-16 mx-auto mb-4 rounded-full bg-base-300/50 flex items-center justify-center">
-                        <span className="text-2xl">👤</span>
-                    </div>
-                    <p className="text-lg font-semibold">Aucun joueur dans la partie</p>
-                    <p className="text-sm mt-2">En attente de joueurs...</p>
+                    className="w-16 h-16 mx-auto mb-4 rounded-full bg-base-300/50 flex items-center justify-center">
+                    <span className="text-2xl">👤</span>
                 </div>
+                <p className="text-lg font-semibold">Aucun joueur dans la partie</p>
+                <p className="text-sm mt-2">En attente de joueurs...</p>
             </div>
-        );
+        </div>);
     }
 
     const alivePlayers = players.filter(p => p.isAlive);
     const deadPlayers = players.filter(p => !p.isAlive);
-    const lovers = game?.config?.lovers?.exists ? game.config.lovers.players : [];
-    const currentPlayerIsLover = lovers.includes(currentPlayer.id);
+    const loverIds = game?.config?.lovers?.exists ? (game.config.lovers.players || []).map(String) : [];
+    const currentPlayerIsWolf = playerIsWolf(currentPlayer?.role)
+    const currentPlayerIsCupidon = currentPlayer?.role === "Cupidon";
+    const currentPlayerIsLover = currentPlayer && loverIds.includes(String(currentPlayer.id));
+
+    const computeWolfVoteCounts = (wolvesTarget) => {
+        const counts = {};
+        if (!wolvesTarget) return counts;
+
+
+        for (const k of Object.keys(wolvesTarget)) {
+            const v = wolvesTarget[k];
+            if (v == null) continue;
+            if (typeof v === 'number' || typeof v === 'string') {
+                const key = String(v);
+                counts[key] = (counts[key] || 0) + 1;
+            } else if (Array.isArray(v)) {
+                for (const t of v) {
+                    if (t == null) continue;
+                    const key = String(t);
+                    counts[key] = (counts[key] || 0) + 1;
+                }
+            } else if (v && typeof v === 'object') {
+                const target = v.target || v.to || v.player || v.id || v.targetId;
+                if (target) {
+                    const key = String(target);
+                    counts[key] = (counts[key] || 0) + 1;
+                } else if (typeof v.count === 'number') {
+                    counts[String(k)] = (counts[String(k)] || 0) + v.count;
+                }
+            }
+        }
+
+        return counts;
+    };
+
+    const wolfVoteCounts = useMemo(() => computeWolfVoteCounts(game?.config?.wolves?.targets || {}), [game?.config?.wolves?.targets || {}]);
+    const isWolvesTurn = game.turn === 6 && game.phase === "Nuit";
 
     const isSelected = (id) => {
         return Array.isArray(selectedPlayers) && selectedPlayers.includes(id);
@@ -107,14 +141,36 @@ const GameBoard = ({
         }
     };
 
+    const getCardInfo = (player) => {
+        if (!player?.role) {
+            return {src: "/cards/card.jpeg", alt: "Dos de carte"};
+        }
+
+        if (Array.isArray(revealedCards) && revealedCards.includes(String(player.id))) {
+            const role = getRoleByName(player.role);
+            return {src: role?.image ?? "/cards/card.jpeg", alt: player.role ?? "Carte"};
+        }
+
+        if (currentPlayerIsWolf && (player.role === "Loup-Garou" || player.role === "Loup-Garou Blanc")) {
+            // force reveal werewolves to each other (to not reveal white werewolf to normal werewolves)
+            const role = getRoleByName("Loup-Garou");
+            return {src: role?.image ?? "/cards/card.jpeg", alt: player.role};
+        }
+
+        if (player.id === currentPlayer?.id) {
+            const role = getRoleByName(player.role);
+            return {src: role?.image ?? "/cards/card.jpeg", alt: player.role};
+        }
+
+        return {src: "/cards/card.jpeg", alt: "Dos de carte"};
+    }
+
     return (
         <div className="relative flex justify-center my-8">
             <div
                 className="relative"
                 style={{
-                    width: `${boardSize}px`,
-                    height: `${boardSize}px`,
-                    maxWidth: "100%",
+                    width: `${boardSize}px`, height: `${boardSize}px`, maxWidth: "100%",
                 }}
             >
                 <div
@@ -133,13 +189,11 @@ const GameBoard = ({
                 <div className="absolute inset-0 rounded-full">
                     {players.map((_, idx) => {
                         const angle = (360 / players.length) * idx;
-                        return (
-                            <div
-                                key={`line-${idx}`}
-                                className="absolute top-1/2 left-1/2 w-px h-2/3 bg-white/5 transform origin-top"
-                                style={{transform: `rotate(${angle}deg) translateY(-50%)`}}
-                            />
-                        );
+                        return (<div
+                            key={`line-${idx}`}
+                            className="absolute top-1/2 left-1/2 w-px h-2/3 bg-white/5 transform origin-top"
+                            style={{transform: `rotate(${angle}deg) translateY(-50%)`}}
+                        />);
                     })}
                 </div>
 
@@ -154,7 +208,8 @@ const GameBoard = ({
                     const selected = isSelected(pid);
                     const notSelectable = !player.isAlive || (Array.isArray(selectedPlayers) && !selected && selectedPlayers.length >= numberCanBeSelected && numberCanBeSelected !== 1);
 
-                    const revealed = Array.isArray(revealedCards) && revealedCards.includes(String(player.id));
+                    const card = getCardInfo(player);
+                    const voteCount = wolfVoteCounts[String(player.id)] || 0;
 
                     return (
                         <div
@@ -164,26 +219,17 @@ const GameBoard = ({
                                 transform: `translate(${x}px, ${y}px) translate(-50%, -50%)`,
                             }}
                         >
-                            { (player.role && player.id === currentPlayer.id) || revealed ? (
-                                <Image
-                                    className="absolute bottom-6 -right-5 z-10"
-                                    src={getRoleByName(player.role).image}
-                                    alt={player.role}
-                                    width={40}
-                                    height={70}
-                                />
-                            ) : (
-                                <Image
-                                    className="absolute bottom-6 -right-5 z-10"
-                                    src={"/cards/card.jpeg"}
-                                    alt={"Card Back"}
-                                    width={40}
-                                    height={70}
-                                />
-                            )}
-                            {currentPlayerIsLover && lovers.includes(player.id) && (
+                            <Image
+                                className="absolute bottom-6 -right-5 z-10"
+                                src={card.src}
+                                alt={card.alt}
+                                width={40}
+                                height={70}
+                            />
+                            {loverIds.includes(String(player.id)) && (currentPlayerIsCupidon || currentPlayerIsLover) && (
                                 <div className="absolute bottom-6 -left-0 z-10">
-                                    <Heart size={24} fill="currentColor" stroke="none" className="text-pink-500 animate-pulse"/>
+                                    <Heart size={24} fill="currentColor" stroke="none"
+                                           className="text-pink-500 animate-pulse"/>
                                 </div>
                             )}
 
@@ -194,16 +240,12 @@ const GameBoard = ({
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter" || e.key === " ") handleSelect(player, pid);
                                 }}
-                                className={`relative group cursor-pointer ${
-                                    !player.isAlive ? "grayscale cursor-not-allowed opacity-60" : ""
-                                }`}
+                                className={`relative group cursor-pointer ${!player.isAlive ? "grayscale cursor-not-allowed opacity-60" : ""}`}
                                 aria-pressed={selected}
                                 aria-disabled={!player.isAlive}
                             >
                                 <div
-                                    className={`w-16 h-16 md:w-20 md:h-20 rounded-full border-4 transition-all duration-300 ${
-                                        player.isAlive ? "border-green-600" : "border-red-600"
-                                    } p-1 ${selected ? "ring-4 ring-purple-400 scale-105" : ""} ${notSelectable ? "opacity-70" : ""}`}
+                                    className={`w-16 h-16 md:w-20 md:h-20 rounded-full border-4 transition-all duration-300 ${player.isAlive ? "border-green-600" : "border-red-600"} p-1 ${selected ? "ring-4 ring-purple-400 scale-105" : ""} ${notSelectable ? "opacity-70" : ""}`}
                                 >
                                     <Image
                                         src={player.isBot ? "/bot-avatar.png" : player.avatar ? process.env.NEXT_PUBLIC_APP_URL + player.avatar : "/default-avatar.png"}
@@ -230,13 +272,16 @@ const GameBoard = ({
                             </div>
 
                             <div className="text-center mt-2 transition-all duration-300">
-                    <span
-                        className={`text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm ${
-                            player.isAlive ? "text-white bg-black/30" : "text-gray-400 bg-red-900/30"
-                        } ${isCurrentUser ? "text-purple-300 bg-purple-900/50" : ""} ${selected ? "ring-2 ring-purple-300" : ""}`}
-                    >
-                      {isCurrentUser ? "(Vous)" : player.nickname}
-                    </span>
+                                <span
+                                    className={`text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm ${player.isAlive ? "text-white bg-black/30" : "text-gray-400 bg-red-900/30"} ${isCurrentUser ? "text-purple-300 bg-purple-900/50" : ""} ${selected ? "ring-2 ring-purple-300" : ""}`}
+                                >
+                                  {isCurrentUser ? "(Vous)" : player.nickname}
+                                </span>
+                                {currentPlayerIsWolf && isWolvesTurn && voteCount > 0 && (
+                                    <span className="ml-2 inline-block text-xs font-semibold px-2 py-0.5 rounded-full bg-black/50 text-white">
+                                    {voteCount}
+                                </span>
+                                )}
                             </div>
                         </div>
                     );
@@ -252,8 +297,7 @@ const GameBoard = ({
                     </div>
                 </div>
             </div>
-        </div>
-    );
+        </div>);
 };
 
 export default GameBoard;

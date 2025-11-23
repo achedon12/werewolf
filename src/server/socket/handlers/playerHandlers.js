@@ -2,6 +2,7 @@ import {connectedPlayers, getGameRoom, removePlayerFromGame} from "../utils/room
 import {addGameAction} from "../utils/actionLogger.js";
 import {updatedGameData} from "../utils/gameManager.js";
 import {ACTION_TYPES} from "../../config/constants.js";
+import {defaultGameConfig, playerIsWolf} from "../../../utils/Roles.js";
 
 export const handlePlayerAction = async (socket, io, data) => {
     try {
@@ -28,12 +29,37 @@ export const handlePlayerAction = async (socket, io, data) => {
             playerRole: playerInfo.role,
             message: `${playerInfo.nickname} ${actionMessage}`,
             details: 'Sélectionné(s): ' + (selectedPlayers && selectedPlayers.length > 0 ? selectedPlayers.map(p => p.nickname).join(", ") : "Aucun"),
-            phase: roomData.phase || "game"
+            phase: roomData.phase
         });
 
         try {
-            if (roomData && roomData.roleCallController && typeof roomData.roleCallController.next === 'function') {
-                roomData.roleCallController.next();
+            if (playerIsWolf(playerInfo.role)) {
+                if (!roomData.config) roomData.config = defaultGameConfig;
+                const targets = roomData.config.wolves.targets;
+
+                let wolves = [];
+                if (roomData.players && typeof roomData.players.get === 'function') {
+                    wolves = Array.from(roomData.players.values()).filter(p => p.isAlive && playerIsWolf(p.role));
+                } else if (Array.isArray(roomData.players)) {
+                    wolves = roomData.players.filter(p => p.isAlive && playerIsWolf(p.role));
+                }
+
+                const needed = wolves.length;
+
+                let votes = Object.keys(targets).filter(k => {
+                    const v = targets[k];
+                    return v != null && v !== '';
+                }).length;
+
+                if (votes >= needed) {
+                    if (roomData && roomData.roleCallController && typeof roomData.roleCallController.next === 'function') {
+                        roomData.roleCallController.next();
+                    }
+                }
+            } else {
+                if (roomData && roomData.roleCallController && typeof roomData.roleCallController.next === 'function') {
+                    roomData.roleCallController.next();
+                }
             }
         } catch (err) {
             console.error("❌ Erreur en avançant au rôle suivant:", err);
@@ -110,7 +136,7 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
                 playerRole: playerInfo.role,
                 message: `${playerInfo.nickname} a consulté le rôle de ${targetPlayer.nickname} en tant que Voyante.`,
                 details: `Rôle révélé: ${targetPlayer.role}`,
-                phase: roomData.phase || "game"
+                phase: roomData.phase
             });
             break;
         case 'Cupidon':
@@ -130,13 +156,46 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
             lover2.loverId = lover1.id;
 
             if (!roomData.config) roomData.config = {};
-            if (!roomData.config.lovers) roomData.config.lovers = { exists: false, players: [] };
+            if (!roomData.config.lovers) roomData.config.lovers = {exists: false, players: []};
             roomData.config.lovers.exists = true;
             roomData.config.lovers.players = [lover1.id, lover2.id];
 
             io.in(`game-${gameId}`).emit('game-update', roomData);
-            io.to(lover1.socketId).emit('start-lover-animation', {loverName: lover2.nickname, loverId: lover2.id, message: `💘 Vous êtes maintenant lié(e) à ${lover2.nickname} !`});
-            io.to(lover2.socketId).emit('start-lover-animation', {loverName: lover1.nickname, loverId: lover1.id, message: `💘 Vous êtes maintenant lié(e) à ${lover1.nickname} !`});
+            io.to(lover1.socketId).emit('start-lover-animation', {
+                loverName: lover2.nickname,
+                loverId: lover2.id,
+                message: `💘 Vous êtes maintenant lié(e) à ${lover2.nickname} !`
+            });
+            io.to(lover2.socketId).emit('start-lover-animation', {
+                loverName: lover1.nickname,
+                loverId: lover1.id,
+                message: `💘 Vous êtes maintenant lié(e) à ${lover1.nickname} !`
+            });
+
+            addGameAction(gameId, {
+                type: ACTION_TYPES.CUPIDON_MATCH,
+                playerName: playerInfo.nickname,
+                playerRole: playerInfo.role,
+                message: `${playerInfo.nickname} a lié ${lover1.nickname} et ${lover2.nickname} en tant que Cupidon.`,
+                details: `Amoureux: ${lover1.nickname} & ${lover2.nickname}`,
+                phase: roomData.phase
+            });
+            break;
+        case 'Loup-Garou':
+        case 'Loup-Garou Blanc':
+            const attackedPlayer = findPlayerById(selectedPlayers[0]);
+            roomData.config.wolves.targets[playerInfo.id] = attackedPlayer.id;
+            console.log(`🐺 Loup-Garou ${playerInfo.nickname} a choisi d'attaquer ${attackedPlayer.nickname}`);
+
+            addGameAction(gameId, {
+                type: ACTION_TYPES.WEREWOLF_ATTACK,
+                playerName: playerInfo.nickname,
+                playerRole: playerInfo.role,
+                message: `${playerInfo.nickname} a choisi une cible en tant que Loup-Garou.`,
+                details: `Cible: ${attackedPlayer.nickname}`,
+                phase: roomData.phase
+            });
+            io.in(`game-${gameId}`).emit('game-update', roomData);
             break;
         default:
             break;

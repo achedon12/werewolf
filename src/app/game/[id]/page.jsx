@@ -101,6 +101,7 @@ const GamePage = ({params}) => {
         const handleAvailableChannels = (channels) => {
             const keys = Object.keys(channels).filter(key => channels[key]);
             setChatChannels(keys);
+            setCurrentChannel(channels[0]);
             setChatMessages(prev => {
                 const next = {...prev};
                 keys.forEach(k => {

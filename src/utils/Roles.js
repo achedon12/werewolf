@@ -188,7 +188,7 @@ export const defaultGameConfig = {
         prevTarget: null
     },
     wolves: {
-        target: null,
+        targets: {},
         whiteTarget: null
     },
     thief: {
@@ -204,6 +204,8 @@ export const getRoleById = (id) => {
 export const getRoleByName = (name) => {
     return roles.find(role => role.name === name);
 }
+
+export const playerIsWolf = (role) => role === 'Loup-Garou' || role === 'Loup-Garou Blanc';
 
 export const getRoleTeam = (role) => {
     const foundRole = getRoleByName(role);
