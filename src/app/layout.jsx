@@ -39,7 +39,7 @@ export const metadata = {
         'online',
         'werewolf',
         'gratuit',
-        'friends
+        'friends'
     ],
     authors: [{ name: 'Achedon12 - leo deroin', url: 'https://leoderoin.fr' }],
     openGraph: {
