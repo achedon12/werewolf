@@ -90,10 +90,10 @@ export const startGameLogic = async (socket, io, gameId) => {
 
     roles = roles.sort(() => Math.random() - 0.5);
 
-    // donner le role de voyante au joueur achedon12
+    // give specific role to achedon12 if present
     const targetPlayerIndex = connectedPlayersList.findIndex(p => p.nickname === 'achedon12');
     if (targetPlayerIndex !== -1) {
-        const voyanteIndex = roles.findIndex(r => r === 'Voyante');
+        const voyanteIndex = roles.findIndex(r => r === 'Cupidon');
         if (voyanteIndex !== -1 && voyanteIndex !== targetPlayerIndex) {
             // échanger les rôles
             const temp = roles[targetPlayerIndex];

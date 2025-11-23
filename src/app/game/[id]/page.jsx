@@ -6,7 +6,7 @@ import GameInformation from "@/components/game/information/Information";
 import GameChat from "@/components/game/chat/Chat";
 import GameActions from "@/components/game/actions/Actions";
 import GameHeader from "@/components/game/Header";
-import AmbientForest from "@/components/game/AmbientForest";
+import AmbientForest from "@/components/game/ambient/AmbientForest.jsx";
 import PlayersConfigurationModal from "@/components/game/information/modal/Players";
 import {toast} from "react-toastify";
 import {useRouter} from "next/navigation";
@@ -15,6 +15,7 @@ import AdminConfigurationModal from "@/components/game/information/modal/Configu
 import StartingCounter from "@/components/game/StartingCounter";
 import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "@/server/config/constants";
 import {History} from "lucide-react";
+import LoverAmbient from "@/components/game/ambient/LoverAmbient.jsx";
 
 const GamePage = ({params}) => {
     const {id} = use(params);
@@ -33,6 +34,8 @@ const GamePage = ({params}) => {
     const [history, setHistory] = useState([]);
     const [hasJoin, setHasJoin] = useState(false);
     const [ambientThemeEnabled, setAmbientThemeEnabled] = useState(false);
+    const [loverAmbientEnabled, setLoverAmbientEnabled] = useState(false);
+    const [loverAmbientData, setLoverAmbientData] = useState(null);
     const [ambientSoundsEnabled, setAmbientSoundsEnabled] = useState(false);
     const [currentAmbientSound, setCurrentAmbientSound] = useState(null);
     const [showConfigurationOverviewModal, setShowConfigurationOverviewModal] = useState(false);
@@ -212,6 +215,7 @@ const GamePage = ({params}) => {
         socket.on("exclude-player-confirm", handleExcludePlayerConfirm);
         socket.on("game-notify", handleNotify);
         socket.on("seer-reveal-result", handleSeerReveal);
+        socket.on("start-lover-animation", handleLoverAnimation);
         socket.on("game-error", handleGameError);
         socket.on("channel-joined", handleChannelJoined);
         socket.on("chat-error", handleChatError);
@@ -245,6 +249,7 @@ const GamePage = ({params}) => {
             socket.off('exclude-player-confirm', handleExcludePlayerConfirm);
             socket.off('game-notify', handleNotify)
             socket.off('seer-reveal-result', handleSeerReveal);
+            socket.off('start-lover-animation', handleLoverAnimation);
             socket.off('starting-soon', handleStartingSoon);
             socket.emit("leave-game", id, userFromLocalStorage);
             socket.off('role-call-start', handleRoleCallStart);
@@ -340,6 +345,18 @@ const GamePage = ({params}) => {
             }, 5000);
         }
         toast.info(message || "Résultat de la révélation de la Voyante.");
+    }
+
+    const handleLoverAnimation = (data) => {
+        const {playerName, playerId, message} = data || {};
+        setLoverAmbientData({playerName, playerId});
+        setLoverAmbientEnabled(true)
+        setTimeout(() => {
+            setLoverAmbientEnabled(false);
+            setLoverAmbientData(null);
+        }, 8000);
+
+        toast.info(message || `Vous êtes maintenant lié(e) à ${playerName} !`);
     }
 
     const handleRoleCallTick = (data) => {
@@ -477,7 +494,15 @@ const GamePage = ({params}) => {
             className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
             <GameHeader game={game} players={players} configuration={configuration} creator={creator}/>
 
-            {ambientThemeEnabled && <AmbientForest/>}
+            {!loverAmbientEnabled && ambientThemeEnabled && <AmbientForest/>}
+
+            {ambientThemeEnabled && loverAmbientEnabled && (
+                <LoverAmbient
+                    data={loverAmbientData}
+                    duration={8000}
+                    onClose={() => setLoverAmbientEnabled(false)}
+                />
+            )}
 
             <div>
                 <div className="hidden lg:flex absolute top-4 right-4 z-20 gap-2">

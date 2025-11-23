@@ -192,9 +192,11 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
         const channel = sanitizeRoleChannel(roleName);
         io.in(`game-${gameId}-${channel}`).emit && io.in(`game-${gameId}-${channel}`).emit('role-call-start', payload);
 
-        const selectionCount = getSelectionCountForRole(roleName, players);
+        const alivePlayers = Array.from(roomData.players.values()).filter(p => p.isAlive !== false);
+        const selectionCount = getSelectionCountForRole(roleName, alivePlayers);
         for (const p of players) {
             if (p && p.socketId) {
+                console.log(`--> Notifying player ${p.nickname} (${roleName}) they can select ${selectionCount} target(s)`);
                 io.to(p.socketId).emit('game-set-number-can-be-selected', selectionCount);
             }
         }

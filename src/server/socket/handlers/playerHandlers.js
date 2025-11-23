@@ -113,6 +113,31 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
                 phase: roomData.phase || "game"
             });
             break;
+        case 'Cupidon':
+            if (selectedPlayers.length !== 2) {
+                throw new Error("Cupidon doit sélectionner exactement deux joueurs.");
+            }
+            const lover1 = findPlayerById(selectedPlayers[0]);
+            const lover2 = findPlayerById(selectedPlayers[1]);
+
+            if (!lover1 || !lover2) {
+                throw new Error("Joueurs sélectionnés invalides.");
+            }
+
+            lover1.isLover = true;
+            lover2.isLover = true;
+            lover1.loverId = lover2.id;
+            lover2.loverId = lover1.id;
+
+            if (!roomData.config) roomData.config = {};
+            if (!roomData.config.lovers) roomData.config.lovers = { exists: false, players: [] };
+            roomData.config.lovers.exists = true;
+            roomData.config.lovers.players = [lover1.id, lover2.id];
+
+            io.in(`game-${gameId}`).emit('game-update', roomData);
+            io.to(lover1.socketId).emit('start-lover-animation', {loverName: lover2.nickname, loverId: lover2.id, message: `💘 Vous êtes maintenant lié(e) à ${lover2.nickname} !`});
+            io.to(lover2.socketId).emit('start-lover-animation', {loverName: lover1.nickname, loverId: lover1.id, message: `💘 Vous êtes maintenant lié(e) à ${lover1.nickname} !`});
+            break;
         default:
             break;
     }
