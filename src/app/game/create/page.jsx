@@ -4,7 +4,7 @@ import {classicRoles, roles} from "@/utils/Roles";
 import Image from "next/image";
 import {useAuth} from "@/app/AuthProvider";
 import {useRouter} from "next/navigation";
-import {ChartColumn, Cog, Gamepad2, MinusCircle, PlusCircle, Puzzle, Sparkles} from "lucide-react";
+import {ChartColumn, Cog, Gamepad2, MinusCircle, PlusCircle, Puzzle, Sparkles, Users, Shield, Moon, Sun} from "lucide-react";
 
 const CreateGamePage = () => {
     const defaultSelectedRoles = roles.reduce((acc, role) => {
@@ -36,8 +36,18 @@ const CreateGamePage = () => {
     }, [maxPlayers]);
 
     const gameModes = [
-        {id: "classic", name: "Classique", description: "Les règles traditionnelles du Loup-Garou"},
-        {id: "custom", name: "Personnalisé", description: "Configurez vos propres règles"},
+        {
+            id: "classic",
+            name: "Classique",
+            description: "Les règles traditionnelles du Loup-Garou",
+            icon: <Shield className="w-5 h-5" />
+        },
+        {
+            id: "custom",
+            name: "Personnalisé",
+            description: "Configurez vos propres règles",
+            icon: <Puzzle className="w-5 h-5" />
+        },
     ];
 
     const updateRoleCount = (roleId, increment) => {
@@ -61,6 +71,7 @@ const CreateGamePage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsCreating(true);
+        setError(null);
 
         try {
             const response = await fetch('/api/game', {
@@ -87,7 +98,6 @@ const CreateGamePage = () => {
             window.location = `/game/${data.gameId}`;
 
         } catch (err) {
-
             setError(err.message);
         } finally {
             setIsCreating(false);
@@ -95,41 +105,45 @@ const CreateGamePage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8 px-4">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 py-8 px-4">
             <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-8">
-                    <div
-                        className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-4">
+                    <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-4 ring-4 ring-purple-200 dark:ring-purple-900/30">
                         <span className="text-3xl">🐺</span>
                     </div>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent">
                         Créer une Partie
                     </h1>
-                    <p className="text-gray-400 mt-2">
+                    <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
                         Configurez votre partie de Loup-Garou et invitez vos amis
                     </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-8">
-                    <div className="card glass shadow-2xl backdrop-blur-sm border border-white/10">
+                    <div className="card bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700">
                         <div className="card-body">
-                            <h2 className="card-title text-2xl text-white mb-6">
-                                <Cog className="inline mr-2"/>
-                                Configuration de base
-                            </h2>
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                    <Cog className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <h2 className="card-title text-2xl text-gray-900 dark:text-white">
+                                    Configuration de base
+                                </h2>
+                            </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="form-control">
                                     <label className="label">
-                                                        <span
-                                                            className="label-text text-gray-300 font-medium">Nom de la partie</span>
+                                        <span className="label-text text-gray-700 dark:text-gray-300 font-medium">
+                                            Nom de la partie
+                                        </span>
                                     </label>
                                     <input
                                         type="text"
                                         value={gameName}
                                         onChange={(e) => setGameName(e.target.value)}
                                         placeholder="Ma super partie de Loup-Garou"
-                                        className="input input-lg w-full bg-base-200/50 border-white/20 backdrop-blur-sm transition-all duration-300 focus:bg-base-200/80 focus:border-purple-400"
+                                        className="input input-lg w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 transition-all duration-300"
                                         required
                                         autoFocus
                                     />
@@ -137,9 +151,9 @@ const CreateGamePage = () => {
 
                                 <div className="form-control w-full">
                                     <label className="label">
-                                                    <span className="label-text text-gray-300 font-medium">
-                                                        Joueurs maximum: {maxPlayers}
-                                                    </span>
+                                        <span className="label-text text-gray-700 dark:text-gray-300 font-medium">
+                                            Joueurs maximum: <span className="text-blue-600 dark:text-blue-400 font-bold">{maxPlayers}</span>
+                                        </span>
                                     </label>
                                     <input
                                         type="range"
@@ -147,40 +161,53 @@ const CreateGamePage = () => {
                                         max="18"
                                         value={maxPlayers}
                                         onChange={(e) => setMaxPlayers(parseInt(e.target.value))}
-                                        className="range range-primary w-full"
+                                        className="range range-primary w-full bg-gray-200 dark:bg-gray-700"
                                     />
-                                    <div className="flex justify-between text-xs text-gray-400 px-2 w-full">
-                                        <span>8</span>
-                                        <span>10</span>
-                                        <span>12</span>
-                                        <span>14</span>
-                                        <span>16</span>
-                                        <span>18</span>
+                                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 px-2 w-full">
+                                        {[8, 10, 12, 14, 16, 18].map((num) => (
+                                            <span key={num}>{num}</span>
+                                        ))}
                                     </div>
                                 </div>
-
                             </div>
 
-                            <div className="form-control mt-4">
+                            <div className="form-control mt-6">
                                 <label className="label">
-                                    <span className="label-text text-gray-300 font-medium">Mode de jeu</span>
+                                    <span className="label-text text-gray-700 dark:text-gray-300 font-medium">Mode de jeu</span>
                                 </label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {gameModes.map((mode) => (
                                         <div
                                             key={mode.id}
-                                            className={`card cursor-pointer transition-all duration-300 ${
+                                            className={`card cursor-pointer transition-all duration-300 border-2 ${
                                                 gameMode === mode.id
-                                                    ? "bg-gradient-to-br from-purple-500/20 to-blue-500/20 border-purple-500"
-                                                    : "bg-base-200/50 border-white/10"
-                                            } border-2`}
+                                                    ? "bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-500 dark:border-blue-400 shadow-lg"
+                                                    : "bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+                                            }`}
                                             onClick={() => setGameMode(mode.id)}
                                         >
                                             <div className="card-body p-4 text-center">
-                                                <h3 className="card-title text-white text-lg justify-center">
+                                                <div className={`flex items-center justify-center w-12 h-12 rounded-full mx-auto mb-3 ${
+                                                    gameMode === mode.id
+                                                        ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                                                        : "bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400"
+                                                }`}>
+                                                    {mode.icon}
+                                                </div>
+                                                <h3 className={`card-title text-lg justify-center ${
+                                                    gameMode === mode.id
+                                                        ? "text-blue-700 dark:text-blue-300"
+                                                        : "text-gray-800 dark:text-gray-200"
+                                                }`}>
                                                     {mode.name}
                                                 </h3>
-                                                <p className="text-gray-400 text-sm">{mode.description}</p>
+                                                <p className={`text-sm ${
+                                                    gameMode === mode.id
+                                                        ? "text-blue-600 dark:text-blue-400"
+                                                        : "text-gray-600 dark:text-gray-400"
+                                                }`}>
+                                                    {mode.description}
+                                                </p>
                                             </div>
                                         </div>
                                     ))}
@@ -189,18 +216,26 @@ const CreateGamePage = () => {
                         </div>
                     </div>
 
-                    <div className="card glass shadow-2xl backdrop-blur-sm border border-white/10">
+                    <div className="card bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700">
                         <div className="card-body">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="card-title text-2xl text-white">
-                                    <Puzzle className="inline mr-2"/>
-                                    Composition des rôles
-                                </h2>
-                                <div className="badge badge-primary flex items-center gap-2 px-2 md:px-4 py-1 md:py-2 min-w-0">
-                                    <span className="hidden sm:inline text-sm md:text-base">Total:</span>
-                                    <span className="hidden sm:inline text-sm md:text-base">{totalPlayers}</span>
-                                    <span className="hidden sm:inline text-sm md:text-base">joueurs</span>
-                                    <span className="inline sm:hidden text-sm">{totalPlayers}j</span>
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                                        <Puzzle className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                                    </div>
+                                    <h2 className="card-title text-2xl text-gray-900 dark:text-white">
+                                        Composition des rôles
+                                    </h2>
+                                </div>
+                                <div className={`badge badge-lg flex items-center gap-2 px-4 py-3 font-bold ${
+                                    totalPlayers === maxPlayers
+                                        ? "badge-success bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                                        : totalPlayers > maxPlayers
+                                            ? "badge-error bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                                            : "badge-primary bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                                }`}>
+                                    <Users className="w-4 h-4" />
+                                    <span>{totalPlayers} / {maxPlayers}</span>
                                 </div>
                             </div>
 
@@ -208,22 +243,24 @@ const CreateGamePage = () => {
                                 {roles.map((role) => (
                                     <div
                                         key={role.id}
-                                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-base-200/30 rounded-2xl backdrop-blur-sm border border-white/5"
+                                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                                     >
                                         <div className="flex items-start sm:items-center w-full sm:w-auto min-w-0 gap-4">
-                                            <div className="flex-shrink-0 w-20 h-20 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center overflow-hidden">
+                                            <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center overflow-hidden shadow-md">
                                                 <Image
                                                     src={role.image}
                                                     alt={role.name}
-                                                    width={80}
-                                                    height={80}
+                                                    width={64}
+                                                    height={64}
                                                     className="object-cover w-full h-full"
                                                 />
                                             </div>
 
-                                            <div className="min-w-0">
-                                                <h3 className="font-semibold text-white text-sm sm:text-base truncate">{role.name}</h3>
-                                                <p className="text-gray-400 text-xs sm:text-sm truncate max-w-[18rem] sm:max-w-none">
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="font-semibold text-gray-900 dark:text-white text-base">
+                                                    {role.name}
+                                                </h3>
+                                                <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
                                                     {role.description}
                                                 </p>
                                             </div>
@@ -233,25 +270,31 @@ const CreateGamePage = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => updateRoleCount(role.id, false)}
-                                                disabled={gameMode !== "custom"}
-                                                className="btn btn-circle btn-sm btn-ghost text-gray-400 hover:text-white disabled:opacity-30"
-                                                aria-label={`Retirer ${role.name}`}
+                                                disabled={gameMode !== "custom" || selectedRoles[role.id] === 0}
+                                                className={`btn btn-circle btn-sm w-10 h-10 flex items-center justify-center ${
+                                                    gameMode !== "custom" || selectedRoles[role.id] === 0
+                                                        ? "btn-disabled bg-gray-200 dark:bg-gray-600 text-gray-400 dark:text-gray-500"
+                                                        : "btn-ghost bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-800/50"
+                                                }`}
                                             >
-                                                <MinusCircle className="w-5 h-5"/>
+                                                <MinusCircle className="w-5 h-5" />
                                             </button>
 
-                                            <span className="text-white font-bold text-lg w-8 text-center">
-                                              {selectedRoles[role.id]}
+                                            <span className="text-gray-900 dark:text-white font-bold text-xl w-8 text-center">
+                                                {selectedRoles[role.id]}
                                             </span>
 
                                             <button
                                                 type="button"
                                                 onClick={() => updateRoleCount(role.id, true)}
                                                 disabled={gameMode !== "custom" || totalPlayers >= maxPlayers}
-                                                className="btn btn-circle btn-sm btn-ghost text-gray-400 hover:text-white disabled:opacity-30"
-                                                aria-label={`Ajouter ${role.name}`}
+                                                className={`btn btn-circle btn-sm w-10 h-10 flex items-center justify-center ${
+                                                    gameMode !== "custom" || totalPlayers >= maxPlayers
+                                                        ? "btn-disabled bg-gray-200 dark:bg-gray-600 text-gray-400 dark:text-gray-500"
+                                                        : "btn-ghost bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800/50"
+                                                }`}
                                             >
-                                                <PlusCircle className="w-5 h-5"/>
+                                                <PlusCircle className="w-5 h-5" />
                                             </button>
                                         </div>
                                     </div>
@@ -259,44 +302,54 @@ const CreateGamePage = () => {
                             </div>
 
                             {totalPlayers > maxPlayers && (
-                                <div className="alert alert-error mt-4 bg-red-500/10 border-red-500/20">
-                                    <span>⚠️ Trop de joueurs sélectionnés! Maximum: {maxPlayers}</span>
+                                <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                                    <div className="flex items-center gap-2 text-red-800 dark:text-red-300">
+                                        <span className="text-lg">⚠️</span>
+                                        <span>Trop de joueurs sélectionnés ! Maximum: {maxPlayers}</span>
+                                    </div>
                                 </div>
                             )}
 
                             {totalPlayers < 8 && (
-                                <div className="alert alert-warning mt-4 bg-yellow-500/10 border-yellow-500/20">
-                                    <span>⚠️ Minimum 8 joueurs requis pour une partie équilibrée</span>
+                                <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                                    <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-300">
+                                        <span className="text-lg">⚠️</span>
+                                        <span>Minimum 8 joueurs requis pour une partie équilibrée</span>
+                                    </div>
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    <div className="card glass shadow-2xl backdrop-blur-sm border border-white/10">
+                    <div className="card bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700">
                         <div className="card-body">
-                            <h2 className="card-title text-2xl text-white mb-4">
-                                <ChartColumn className="inline mr-2"/>
-                                Récapitulatif
-                            </h2>
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                                    <ChartColumn className="w-6 h-6 text-green-600 dark:text-green-400" />
+                                </div>
+                                <h2 className="card-title text-2xl text-gray-900 dark:text-white">
+                                    Récapitulatif
+                                </h2>
+                            </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                                <div className="stat place-items-center bg-base-200/30 rounded-2xl p-4">
-                                    <div className="stat-title text-gray-400">Mode de jeu</div>
-                                    <div className="stat-value text-primary text-lg">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-center border border-blue-200 dark:border-blue-800">
+                                    <div className="text-blue-600 dark:text-blue-400 text-sm font-medium mb-1">Mode de jeu</div>
+                                    <div className="text-blue-800 dark:text-blue-300 font-bold text-lg">
                                         {gameModes.find(m => m.id === gameMode)?.name}
                                     </div>
                                 </div>
 
-                                <div className="stat place-items-center bg-base-200/30 rounded-2xl p-4">
-                                    <div className="stat-title text-gray-400">Joueurs</div>
-                                    <div className="stat-value text-secondary text-lg">
+                                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 text-center border border-purple-200 dark:border-purple-800">
+                                    <div className="text-purple-600 dark:text-purple-400 text-sm font-medium mb-1">Joueurs</div>
+                                    <div className="text-purple-800 dark:text-purple-300 font-bold text-lg">
                                         {totalPlayers}/{maxPlayers}
                                     </div>
                                 </div>
 
-                                <div className="stat place-items-center bg-base-200/30 rounded-2xl p-4">
-                                    <div className="stat-title text-gray-400">Loups-Garous</div>
-                                    <div className="stat-value text-red-400 text-lg">
+                                <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 text-center border border-red-200 dark:border-red-800">
+                                    <div className="text-red-600 dark:text-red-400 text-sm font-medium mb-1">Loups-Garous</div>
+                                    <div className="text-red-800 dark:text-red-300 font-bold text-lg">
                                         {selectedRoles[1] || 0}
                                     </div>
                                 </div>
@@ -305,8 +358,8 @@ const CreateGamePage = () => {
                             <div className="card-actions justify-center">
                                 <button
                                     type="submit"
-                                    disabled={isCreating || totalPlayers > maxPlayers || totalPlayers < 6}
-                                    className="btn btn-lg btn-primary bg-gradient-to-r from-purple-500 to-blue-500 border-none text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 w-full max-w-md"
+                                    disabled={isCreating || totalPlayers > maxPlayers || totalPlayers < 8}
+                                    className="btn btn-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 dark:from-blue-500 dark:to-purple-500 dark:hover:from-blue-600 dark:hover:to-purple-600 border-none text-white shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:transform-none disabled:hover:shadow-lg w-full max-w-md"
                                 >
                                     {isCreating ? (
                                         <>
@@ -315,9 +368,9 @@ const CreateGamePage = () => {
                                         </>
                                     ) : (
                                         <>
-                                            <Gamepad2 className="inline mr-2"/>
+                                            <Gamepad2 className="w-5 h-5" />
                                             Créer la partie
-                                            <Sparkles className="inline ml-1"/>
+                                            <Sparkles className="w-5 h-5" />
                                         </>
                                     )}
                                 </button>
@@ -325,18 +378,21 @@ const CreateGamePage = () => {
 
                             {isCreating && (
                                 <div className="text-center mt-4">
-                                    <p className="text-gray-400 text-sm">
+                                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
                                         Préparation de la partie... Cette opération peut prendre quelques secondes
                                     </p>
-                                    <div className="w-full bg-base-200/50 rounded-full h-2 mt-2">
-                                        <div
-                                            className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full animate-pulse"></div>
+                                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                        <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full animate-pulse"></div>
                                     </div>
                                 </div>
                             )}
+
                             {error && (
-                                <div className="alert alert-error mt-4 bg-red-500/10 border-red-500/20">
-                                    <span>❌ {error}</span>
+                                <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                                    <div className="flex items-center gap-2 text-red-800 dark:text-red-300">
+                                        <span className="text-lg">❌</span>
+                                        <span>{error}</span>
+                                    </div>
                                 </div>
                             )}
                         </div>
