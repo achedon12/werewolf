@@ -1,186 +1,337 @@
-# Werewolf Game
+# 🐺 Loup-Garou en Ligne (Werewolf Online)
 
-A real-time Werewolf game built with Next.js, React, and Node.js, leveraging Docker for containerization.
+Une application web en temps réel du célèbre jeu de société Loup-Garou (Werewolf), construite avec Next.js, React, Node.js et Socket.io. Jouez avec vos amis en ligne dans une ambiance immersive et mystérieuse !
 
-## Key Features & Benefits
+[🇫🇷 Version française](#french) | [🇬🇧 English version](#english)
 
-- **Real-time Gameplay:** Experience dynamic and engaging Werewolf sessions.
-- **Modern Technology Stack:** Built with Next.js, React, and Node.js for optimal performance and scalability.
-- **Dockerized Deployment:** Easily deploy and manage the application using Docker.
-- **User Authentication and Profiles:** Secure user accounts with profile history.
-- **Customizable Roles:** Flexible role assignments and configurations.
+[![Discord](https://img.shields.io/badge/Discord-Rejoindre-7289DA?logo=discord&logoColor=white)](https://discord.gg/TgybvRqjEY)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?logo=github)](https://github.com/achedon12/werewolf)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Prerequisites & Dependencies
+## 🎮 Fonctionnalités Principales
 
-Before you begin, ensure you have the following installed:
+- **🌙 Gameplay en Temps Réel :** Parties dynamiques et engageantes avec Socket.io
+- **👥 Multijoueur :** Jusqu'à 18 joueurs par partie
+- **🎭 16 Rôles Disponibles :** Loup-Garou, Voyante, Sorcière, Chasseur, Cupidon, et bien d'autres
+- **🔒 Authentification Sécurisée :** Comptes utilisateurs avec JWT et historique de parties
+- **📊 Statistiques en Direct :** Suivez les parties en cours et les joueurs connectés
+- **⚙️ Configurations Personnalisables :** Choisissez vos rôles et configurations de partie
+- **🎨 Interface Moderne :** Design élégant avec Tailwind CSS et DaisyUI
+- **🐳 Déploiement Docker :** Conteneurisation complète pour un déploiement facile
 
-- **Node.js:** Version 20 or higher
-- **npm:**  Included with Node.js
-- **Docker:**  For containerization
-- **Docker Compose:**  For multi-container Docker applications
-- **Prisma CLI:**  For database management
+## 🎭 Rôles Disponibles
 
-## Installation & Setup Instructions
+Le jeu inclut 16 rôles différents avec des capacités uniques :
 
-Follow these steps to get the Werewolf game up and running:
+### 🐺 Équipe des Loups
+- **Loup-Garou** : Élimine un joueur chaque nuit
+- **Loup-Garou Blanc** : Peut éliminer un autre loup-garou
 
-1. **Clone the repository:**
+### 👥 Équipe du Village
+- **Voyante** : Découvre l'identité d'un joueur chaque nuit
+- **Sorcière** : Possède une potion de vie et une potion de mort
+- **Chasseur** : Élimine un joueur lorsqu'il meurt
+- **Salvateur** : Protège un joueur chaque nuit
+- **Petite Fille** : Espionne les loups-garous
+- **Sœur** : Deux sœurs qui se connaissent
+- **Servante Dévouée** : Peut prendre le rôle d'un joueur éliminé
+- **Enfant Sauvage** : Devient loup-garou si son modèle meurt
+- **Renard** : Détecte les loups-garous
+- **Montreur d'Ours** : Son ours grogne si un loup est proche
+- **Villageois** : Aucun pouvoir spécial
+
+### ⚡ Rôles Spéciaux
+- **Cupidon** : Crée un lien d'amour entre deux joueurs
+- **Voleur** : Peut échanger son rôle au début de la partie
+
+## 💻 Stack Technique
+
+- **Frontend :** Next.js 15, React 19, Tailwind CSS 4, DaisyUI
+- **Backend :** Node.js, Socket.io
+- **Base de données :** PostgreSQL, Prisma ORM
+- **Authentification :** JWT, bcrypt
+- **Email :** Nodemailer
+- **Conteneurisation :** Docker, Docker Compose
+- **Graphiques :** Chart.js, Recharts
+- **Validation :** Zod
+
+## 📋 Prérequis
+
+Avant de commencer, assurez-vous d'avoir installé :
+
+- **Node.js :** Version 20 ou supérieure
+- **npm :** Inclus avec Node.js
+- **Docker :** Pour la conteneurisation (optionnel)
+- **Docker Compose :** Pour les applications multi-conteneurs (optionnel)
+- **PostgreSQL :** Base de données (ou via Docker)
+
+## 🚀 Installation et Configuration
+
+### Installation en Local
+
+1. **Cloner le dépôt :**
 
    ```bash
-   git clone git@github.com:achedon12/werewolf.git
+   git clone https://github.com/achedon12/werewolf.git
    cd werewolf
    ```
 
-2. **Install dependencies:**
+2. **Installer les dépendances :**
 
    ```bash
    npm install
    ```
 
-3. **Set up environment variables:**
+3. **Configurer les variables d'environnement :**
 
-   Create a `.env` file in the root directory from the provided `.env.example` file and configure the necessary
-   environment variables:
+   Créez un fichier `.env` à la racine du projet en vous basant sur `.env.example` :
 
+   ```env
+   # Database
+   DATABASE_URL="postgresql://db_user:db_password@localhost:5432/db_name"
+   
+   # App
+   JWT_SECRET="votre_clé_secrète_jwt"
+   NEXT_PUBLIC_APP_URL=http://localhost:3000
+   NEXT_PUBLIC_DISCORD_URL="https://discord.gg/TgybvRqjEY"
+   NEXT_PUBLIC_GITHUB_URL="https://github.com/achedon12/werewolf"
+   NODE_ENV=development
+   
+   # Mailer (Development)
+   SMTP_HOST=localhost
+   SMTP_PORT=1025
    ```
-   DATABASE_URL="your_database_connection_string"
-   JWT_SECRET="your_jwt_secret"
-   ```
 
-4. **Run database migrations:**
+4. **Lancer les migrations de base de données :**
 
    ```bash
    npx prisma migrate dev
    ```
 
-5. **Seed the database (optional):**
+5. **Générer le client Prisma :**
+
+   ```bash
+   npx prisma generate
+   ```
+
+6. **Peupler la base de données (optionnel) :**
 
    ```bash
    npm run seed
    ```
 
-6. **Start the development server:**
+7. **Démarrer le serveur de développement :**
 
    ```bash
    npm run dev
    ```
 
-7. **Access the application:**
+8. **Accéder à l'application :**
 
-   Open your browser and navigate to `http://localhost:3000`.
+   Ouvrez votre navigateur à l'adresse `http://localhost:3000`
 
-## Docker Setup
+### 🐳 Installation avec Docker
 
-1. **Build the Docker image for production:**
+Pour déployer l'application avec Docker :
+
+1. **Créer le fichier `.env` :**
+
+   Copiez `.env.example` vers `.env` et configurez les variables (notamment pour PostgreSQL)
+
+2. **Construire et démarrer les conteneurs :**
 
    ```bash
    docker compose up --build -d
    ```
 
-   > For each code change, rebuild the Docker image using the above command.
+   Pour le développement :
+   ```bash
+   docker compose -f docker-compose.dev.yml up --build -d
+   ```
 
-2. **Access the application:**
+3. **Lancer les migrations :**
 
-   > Open your browser and navigate to `http://localhost:82`.
+   ```bash
+   docker compose exec app npx prisma migrate deploy
+   ```
 
-## Usage Examples & API Documentation
+4. **Accéder à l'application :**
+
+   - **Production :** `http://localhost:82`
+   - **Développement :** `http://localhost:3000`
+
+5. **Voir les logs :**
+
+   ```bash
+   docker compose logs -f app
+   ```
+
+6. **Arrêter les conteneurs :**
+
+   ```bash
+   docker compose down
+   ```
+
+> **Note :** À chaque modification du code, reconstruisez l'image Docker avec `docker compose up --build -d`
+
+## 📖 Utilisation
+
+### Comment Jouer
+
+1. **Créer un compte** : Inscrivez-vous avec un nom d'utilisateur et un email
+2. **Rejoindre ou créer une partie** : Accédez à la liste des parties disponibles
+3. **Configurer les rôles** : L'hôte choisit les rôles et le nombre de joueurs (8-18)
+4. **Commencer la partie** : Les rôles sont distribués aléatoirement
+5. **Jouer** :
+   - **Nuit** : Les rôles spéciaux effectuent leurs actions
+   - **Jour** : Tous les joueurs débattent et votent pour éliminer un suspect
+6. **Gagner** :
+   - **Villageois** : Éliminez tous les loups-garous
+   - **Loups-garous** : Égalisez ou dépassez le nombre de villageois
+
+### Structure du Projet
+
+```
+werewolf/
+├── src/
+│   ├── app/              # Pages Next.js et API routes
+│   │   ├── api/          # Endpoints API
+│   │   ├── game/         # Pages du jeu
+│   │   ├── auth/         # Authentification
+│   │   └── ...
+│   ├── server/           # Serveur Node.js et Socket.io
+│   │   ├── socket/       # Gestionnaires Socket.io
+│   │   └── index.js      # Point d'entrée du serveur
+│   ├── utils/            # Utilitaires (Roles, Date, etc.)
+│   └── components/       # Composants React
+├── prisma/
+│   ├── schema.prisma     # Schéma de base de données
+│   ├── migrations/       # Migrations
+│   └── seed.js           # Script de seed
+├── public/               # Fichiers statiques
+└── docker-compose.yml    # Configuration Docker
+```
+
+### Scripts Disponibles
+
+```bash
+npm run dev      # Démarre le serveur de développement avec nodemon
+npm run build    # Construit l'application pour la production
+npm start        # Démarre le serveur en mode production
+npm run lint     # Exécute ESLint
+npm run seed     # Peuple la base de données
+npm run analyze  # Analyse la taille du bundle
+```
 
 ### API Endpoints
 
-- **`GET /api/auth/profile/history`**: Retrieves the user's profile history. Requires a valid JWT token in the
-  `Authorization` header (`Bearer <token>`).
+#### Authentification
+- `POST /api/auth/register` - Créer un compte
+- `POST /api/auth/login` - Se connecter
+- `GET /api/auth/profile` - Récupérer le profil utilisateur
+- `GET /api/auth/profile/history` - Historique des parties
 
-  ```javascript
-  // Example usage in React:
-  async function fetchHistory() {
-      const token = localStorage.getItem('jwt_token'); // Example: Retrieve token from local storage
-      const response = await fetch('/api/auth/profile/history', {
-          headers: {
-              'Authorization': `Bearer ${token}`
-          }
-      });
+#### Jeu
+- `GET /api/game/list` - Liste des parties disponibles
+- `POST /api/game` - Créer une nouvelle partie
 
-      if (response.ok) {
-          const data = await response.json();
-          console.log('History data:', data);
-      } else {
-          console.error('Error fetching history:', response.statusText);
-      }
-  }
-  ```
+#### Socket.io Events
+- `create-game` - Créer une partie
+- `join-game` - Rejoindre une partie
+- `start-game` - Démarrer la partie
+- `chat-message` - Envoyer un message
+- `vote` - Voter pendant le jour
+- `night-action` - Effectuer une action nocturne
 
-### Code Snippets
+## ⚙️ Configuration
 
-**prisma/seed.js**
+### Variables d'Environnement
 
-```javascript
-import {PrismaClient} from '../src/generated/prisma/index.js';
-import {roles} from '../src/utils/Roles.js';
+| Variable | Description | Exemple |
+|----------|-------------|---------|
+| `DATABASE_URL` | URL de connexion PostgreSQL | `postgresql://user:pass@localhost:5432/db` |
+| `JWT_SECRET` | Clé secrète pour les tokens JWT | `votre_clé_secrète_très_sécurisée` |
+| `NEXT_PUBLIC_APP_URL` | URL de l'application | `http://localhost:3000` |
+| `NEXT_PUBLIC_DISCORD_URL` | Lien vers Discord | URL du serveur Discord |
+| `NEXT_PUBLIC_GITHUB_URL` | Lien vers GitHub | URL du dépôt |
+| `NODE_ENV` | Environnement d'exécution | `development` ou `production` |
+| `SMTP_HOST` | Serveur SMTP pour les emails | `localhost` ou serveur SMTP |
+| `SMTP_PORT` | Port SMTP | `1025` (dev) ou `587` (prod) |
+| `SMTP_USER` | Utilisateur SMTP | Votre email SMTP |
+| `SMTP_PASSWORD` | Mot de passe SMTP | Mot de passe SMTP |
 
-const prisma = new PrismaClient();
+### Configuration des Rôles
 
-const randomDateBetween = (start, end) => {
-    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-}
+Les configurations de rôles pour chaque nombre de joueurs (8-18) sont définies dans `src/utils/Roles.js`. Vous pouvez personnaliser les rôles disponibles pour chaque taille de partie.
 
-const main = async () => {
-    const achedonId = 'cmgfbery3e400s3l9oqmsx';
-    const achedon = await prisma.user.findUnique({
-        where: {id: achedonId}
-    });
+## 🤝 Contribution
 
-    const createdUsers = [];
-    for (let i = 1; i <= 100; i++) {
-        const user = await prisma.user.create({
-            data: {
-                username: `user${i}`,
-                email: `test${i}@test.com`,
-                password: 'hashed_password', // Replace with actual hashed password
-            }
-        });
-        createdUsers.push(user);
-    }
-```
+Les contributions sont les bienvenues ! Voici comment contribuer :
 
-## Configuration Options
+1. **Forkez le dépôt**
+2. **Créez une branche** : `git checkout -b feature/nouvelle-fonctionnalite`
+3. **Faites vos modifications**
+4. **Committez** : `git commit -m 'Ajout d'une nouvelle fonctionnalité'`
+5. **Poussez** : `git push origin feature/nouvelle-fonctionnalite`
+6. **Ouvrez une Pull Request**
 
-- **Environment Variables:**
+### Directives de Contribution
 
-    - `DATABASE_URL`: Connection string for the PostgreSQL database.
-    - `JWT_SECRET`: Secret key used for signing JWT tokens.
+- Respectez le style de code existant
+- Testez vos modifications avant de soumettre
+- Documentez les nouvelles fonctionnalités
+- Assurez-vous que le linting passe : `npm run lint`
 
-- **Next.js Configuration:**
+## 🐛 Signaler un Bug
 
-    - `next.config.js`: Customize Next.js build and runtime options.
+Si vous trouvez un bug, veuillez ouvrir une issue sur GitHub avec :
+- Une description claire du problème
+- Les étapes pour reproduire le bug
+- Le comportement attendu vs le comportement actuel
+- Des captures d'écran si possible
 
-- **Docker Compose**
-    - `docker-compose.yml` contains the configuration for the docker compose deployment. You can configure ports,
-      volumes, and environment variables here.
+## 📝 License
 
-## Contributing Guidelines
+Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
-We welcome contributions! Here's how you can contribute:
+Copyright (c) 2025 Leo Deroin
 
-1. **Fork the repository.**
-2. **Create a new branch:** `git checkout -b feature/your-feature-name`
-3. **Make your changes.**
-4. **Commit your changes:** `git commit -m 'Add your feature'`
-5. **Push to the branch:** `git push origin feature/your-feature-name`
-6. **Submit a pull request.**
+## 🙏 Remerciements
 
-## License Information
+Ce projet utilise et remercie les technologies suivantes :
 
-This project has no specified license. All rights are reserved by the owner.
+- [Next.js](https://nextjs.org) - Framework React pour le frontend
+- [React](https://reactjs.org) - Bibliothèque UI
+- [Node.js](https://nodejs.org) - Runtime JavaScript serveur
+- [Socket.io](https://socket.io) - Communication temps réel
+- [Prisma](https://www.prisma.io) - ORM pour la base de données
+- [PostgreSQL](https://www.postgresql.org) - Base de données relationnelle
+- [Tailwind CSS](https://tailwindcss.com) - Framework CSS
+- [DaisyUI](https://daisyui.com) - Composants UI pour Tailwind
+- [JWT](https://jwt.io) - Authentification sécurisée
+- [Docker](https://www.docker.com) - Conteneurisation
+- [Chart.js](https://www.chartjs.org) - Graphiques et statistiques
+- [Zod](https://zod.dev) - Validation de schémas
 
-## Acknowledgments
+## 📞 Contact & Liens
 
-- [Next.js](https://nextjs.org): For the React framework.
-- [Tailwind CSS](https://tailwindcss.com): For the styling framework.
-- [DaisyUI](https://daisyui.com/): For UI components.
-- [Socket.io](https://socket.io/): For real-time communication.
-- [JWT](https://jwt.io/): For authentication.
-- [PostgreSQL](https://www.postgresql.org/): For the database.
-- [React](https://reactjs.org/): For building the user interface.
-- [Node.js](https://nodejs.org/): For the server-side runtime.
-- [Prisma](https://www.prisma.io/): For the database ORM.
-- [Docker](https://www.docker.com/): For containerization.
+- **Discord** : [Rejoindre le serveur](https://discord.gg/TgybvRqjEY)
+- **GitHub** : [Dépôt du projet](https://github.com/achedon12/werewolf)
+- **Auteur** : Leo Deroin - [l.deroin@netcourrier.com](mailto:l.deroin@netcourrier.com)
+
+## 📊 Statistiques du Projet
+
+- **Version** : 0.3.0
+- **Rôles disponibles** : 16
+- **Joueurs supportés** : 8-18 par partie
+- **Technologies** : 15+ bibliothèques et frameworks
+
+---
+
+<div align="center">
+
+**Fait avec ❤️ par [Leo Deroin](https://github.com/achedon12)**
+
+⭐ N'oubliez pas de mettre une étoile si vous aimez ce projet !
+
+</div>
