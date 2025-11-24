@@ -19,7 +19,8 @@ const getSelectionCountForRole = (roleName, players) => {
     return base;
 };
 
-const simulateBotAction = (roleName, bot, roomData, io, gameId, forcedTargetId = null) => {
+const simulateBotAction = (roleName, bot, io, gameId) => {
+    const roomData = getGameRoom(gameId);
     const allPlayers = Array.from(roomData.players.values()).filter(p => p.isAlive !== false);
     const others = allPlayers.filter(p => p.id !== bot.id);
 
@@ -81,16 +82,22 @@ const simulateBotAction = (roleName, bot, roomData, io, gameId, forcedTargetId =
         case 'Loup-Garou Blanc':
             type = ACTION_TYPES.WEREWOLF_ATTACK;
 
-            if (forcedTargetId) {
-                const forced = allPlayers.find(p => String(p.id) === String(forcedTargetId));
-                if (forced && !/Loup-Garou/i.test(forced.role)) {
-                    target = forced;
-                }
+            target = getMostTargetPlayerByWolves(roomData);
+            const players = others.filter(p => p.isAlive !== false && !/Loup-Garou/i.test(p.role));
+
+            const allBotsOnly = players.length > 0 && players.every(p => p.isBot);
+            if (allBotsOnly && !target) {
+                const allAlive = Array.from(roomData.players.values()).filter(p => p.isAlive !== false);
+                const possible = allAlive.filter(p => !/Loup-Garou/i.test(p.role));
+                const pick = pickRandom(possible.length ? possible : allAlive);
+                target = pick ? pick : null;
             }
+            console.log(`🐺 Loup-Garou bot ${bot.nickname} vérification cible majoritaire => ${target ? target.nickname : 'aucune'}`);
 
             if (!target) {
                 const noWolves = others.filter(p => !/Loup-Garou/i.test(p.role));
                 target = pickRandom(noWolves.length ? noWolves : others);
+                console.log(`🐺 Loup-Garou bot ${bot.nickname} cible aléatoire choisie => ${target ? target.nickname : 'aucune'}`);
             }
 
             roomData.config.wolves.targets[bot.id] = target.id;
@@ -189,37 +196,6 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
         scheduledBotTimeouts.clear();
     };
 
-    const getMostTargetPlayerByWolves = (room) => {
-        if (!room.config) room.config = defaultGameConfig;
-        const wolvesTarget = room.config && room.config.wolves && room.config.wolves.targets;
-        if (!wolvesTarget) return null;
-
-        const counts = new Map();
-
-        for (const k of Object.keys(wolvesTarget)) {
-            const v = wolvesTarget[k];
-            let c = 0;
-            if (typeof v === 'number') c = v;
-            else if (Array.isArray(v)) c = v.length;
-            else if (v && typeof v === 'object') c = v.count || 0;
-            counts.set(String(k), c);
-        }
-
-        if (counts.size === 0) return null;
-
-        let max = -Infinity;
-        for (const v of counts.values()) {
-            if (v > max) max = v;
-        }
-
-        const top = [];
-        for (const [k, v] of counts.entries()) {
-            if (v === max) top.push(k);
-        }
-
-        return top.length ? pickRandom(top) : null;
-    };
-
     const emitStartForRole = (roleName, players, roleIdx) => {
         console.log(`🔔 Début du tour pour le rôle ${roleName} (${players.length} joueur(s)) dans la partie ${gameId}`);
         roomData.turn = roleIdx;
@@ -263,30 +239,12 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
         const meta = {timeouts, startTs, endTs, executed: 0, totalBots: bots.length};
         if (timeouts.length || bots.length) scheduledBotTimeouts.set(roleIdx, meta);
 
-        let chosenTargetId = null;
-        if (/Loup-Garou/i.test(roleName)) {
-            const majorityId = getMostTargetPlayerByWolves(roomData);
-            if (majorityId) {
-                const majPlayer = Array.from(roomData.players.values()).find(p => String(p.id) === String(majorityId) && p.isAlive !== false && !/Loup-Garou/i.test(p.role));
-                if (majPlayer) chosenTargetId = majPlayer.id;
-            }
-
-            const allBotsOnly = players.length > 0 && players.every(p => p.isBot);
-            if (allBotsOnly && !chosenTargetId) {
-                const allAlive = Array.from(roomData.players.values()).filter(p => p.isAlive !== false);
-                const possible = allAlive.filter(p => !/Loup-Garou/i.test(p.role));
-                const pick = pickRandom(possible.length ? possible : allAlive);
-                chosenTargetId = pick ? pick.id : null;
-            }
-        }
-
         for (const bot of bots) {
             const delaySec = randInt(1, maxDelay);
             const t = setTimeout(() => {
-                const latestRoom = getGameRoom(gameId) || roomData;
                 const currentRole = gameRoleCallOrder[roleIdx];
                 if (!stopped && currentRole === roleName) {
-                    simulateBotAction(roleName, bot, latestRoom, io, gameId, chosenTargetId);
+                    simulateBotAction(roleName, bot, io, gameId);
                     console.log(`🤖 Action simulée pour le bot ${bot.nickname} (${roleName}) après ${delaySec}s dans la partie ${gameId}`);
                 }
 
@@ -454,4 +412,31 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
     setImmediate(advance);
 
     return {stop, next, getStatus};
+};
+
+const getMostTargetPlayerByWolves = (room) => {
+    if (!room.config) room.config = defaultGameConfig;
+    const wolvesTarget = room.config && room.config.wolves && room.config.wolves.targets;
+    if (!wolvesTarget) return null;
+
+    const targetCount = {};
+    for (const wolfId in wolvesTarget) {
+        const targetId = wolvesTarget[wolfId];
+        if (targetId && targetId !== '') {
+            if (!targetCount[targetId]) targetCount[targetId] = 0;
+            targetCount[targetId] += 1;
+        }
+    }
+    let maxCount = 0;
+    let selectedPlayerId = null;
+    for (const targetId in targetCount) {
+        if (targetCount[targetId] > maxCount) {
+            maxCount = targetCount[targetId];
+            selectedPlayerId = targetId;
+        }
+    }
+    if (selectedPlayerId) {
+        return Array.from(room.players.values()).find(p => p.id === selectedPlayerId) || null;
+    }
+    return null;
 };

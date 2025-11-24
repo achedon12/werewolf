@@ -18,7 +18,7 @@ const TabGame = ({
     const alivePlayers = players.filter(p => p.isAlive);
     const deadPlayers = players.filter(p => !p.isAlive);
     const displayTimer = roleCallRemaining !== null ? formatDuration(roleCallRemaining) : '~';
-
+    const parsedConfiguration = game.configuration ? JSON.parse(game.configuration) : {};
     const phaseInfo = {
         [GAME_PHASES.NIGHT]: {
             icon: Moon,
@@ -33,7 +33,6 @@ const TabGame = ({
             description: "Délibérations et votes publics"
         }
     };
-
     const currentPhase = phaseInfo[game.phase];
 
     const roleColor = (roleName) => {
@@ -168,6 +167,10 @@ const TabGame = ({
                                     <div className="space-y-2 ml-4">
                                         {gameRoleCallOrder.map((roleName, idx) => {
                                             const color = roleColor(roleName);
+                                            const role = getRoleByName(roleName);
+                                            if (!role || !parsedConfiguration[role.id] || parsedConfiguration[role.id] <= 0) {
+                                                return null;
+                                            }
                                             const isActive = game.phase === GAME_PHASES.NIGHT && gameRoleCallOrder[game.turn] === roleName;
                                             return (
                                                 <div key={roleName + idx}

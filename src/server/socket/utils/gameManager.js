@@ -1,4 +1,4 @@
-import {addPlayerToChannel, connectedPlayers, getGameRoom} from "./roomManager.js";
+import {addPlayerToChannel, connectedPlayers, gameRooms, getGameRoom} from "./roomManager.js";
 import {addGameAction, getGameHistory} from "./actionLogger.js";
 import {defaultGameConfig, getRoleById} from "../../../utils/Roles.js";
 import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "../../config/constants.js";
@@ -9,6 +9,7 @@ const hostname = "localhost";
 const port = 3000;
 
 export const updatedGameData = async (gameId) => {
+    console.log(`🔄 Récupération des données de la game avec ID ${gameId}...`);
     try {
         const res = await fetch(`http://${hostname}:${port}/api/game/${gameId}`);
         return await res.json();
@@ -19,6 +20,7 @@ export const updatedGameData = async (gameId) => {
 }
 
 export const updateGameData = async (gameId, updatedData) => {
+    console.log(`🔄 Mise à jour des données de la game avec ID ${gameId}...`, updatedData);
     try {
         const res = await fetch(`http://${hostname}:${port}/api/game/${gameId}`, {
             method: 'POST',
@@ -42,6 +44,7 @@ export const updateGameData = async (gameId, updatedData) => {
 
 export const startGameLogic = async (socket, io, gameId) => {
     const roomData = getGameRoom(gameId);
+    console.log(`▶️ Démarrage de la partie avec ID ${gameId}...`, roomData);
 
     if (!roomData) {
         throw new Error(`Partie avec ID ${gameId} non trouvée, Veuillez recharger la page.`);
@@ -135,6 +138,7 @@ export const startGameLogic = async (socket, io, gameId) => {
     }
 
     roomData.config = defaultGameConfig;
+    gameRooms.set(gameId, roomData);
 
     io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
     io.to(`game-${gameId}`).emit("howl");

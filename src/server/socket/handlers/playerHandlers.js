@@ -1,4 +1,4 @@
-import {connectedPlayers, getGameRoom, removePlayerFromGame} from "../utils/roomManager.js";
+import {connectedPlayers, gameRooms, getGameRoom, removePlayerFromGame} from "../utils/roomManager.js";
 import {addGameAction} from "../utils/actionLogger.js";
 import {updatedGameData} from "../utils/gameManager.js";
 import {ACTION_TYPES} from "../../config/constants.js";
@@ -8,7 +8,6 @@ export const handlePlayerAction = async (socket, io, data) => {
     try {
         const {gameId, selectedPlayers} = data;
         const playerInfo = connectedPlayers.get(socket.id);
-        console.log("🔔 handlePlayerAction called with data:", data, "from playerInfo:", playerInfo);
 
         if (!gameId || !playerInfo) {
             throw new Error("Données manquantes");
@@ -200,4 +199,5 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
         default:
             break;
     }
+    gameRooms.set(gameId, roomData);
 }

@@ -1,13 +1,22 @@
 import {ACTION_TYPES, CHANNEL_TYPES, GAME_PHASES, GAME_STATES} from "../../config/constants.js";
 import {addGameAction} from "./actionLogger.js";
+import {updatedGameData} from "../../socket/utils/gameManager.js";
 
 export const gameRooms = new Map();
 export const connectedPlayers = new Map();
 
 export const createGameRoom = async (gameId) => {
+
+    const fetchedGame = await updatedGameData(gameId)
     let roomData = {
         id: gameId,
-        createdAt: new Date(),
+        configuration: fetchedGame.configuration || "{}",
+        admin: fetchedGame.admin || null,
+        type: fetchedGame.type || "classic",
+        name: fetchedGame.name || "Partie Sans Nom",
+        startedAt: fetchedGame.startedAt || null,
+        endedAt: fetchedGame.endedAt || null,
+        createdAt: fetchedGame.createdAt || new Date(),
         lastActivity: new Date(),
         channels: {
             general: new Set(),
@@ -17,8 +26,8 @@ export const createGameRoom = async (gameId) => {
         },
         players: new Map(),
         actionHistory: [],
-        state: GAME_STATES.WAITING,
-        phase: GAME_PHASES.NIGHT
+        state: fetchedGame.state || GAME_STATES.WAITING,
+        phase: fetchedGame.phase || GAME_PHASES.NIGHT
     };
 
     gameRooms.set(gameId, roomData);
@@ -27,6 +36,16 @@ export const createGameRoom = async (gameId) => {
 
 export const getGameRoom = (gameId) => {
     return gameRooms.get(gameId);
+}
+
+export const updateGameRoom = (gameId, updates) => {
+    const roomData = getGameRoom(gameId);
+    if (!roomData) return null;
+
+    Object.assign(roomData, updates);
+    roomData.lastActivity = new Date();
+    gameRooms.set(gameId, roomData);
+    return roomData;
 }
 
 export const addPlayerToGame = (socket, gameId, userData) => {
@@ -47,6 +66,7 @@ export const addPlayerToGame = (socket, gameId, userData) => {
     });
 
     roomData.lastActivity = new Date();
+    gameRooms.set(gameId, roomData);
 }
 
 export const addPlayerToChannel = (socket, io, gameId, channelType) => {
@@ -56,6 +76,7 @@ export const addPlayerToChannel = (socket, io, gameId, channelType) => {
     socket.join(channelRoom);
     roomData.channels[channelType].add(socket.id);
     roomData.lastActivity = new Date();
+    gameRooms.set(gameId, roomData);
 }
 
 export const removePlayerFromGame = (socket, io, gameId, playerInfo, isDisconnect = false) => {
@@ -111,6 +132,8 @@ export const removePlayerFromGame = (socket, io, gameId, playerInfo, isDisconnec
         } catch (e) {
         }
     }
+
+    gameRooms.set(gameId, roomData);
 }
 
 export const removePlayerFromAllChannels = (socket, gameId) => {
@@ -120,6 +143,8 @@ export const removePlayerFromAllChannels = (socket, gameId) => {
     CHANNEL_TYPES.forEach(channel => {
         roomData.channels[channel].delete(socket.id);
     });
+    roomData.lastActivity = new Date();
+    gameRooms.set(gameId, roomData);
 }
 
 export const cleanupInactiveRooms = (io) => {

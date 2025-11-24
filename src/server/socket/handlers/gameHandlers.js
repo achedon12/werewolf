@@ -41,12 +41,13 @@ export const handleJoinGame = async (socket, io, gameId, userData, playerRole) =
                 roomData.players.delete(oldSid);
                 roomData.players.set(socket.id, userData);
                 connectedPlayers.delete(oldSid);
+                roomData.lastActivity = new Date();
                 connectedPlayers.set(socket.id, {
                     ...userData,
                     gameId,
                     socketId: socket.id
                 });
-                roomData.lastActivity = new Date();
+
 
                 const oldSocket = io.sockets.sockets.get(oldSid);
                 if (oldSocket) {
@@ -72,7 +73,7 @@ export const handleJoinGame = async (socket, io, gameId, userData, playerRole) =
             phase: "connection",
         });
 
-        await notifyGameUpdate(socket, io, gameId, roomData, userData);
+        await notifyGameUpdate(socket, io, gameId, userData);
 
     } catch (error) {
         console.error("❌ Erreur join-game:", error);
@@ -149,8 +150,9 @@ export const handleGetAvailableGames = (socket, io) => {
     }
 }
 
-const notifyGameUpdate = async (socket, io, gameId, roomData, userData) => {
+const notifyGameUpdate = async (socket, io, gameId, userData) => {
     const mainRoom = `game-${gameId}`;
+    const roomData = getGameRoom(gameId);
     const generalChannel = `game-${gameId}-general`;
 
     io.in(mainRoom).emit("game-history", getGameHistory(gameId));
@@ -160,11 +162,7 @@ const notifyGameUpdate = async (socket, io, gameId, roomData, userData) => {
 
     handleUpdateAvailableChannels(socket, io, gameId);
 
-    const gameData = await updatedGameData(gameId);
-    roomData.configuration = gameData.configuration;
-    roomData.type = gameData.type;
-    roomData.name = gameData.name;
-    socket.emit("game-update", gameData);
+    io.to(mainRoom).emit("game-update", roomData);
 
     io.to(generalChannel).emit("chat-message", {
         type: ACTION_TYPES.SYSTEM,
