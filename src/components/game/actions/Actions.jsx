@@ -14,7 +14,9 @@ const GameActions = ({
                          setSelectedPlayers,
                          roleCallRemaining,
                          performAction,
-                         revealedCards
+                         revealedCards,
+                         actionType,
+                         setActionType
                      }) => {
 
     return (
@@ -49,7 +51,8 @@ const GameActions = ({
             {activeTab === "game" && <TabGame game={game} players={players} currentPlayer={currentPlayer}
                                               numberCanBeSelected={numberCanBeSelected}
                                               selectedPlayers={selectedPlayers} setSelectedPlayers={setSelectedPlayers}
-                                              roleCallRemaining={roleCallRemaining} performAction={performAction} revealedCards={revealedCards}/>}
+                                              roleCallRemaining={roleCallRemaining} performAction={performAction} revealedCards={revealedCards}
+                                              actionType={actionType} setActionType={setActionType}/>}
 
             {activeTab === "players" && <TabPlayers game={game} players={players} currentPlayer={currentPlayer}/>}
 

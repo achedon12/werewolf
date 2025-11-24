@@ -183,6 +183,19 @@ export const defaultGameConfig = {
         transformed: false,
         model: null,
     },
+    witch: {
+        lifePotionUsed: false,
+        deathPotionUsed: false,
+        savedTarget: null,
+        poisonedTarget: null,
+        applyThisNight: false,
+    },
+    hunter: {
+        targetOnDeath: null
+    },
+    seer: {
+        revealedPlayers: []
+    },
     saving: {
         target: null,
         prevTarget: null

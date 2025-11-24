@@ -1,8 +1,8 @@
 import GameBoard from "@/components/game/Board";
-import {GAME_PHASES, GAME_STATES} from "@/server/config/constants";
+import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "@/server/config/constants";
 import {AlertTriangle, Clock, History, Moon, Sun, Users} from "lucide-react";
 import {formatDuration} from "@/utils/Date";
-import {gameRoleCallOrder, getRoleByName, RoleActionDescriptions} from "@/utils/Roles";
+import {defaultGameConfig, gameRoleCallOrder, getRoleByName, RoleActionDescriptions} from "@/utils/Roles";
 
 const TabGame = ({
                      game,
@@ -13,12 +13,15 @@ const TabGame = ({
                      setSelectedPlayers,
                      roleCallRemaining,
                      performAction,
-                     revealedCards
+                     revealedCards,
+                     actionType,
+                     setActionType
                  }) => {
     const alivePlayers = players.filter(p => p.isAlive);
     const deadPlayers = players.filter(p => !p.isAlive);
     const displayTimer = roleCallRemaining !== null ? formatDuration(roleCallRemaining) : '~';
     const parsedConfiguration = game.configuration ? JSON.parse(game.configuration) : {};
+    const currentPlayerIsWitch = currentPlayer && currentPlayer.role === "Sorciere";
     const phaseInfo = {
         [GAME_PHASES.NIGHT]: {
             icon: Moon,
@@ -41,6 +44,35 @@ const TabGame = ({
         if (team.includes("Loup")) return "red";
         if (team.includes("Village")) return "green";
         return "purple";
+    };
+
+    const getMostTargetPlayerByWolves = () => {
+        const room = game;
+        console.log(`🐺 room:`, room);
+        if (!room.config) room.config = defaultGameConfig;
+        const wolvesTarget = room.config && room.config.wolves && room.config.wolves.targets;
+        if (!wolvesTarget) return null;
+
+        const targetCount = {};
+        for (const wolfId in wolvesTarget) {
+            const targetId = wolvesTarget[wolfId];
+            if (targetId && targetId !== '') {
+                if (!targetCount[targetId]) targetCount[targetId] = 0;
+                targetCount[targetId] += 1;
+            }
+        }
+        let maxCount = 0;
+        let selectedPlayerId = null;
+        for (const targetId in targetCount) {
+            if (targetCount[targetId] > maxCount) {
+                maxCount = targetCount[targetId];
+                selectedPlayerId = targetId;
+            }
+        }
+        if (selectedPlayerId) {
+            return Array.from(players.values()).find(p => p.id === selectedPlayerId) || null;
+        }
+        return null;
     };
 
     return (
@@ -104,7 +136,40 @@ const TabGame = ({
                                     )}
                                 </div>
                                 {
-                                    game.phase === GAME_PHASES.NIGHT && numberCanBeSelected > 0 && selectedPlayers.length > 0 && (
+                                    game.phase === GAME_PHASES.NIGHT && currentPlayerIsWitch && numberCanBeSelected > 0 && selectedPlayers.length > 0 && (
+                                        <div className="flex gap-2 ml-auto">
+                                            <button
+                                                disabled={selectedPlayers.length > 0 && selectedPlayers[0] !== getMostTargetPlayerByWolves()?.id}
+                                                onClick={() => {
+                                                    setActionType(ACTION_TYPES.WITCH_POISON);
+                                                    performAction()
+                                                }}
+                                                className="ml-auto btn btn-sm btn-danger">
+                                                Tuer le joueur
+                                            </button>
+                                            <!-- TODO: fix witch role -->
+                                            <button
+                                                disabled={selectedPlayers.length > 0 && selectedPlayers[0] === getMostTargetPlayerByWolves()?.id}
+                                                onClick={() => {
+                                                    setActionType(ACTION_TYPES.WITCH_HEAL);
+                                                    performAction()
+                                                }}
+                                                className="ml-auto btn btn-sm btn-success">
+                                                Sauver le joueur
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setActionType(ACTION_TYPES.WITCH_NO_ACTION);
+                                                    performAction()
+                                                }}
+                                                className="ml-auto btn btn-sm btn-primary">
+                                                Ne rien faire
+                                            </button>
+                                        </div>
+                                    )
+                                }
+                                {
+                                    game.phase === GAME_PHASES.NIGHT && !currentPlayerIsWitch && numberCanBeSelected > 0 && selectedPlayers.length > 0 && (
                                         <button
                                             disabled={selectedPlayers.length === 0}
                                             onClick={performAction}

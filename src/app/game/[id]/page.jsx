@@ -43,6 +43,7 @@ const GamePage = ({params}) => {
     const [showPlayersConfigurationModal, setShowPlayersConfigurationModal] = useState(false);
     const [numberCanBeSelected, setNumberCanBeSelected] = useState(0);
     const [selectedPlayers, setSelectedPlayers] = useState([]);
+    const [actionType, setActionType] = useState(null);
     const [startingSoon, setStartingSoon] = useState(null);
     const ambientSoundRef = useRef(null);
     const chatContainerRef = useRef(null);
@@ -453,7 +454,8 @@ const GamePage = ({params}) => {
     const performAction = () => {
         socket.emit("player-action", {
             gameId: id,
-            selectedPlayers
+            selectedPlayers,
+            type: actionType
         });
         setSelectedPlayers([]);
     };
@@ -584,6 +586,8 @@ const GamePage = ({params}) => {
                         numberCanBeSelected={numberCanBeSelected}
                         selectedPlayers={selectedPlayers}
                         setSelectedPlayers={setSelectedPlayers}
+                        actionType={actionType}
+                        setActionType={setActionType}
                         roleCallRemaining={roleCallRemaining}
                         performAction={performAction}
                         revealedCards={revealedCards}

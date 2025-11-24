@@ -96,14 +96,14 @@ export const startGameLogic = async (socket, io, gameId) => {
     // give specific role to achedon12 if present
     const targetPlayerIndex = connectedPlayersList.findIndex(p => p.nickname === 'achedon12');
     if (targetPlayerIndex !== -1) {
-        const voyanteIndex = roles.findIndex(r => r === 'Loup-Garou');
+        const voyanteIndex = roles.findIndex(r => r === 'Sorciere');
         if (voyanteIndex !== -1 && voyanteIndex !== targetPlayerIndex) {
             // échanger les rôles
             const temp = roles[targetPlayerIndex];
             roles[targetPlayerIndex] = roles[voyanteIndex];
             roles[voyanteIndex] = temp;
 
-            console.log(`🔮 Le joueur achedon12 a reçu le rôle de Voyante.`);
+            console.log(`🔮 Le joueur achedon12 a reçu son rôle prédéfini`);
         }
     }
 

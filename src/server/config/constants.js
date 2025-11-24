@@ -24,7 +24,9 @@ export const ACTION_TYPES = {
     // role action
     GENERAL_ACTION: 'general_action',
     HUNTER_SHOT: 'hunter_shot',
-    WITCH_POTION: 'witch_potion',
+    WITCH_HEAL: 'witch_heal',
+    WITCH_POISON: 'witch_poison',
+    WITCH_NO_ACTION: 'witch_no_action',
     WEREWOLF_ATTACK: 'werewolf_attack',
     CUPIDON_MATCH: 'cupidon_match',
     FOX: 'fox_hunt',

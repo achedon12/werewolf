@@ -6,7 +6,7 @@ import {defaultGameConfig, playerIsWolf} from "../../../utils/Roles.js";
 
 export const handlePlayerAction = async (socket, io, data) => {
     try {
-        const {gameId, selectedPlayers} = data;
+        const {gameId, selectedPlayers, type} = data;
         const playerInfo = connectedPlayers.get(socket.id);
 
         if (!gameId || !playerInfo) {
@@ -20,7 +20,7 @@ export const handlePlayerAction = async (socket, io, data) => {
         socket.emit('game-set-number-can-be-selected', 0);
         console.log(`➡️ Action reçue de ${playerInfo.nickname}(${playerInfo.role}) dans le jeu ${gameId}:`, data);
 
-        const {actionMessage, actionType} = getActionDetails(playerInfo.role);
+        const {actionMessage, actionType} = getActionDetails(playerInfo.role, type);
 
         addGameAction(gameId, {
             type: actionType,
@@ -80,7 +80,7 @@ export const handleDisconnect = (socket, io, reason) => {
     io.emit('game-updated', updatedGameData);
 }
 
-const getActionDetails = (role) => {
+const getActionDetails = (role, type) => {
     switch (role) {
         case "Loup-Garou":
             return {
@@ -96,7 +96,16 @@ const getActionDetails = (role) => {
             };
         case "Sorciere":
             return {
-                actionMessage: "a utilisé une potion en tant que Sorcière.", actionType: ACTION_TYPES.WITCH_POTION
+                actionMessage: type === 'heal' ? "a utilisé la potion de vie en tant que Sorcière." :
+                    type === 'poison' ? "a utilisé la potion de poison en tant que Sorcière." :
+                        "n'a pas utilisé de potion en tant que Sorcière.",
+                actionType: type === 'heal' ? ACTION_TYPES.WITCH_HEAL :
+                    type === 'poison' ? ACTION_TYPES.WITCH_POISON :
+                        ACTION_TYPES.WITCH_NO_ACTION
+            };
+        case "Cupidon":
+            return {
+                actionMessage: "a lié deux joueurs en tant que Cupidon.", actionType: ACTION_TYPES.CUPIDON_MATCH
             };
         default:
             return {
@@ -124,10 +133,14 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
         case 'Voyante':
             const targetPlayer = findPlayerById(selectedPlayers[0]);
 
-            const message = `Le rôle de ${targetPlayer.nickname} est ${targetPlayer.role}.`;
-
-            socket.emit('seer-reveal-result', {message, id: targetPlayer.id});
+            socket.emit('seer-reveal-result', {message: `Le rôle de ${targetPlayer.nickname} est ${targetPlayer.role}.`, id: targetPlayer.id});
             console.log(`🔮 Voyante ${playerInfo.nickname} a consulté le rôle de ${targetPlayer.nickname}: ${targetPlayer.role}`);
+
+            roomData.config.seer.revealedPlayers.push({
+                seerId: playerInfo.id,
+                targetIdId: targetPlayer.id,
+                revealedRole: targetPlayer.role
+            });
 
             addGameAction(gameId, {
                 type: ACTION_TYPES.SEER_REVEAL,
@@ -195,6 +208,64 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
                 phase: roomData.phase
             });
             io.in(`game-${gameId}`).emit('game-update', roomData);
+            break;
+        case 'Sorciere':
+            const witchConfig = roomData.config.witch;
+
+            let needReset = false
+            if (data.type === ACTION_TYPES.WITCH_HEAL && witchConfig.lifePotionUsed) {
+                console.log("La sorcière a déjà utilisé la potion de vie.");
+                needReset = true;
+            } else if(data.type === ACTION_TYPES.WITCH_POISON && witchConfig.poisonPotionUsed) {
+                console.log("La sorcière a déjà utilisé la potion de poison.");
+                needReset = true;
+            }
+
+            if (needReset) {
+                socket.emit('game-set-number-can-be-selected', 1);
+                socket.emit('game-notify', 'Vous avez déjà utilisé cette potion. Veuillez sélectionner une action valide.');
+                console.log("❌ Action de la sorcière invalide, réinitialisation de la sélection.");
+                return;
+            }
+
+            let message = `${playerInfo.nickname} n'a pas utilisé de potion en tant que Sorcière.`;
+            let details = `Aucune action prise.`;
+
+            if (data.type === ACTION_TYPES.WITCH_HEAL) {
+                const healedPlayer = findPlayerById(selectedPlayers[0]);
+                witchConfig.lifePotionUsed = true;
+                witchConfig.savedTarget = healedPlayer.id;
+
+                socket.emit('game-notify', `Vous avez utilisé votre potion de vie sur ${healedPlayer.nickname}.`);
+
+                console.log(`🧙‍♀️ Sorcière ${playerInfo.nickname} a utilisé la potion de vie sur ${healedPlayer.nickname}`);
+
+                message = `${playerInfo.nickname} a utilisé la potion de vie en tant que Sorcière.`;
+                details = `Cible soignée: ${healedPlayer.nickname}`;
+            } else if (data.type === ACTION_TYPES.WITCH_POISON) {
+                const poisonedPlayer = findPlayerById(selectedPlayers[0]);
+                witchConfig.poisonPotionUsed = true;
+                witchConfig.poisonedTarget = poisonedPlayer.id;
+
+                socket.emit('game-notify', `Vous avez utilisé votre potion de poison sur ${poisonedPlayer.nickname}.`);
+
+                console.log(`🧙‍♀️ Sorcière ${playerInfo.nickname} a utilisé la potion de poison sur ${poisonedPlayer.nickname}`);
+
+                message = `${playerInfo.nickname} a utilisé la potion de poison en tant que Sorcière.`;
+                details = `Cible empoisonnée: ${poisonedPlayer.nickname}`;
+            } else {
+                socket.emit('game-notify', `Vous n'avez utilisé aucune potion.`);
+                console.log(`🧙‍♀️ Sorcière ${playerInfo.nickname} n'a utilisé aucune potion.`);
+            }
+
+            addGameAction(gameId, {
+                type: data.type,
+                playerName: playerInfo.nickname,
+                playerRole: playerInfo.role,
+                message,
+                details,
+                phase: roomData.phase
+            });
             break;
         default:
             break;

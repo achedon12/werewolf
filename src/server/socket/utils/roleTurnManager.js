@@ -1,5 +1,5 @@
 import {defaultGameConfig, gameRoleCallOrder, RoleSelectionCount} from '../../../utils/Roles.js';
-import {getGameRoom} from '../../socket/utils/roomManager.js';
+import {gameRooms, getGameRoom} from '../../socket/utils/roomManager.js';
 import {addGameAction, getGameHistory} from './actionLogger.js';
 import {ACTION_TYPES} from '../../config/constants.js';
 
@@ -82,7 +82,7 @@ const simulateBotAction = (roleName, bot, io, gameId) => {
         case 'Loup-Garou Blanc':
             type = ACTION_TYPES.WEREWOLF_ATTACK;
 
-            target = getMostTargetPlayerByWolves(roomData);
+            target = getMostTargetPlayerByWolves(gameId);
             const players = others.filter(p => p.isAlive !== false && !/Loup-Garou/i.test(p.role));
 
             const allBotsOnly = players.length > 0 && players.every(p => p.isBot);
@@ -108,6 +108,7 @@ const simulateBotAction = (roleName, bot, io, gameId) => {
         case 'Voyante':
             type = ACTION_TYPES.SEER_REVEAL;
             target = pickRandom(others);
+            roomData.config.seer.revealedPlayers.push({seerId: bot.id, targetId: target.id, revealedRole: target.role});
             message = target ? `🔎 ${bot.nickname} (bot) a regardé ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
             break;
         case 'Salvateur':
@@ -121,10 +122,26 @@ const simulateBotAction = (roleName, bot, io, gameId) => {
             message = target ? `🦊 ${bot.nickname} (bot) a testé ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
             break;
         case 'Sorciere':
-            type = ACTION_TYPES.WITCH_POTION;
-            if (Math.random() < 0.4) {
+            type = ACTION_TYPES.WITCH_NO_ACTION;
+            if (Math.random() <= 0.25) {
                 target = pickRandom(others);
-                message = target ? `☠️ ${bot.nickname} (bot) empoisonne ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
+                const witchUsedLifePotion = roomData.config.witch.lifePotionUsed;
+                const witchUsedPoisonPotion = roomData.config.witch.poisonPotionUsed;
+
+                if (!witchUsedLifePotion && Math.random() < 0.5) {
+                    roomData.config.witch.lifePotionUsed = true;
+                    roomData.config.witch.applyThisNight = true;
+                    message = target ? `❤️ ${bot.nickname} (bot) utilise une potion de vie sur ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
+                    type = ACTION_TYPES.WITCH_HEAL;
+                } else if (!witchUsedPoisonPotion) {
+                    roomData.config.witch.poisonPotionUsed = true;
+                    roomData.config.witch.applyThisNight = true;
+                    message = target ? `☠️ ${bot.nickname} (bot) utilise une potion de poison sur ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
+                    type = ACTION_TYPES.WITCH_POISON;
+                } else {
+                    target = null;
+                    message = `${bot.nickname} (bot) n'a plus de potions disponibles`;
+                }
             } else {
                 message = `${bot.nickname} (bot) n'utilise pas de potion`;
             }
@@ -150,6 +167,7 @@ const simulateBotAction = (roleName, bot, io, gameId) => {
     io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 
     console.log(`🤖 Action de bot simulée: ${message}`);
+    gameRooms.set(gameId, roomData);
 
     if (target) {
         if (!roomData._simulatedActions) roomData._simulatedActions = [];
@@ -414,7 +432,10 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
     return {stop, next, getStatus};
 };
 
-const getMostTargetPlayerByWolves = (room) => {
+const getMostTargetPlayerByWolves = (gameId) => {
+    console.log(`🐺 Calcul de la cible la plus visée par les loups pour la partie ${gameId}`);
+    const room = getGameRoom(gameId);
+    console.log(`🐺 room:`, room);
     if (!room.config) room.config = defaultGameConfig;
     const wolvesTarget = room.config && room.config.wolves && room.config.wolves.targets;
     if (!wolvesTarget) return null;

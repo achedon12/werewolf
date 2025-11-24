@@ -20,6 +20,7 @@ export const handleJoinGame = async (socket, io, gameId, userData, playerRole) =
             online: true,
             joinedAt: new Date()
         };
+        // TODO: corriger le probleme : le joueur perd son role quand il se reconnecte avant le debut de la partie
 
         let roomData = getGameRoom(gameId);
         if (!roomData) {
