@@ -115,7 +115,7 @@ const AdminUsersPage = () => {
                     <div className="avatar">
                         <div
                             className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                            <img src={user?.avatar ? user.avatar : '/default-avatar.png'} alt={user.name}
+                            <img src={user?.avatar || '/default-avatar.png'} alt={user.name}
                                  className="rounded-full object-cover w-full h-full"/>
                         </div>
                     </div>

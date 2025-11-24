@@ -174,7 +174,7 @@ const ContactPage = () => {
                             <div className="space-y-4">
                                 {teamMembers.map((member, index) => (
                                     <div key={index} className="flex items-center space-x-4 p-3 bg-base-200/50 rounded-xl border border-white/5 hover:border-purple-500/30 transition-colors">
-                                        <div className="text-3xl">{member.avatar}</div>
+                                        <div className="text-3xl">{member?.avatar}</div>
                                         <div className="flex-1">
                                             <div className="flex items-center justify-between">
                                                 <h4 className="font-semibold text-white">{member.name}</h4>

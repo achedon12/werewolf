@@ -237,7 +237,7 @@ const PodiumPage = () => {
                                                         index === 0 ? 'w-10 h-10 md:w-14 md:h-14 lg:w-20 lg:h-20 ring-1 md:ring-2 ring-gray-300' :
                                                             'w-8 h-8 md:w-12 md:h-12 lg:w-16 lg:h-16 ring-1 md:ring-2 ring-orange-300'
                                                 } rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center overflow-hidden shadow-lg`}>
-                                                    {player.avatar ? (
+                                                    {player?.avatar ? (
                                                         <img
                                                             src={player.avatar}
                                                             alt={player.name}

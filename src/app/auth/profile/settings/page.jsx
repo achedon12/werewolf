@@ -211,7 +211,7 @@ const SettingsPage = () => {
                                 <div className="avatar">
                                     <div className="w-24 h-24 rounded-full ring ring-primary ring-offset-2">
                                         <Image
-                                            src={formData.avatar || '/default-avatar.png'}
+                                            src={formData?.avatar || '/default-avatar.png'}
                                             alt="Avatar"
                                             width={96}
                                             height={96}

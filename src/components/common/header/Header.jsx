@@ -116,7 +116,7 @@ export default function Header() {
         return auth.user ? (
             <div className="flex items-center space-x-2 gap-2">
                 <Image
-                    src={auth.user.avatar ? process.env.NEXT_PUBLIC_APP_URL + auth.user.avatar : '/default-avatar.png'}
+                    src={auth?.user?.avatar || '/default-avatar.png'}
                     alt={auth.user.name ? `${auth.user.name} — avatar` : 'Avatar utilisateur'}
                     width={40}
                     height={40}

@@ -44,7 +44,7 @@ const GameHeader = ({game, players, configuration, creator}) => {
                             <div
                                 className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
                                 <Image
-                                    src={creator?.avatar ? process.env.NEXT_PUBLIC_APP_URL + creator?.avatar : "/default-avatar.png"}
+                                    src={creator?.avatar || "/default-avatar.png"}
                                     alt={creator?.nickname || "créateur"}
                                     width={40} height={40}
                                     className="rounded-full"

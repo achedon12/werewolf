@@ -314,7 +314,7 @@ const GameDetailPage = () => {
                                                 <div
                                                     className="flex items-center gap-4 p-4 bg-base-200 dark:bg-gray-700 rounded-2xl">
                                                     <img
-                                                        src={game.admin.avatar || '/default-avatar.png'}
+                                                        src={game?.admin?.avatar || '/default-avatar.png'}
                                                         alt="Admin"
                                                         className="w-16 h-16 rounded-full object-cover border-4 border-white dark:border-gray-600"
                                                     />
@@ -424,13 +424,13 @@ const GameDetailPage = () => {
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <img
-                                                        src={player.user?.avatar || '/default-avatar.png'}
+                                                        src={player?.user?.avatar || '/default-avatar.png'}
                                                         alt="Avatar"
                                                         className="w-12 h-12 rounded-full object-cover"
                                                     />
                                                     <div className="flex-1 min-w-0">
                                                         <div className="font-bold truncate">
-                                                            {player.user?.name || player.user?.nickname || 'Joueur'}
+                                                            {player?.user?.name || player.user?.nickname || 'Joueur'}
                                                         </div>
                                                         <div className="flex items-center gap-2 mt-1">
                                                             <div className="badge gap-1 badge-ghost">
