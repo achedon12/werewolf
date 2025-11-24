@@ -7,6 +7,7 @@ Une application web en temps réel du célèbre jeu de société Loup-Garou (Wer
 [![Discord](https://img.shields.io/badge/Discord-Rejoindre-7289DA?logo=discord&logoColor=white)](https://discord.gg/TgybvRqjEY)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?logo=github)](https://github.com/achedon12/werewolf)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![Visitor Count](https://profile-counter.glitch.me/achedon12-werewolf/count.svg)
 
 ## 🎮 Fonctionnalités Principales
 
