@@ -2,7 +2,8 @@ import GameBoard from "@/components/game/Board";
 import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "@/server/config/constants";
 import {AlertTriangle, Clock, History, Moon, Sun, Users} from "lucide-react";
 import {formatDuration} from "@/utils/Date";
-import {defaultGameConfig, gameRoleCallOrder, getRoleByName, RoleActionDescriptions} from "@/utils/Roles";
+import {gameRoleCallOrder, getRoleByName, RoleActionDescriptions} from "@/utils/Roles";
+import {getMostTargetPlayerId} from "@/server/socket/utils/roleTurnManager.js";
 
 const TabGame = ({
                      game,
@@ -37,42 +38,13 @@ const TabGame = ({
         }
     };
     const currentPhase = phaseInfo[game.phase];
-
+    const mostTargetByWolvesId = getMostTargetPlayerId(game);
     const roleColor = (roleName) => {
         const role = getRoleByName(roleName);
         const team = role?.team || "";
         if (team.includes("Loup")) return "red";
         if (team.includes("Village")) return "green";
         return "purple";
-    };
-
-    const getMostTargetPlayerByWolves = () => {
-        const room = game;
-        console.log(`🐺 room:`, room);
-        if (!room.config) room.config = defaultGameConfig;
-        const wolvesTarget = room.config && room.config.wolves && room.config.wolves.targets;
-        if (!wolvesTarget) return null;
-
-        const targetCount = {};
-        for (const wolfId in wolvesTarget) {
-            const targetId = wolvesTarget[wolfId];
-            if (targetId && targetId !== '') {
-                if (!targetCount[targetId]) targetCount[targetId] = 0;
-                targetCount[targetId] += 1;
-            }
-        }
-        let maxCount = 0;
-        let selectedPlayerId = null;
-        for (const targetId in targetCount) {
-            if (targetCount[targetId] > maxCount) {
-                maxCount = targetCount[targetId];
-                selectedPlayerId = targetId;
-            }
-        }
-        if (selectedPlayerId) {
-            return Array.from(players.values()).find(p => p.id === selectedPlayerId) || null;
-        }
-        return null;
     };
 
     return (
@@ -139,7 +111,6 @@ const TabGame = ({
                                     game.phase === GAME_PHASES.NIGHT && currentPlayerIsWitch && numberCanBeSelected > 0 && selectedPlayers.length > 0 && (
                                         <div className="flex gap-2 ml-auto">
                                             <button
-                                                disabled={selectedPlayers.length > 0 && selectedPlayers[0] !== getMostTargetPlayerByWolves()?.id}
                                                 onClick={() => {
                                                     setActionType(ACTION_TYPES.WITCH_POISON);
                                                     performAction()
@@ -147,9 +118,8 @@ const TabGame = ({
                                                 className="ml-auto btn btn-sm btn-danger">
                                                 Tuer le joueur
                                             </button>
-                                            <!-- TODO: fix witch role -->
                                             <button
-                                                disabled={selectedPlayers.length > 0 && selectedPlayers[0] === getMostTargetPlayerByWolves()?.id}
+                                                disabled={String(selectedPlayers[0]) !== mostTargetByWolvesId}
                                                 onClick={() => {
                                                     setActionType(ACTION_TYPES.WITCH_HEAL);
                                                     performAction()

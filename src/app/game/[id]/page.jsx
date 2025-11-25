@@ -457,6 +457,7 @@ const GamePage = ({params}) => {
             selectedPlayers,
             type: actionType
         });
+        // TODO: corriger le fait que je nenvoie pas le type daction
         setSelectedPlayers([]);
     };
 

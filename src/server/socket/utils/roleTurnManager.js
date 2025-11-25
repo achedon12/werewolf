@@ -82,7 +82,10 @@ const simulateBotAction = (roleName, bot, io, gameId) => {
         case 'Loup-Garou Blanc':
             type = ACTION_TYPES.WEREWOLF_ATTACK;
 
-            target = getMostTargetPlayerByWolves(gameId);
+            const targetId = getMostTargetPlayerId(roomData);
+            if (targetId) {
+                target = others.find(p => p.id === targetId);
+            }
             const players = others.filter(p => p.isAlive !== false && !/Loup-Garou/i.test(p.role));
 
             const allBotsOnly = players.length > 0 && players.every(p => p.isBot);
@@ -432,32 +435,70 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
     return {stop, next, getStatus};
 };
 
-const getMostTargetPlayerByWolves = (gameId) => {
-    console.log(`🐺 Calcul de la cible la plus visée par les loups pour la partie ${gameId}`);
-    const room = getGameRoom(gameId);
-    console.log(`🐺 room:`, room);
-    if (!room.config) room.config = defaultGameConfig;
-    const wolvesTarget = room.config && room.config.wolves && room.config.wolves.targets;
+export const getMostTargetPlayerId = (room) => {
+    if (!room?.config) return null;
+    const wolvesTarget = room.config.wolves && room.config.wolves.targets;
     if (!wolvesTarget) return null;
 
-    const targetCount = {};
-    for (const wolfId in wolvesTarget) {
-        const targetId = wolvesTarget[wolfId];
-        if (targetId && targetId !== '') {
-            if (!targetCount[targetId]) targetCount[targetId] = 0;
-            targetCount[targetId] += 1;
+    const counts = {};
+    for (const k of Object.keys(wolvesTarget)) {
+        const v = wolvesTarget[k];
+        if (v == null) continue;
+
+        if (typeof v === 'number' || typeof v === 'string') {
+            counts[String(v)] = (counts[String(v)] || 0) + 1;
+        } else if (Array.isArray(v)) {
+            for (const t of v) {
+                if (t == null) continue;
+                counts[String(t)] = (counts[String(t)] || 0) + 1;
+            }
+        } else if (v && typeof v === 'object') {
+            const target = v.target || v.to || v.player || v.id || v.targetId;
+            if (target != null) {
+                counts[String(target)] = (counts[String(target)] || 0) + 1;
+            }
         }
     }
+
     let maxCount = 0;
-    let selectedPlayerId = null;
-    for (const targetId in targetCount) {
-        if (targetCount[targetId] > maxCount) {
-            maxCount = targetCount[targetId];
-            selectedPlayerId = targetId;
+    let selectedId = null;
+    for (const id in counts) {
+        if (counts[id] > maxCount) {
+            maxCount = counts[id];
+            selectedId = id;
         }
     }
-    if (selectedPlayerId) {
-        return Array.from(room.players.values()).find(p => p.id === selectedPlayerId) || null;
+    return selectedId;
+};
+
+export const wolfVoteCounts = (room) => {
+    const wolvesTarget = room?.config?.wolves?.targets || null;
+    const counts = {};
+    if (!wolvesTarget) return counts;
+
+
+    for (const k of Object.keys(wolvesTarget)) {
+        const v = wolvesTarget[k];
+        if (v == null) continue;
+        if (typeof v === 'number' || typeof v === 'string') {
+            const key = String(v);
+            counts[key] = (counts[key] || 0) + 1;
+        } else if (Array.isArray(v)) {
+            for (const t of v) {
+                if (t == null) continue;
+                const key = String(t);
+                counts[key] = (counts[key] || 0) + 1;
+            }
+        } else if (v && typeof v === 'object') {
+            const target = v.target || v.to || v.player || v.id || v.targetId;
+            if (target) {
+                const key = String(target);
+                counts[key] = (counts[key] || 0) + 1;
+            } else if (typeof v.count === 'number') {
+                counts[String(k)] = (counts[String(k)] || 0) + v.count;
+            }
+        }
     }
-    return null;
+
+    return counts;
 };

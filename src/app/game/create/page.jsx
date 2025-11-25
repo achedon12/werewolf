@@ -94,7 +94,6 @@ const CreateGamePage = () => {
             }
             setGame(data.gameId);
             setPlayer(data.playerId);
-            console.log('Redirection vers', `/game/${data.gameId}`);
             window.location = `/game/${data.gameId}`;
 
         } catch (err) {
