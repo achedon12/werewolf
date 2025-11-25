@@ -161,6 +161,11 @@ export const startGameLogic = async (socket, io, gameId) => {
         startedAt: new Date().toISOString()
     });
 
+    roomData.players = Array.from(roomData.players.values());
+    console.log(`🔄 Mise à jour des joueurs de la partie avec ID ${gameId}...`, roomData.players);
+    roomData.lastActivity = new Date();
+    gameRooms.set(gameId, roomData);
+
     io.to(`game-${gameId}`).emit("game-update", roomData);
 
     setTimeout(() => {
