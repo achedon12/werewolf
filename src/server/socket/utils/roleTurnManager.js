@@ -1,4 +1,4 @@
-import {defaultGameConfig, gameRoleCallOrder, RoleSelectionCount} from '../../../utils/Roles.js';
+import {gameRoleCallOrder, RoleSelectionCount} from '../../../utils/Roles.js';
 import {gameRooms, getGameRoom} from '../../socket/utils/roomManager.js';
 import {addGameAction, getGameHistory} from './actionLogger.js';
 import {ACTION_TYPES} from '../../config/constants.js';
@@ -222,6 +222,24 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
     };
 
     const emitStartForRole = (roleName, players, roleIdx) => {
+        // Sauter le tour si Cupidon a déjà lié des joueurs
+        if (roleName === 'Cupidon' && roomData.config && roomData.config.lovers && roomData.config.lovers.exists) {
+            console.log(`🔕 Saut du tour ${roleName} car Cupidon a déjà agi dans la partie ${gameId}`);
+            emitEndForRole(roleName, roleIdx);
+            index += 1;
+            setImmediate(advance);
+            return;
+        }
+
+        // Sauter le tour si le Voleur a déjà effectué son échange
+        if (roleName === 'Voleur' && roomData.config && roomData.config.thief && roomData.config.thief.swapped) {
+            console.log(`🔕 Saut du tour ${roleName} car le Voleur a déjà agi dans la partie ${gameId}`);
+            emitEndForRole(roleName, roleIdx);
+            index += 1;
+            setImmediate(advance);
+            return;
+        }
+
         console.log(`🔔 Début du tour(${roomData.turn}) pour le rôle ${roleName} (${players.length} joueur(s)) dans la partie ${gameId}`);
         roomData.turn = roleIdx;
         gameRooms.set(gameId, roomData);
