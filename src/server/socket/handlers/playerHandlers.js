@@ -152,9 +152,14 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
             });
             break;
         case 'Cupidon':
+            if (roomData.config.lovers.exists) {
+                break;
+            }
+
             if (selectedPlayers.length !== 2) {
                 throw new Error("Cupidon doit sélectionner exactement deux joueurs.");
             }
+
             const lover1 = findPlayerById(selectedPlayers[0]);
             const lover2 = findPlayerById(selectedPlayers[1]);
 
@@ -266,6 +271,46 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
                 details,
                 phase: roomData.phase
             });
+            break;
+        case 'Voleur':
+            if (roomData.config.thief.swapped) {
+                socket.emit('game-notify', 'Vous avez déjà effectué votre échange de rôles.');
+                console.log("❌ Action du voleur invalide, réinitialisation de la sélection.");
+                return;
+            }
+
+            if (selectedPlayers.length !== 2) {
+                socket.emit('game-set-number-can-be-selected', 2);
+                socket.emit('game-notify', 'Veuillez sélectionner exactement deux joueurs à échanger.');
+                console.log("❌ Action du voleur invalide, réinitialisation de la sélection.");
+                return;
+            }
+
+            const first = findPlayerById(selectedPlayers[0]);
+            const second = findPlayerById(selectedPlayers[1]);
+
+            if (!first || !second) {
+                socket.emit('game-set-number-can-be-selected', 2);
+                socket.emit('game-notify', 'Sélection invalide. Veuillez sélectionner deux joueurs valides.');
+                console.log("❌ Action du voleur invalide, réinitialisation de la sélection.");
+                return;
+            }
+
+            roomData.config.thief.choices = [first.id, second.id];
+            roomData.config.thief.swapped = true;
+
+            socket.emit('game-notify', `Vous avez échangé les rôles de ${first.nickname} et ${second.nickname}.`);
+            console.log(`🕵️‍♂️ Voleur ${playerInfo.nickname} a choisi d'échanger les rôles de ${first.nickname} et ${second.nickname}`);
+
+            addGameAction(gameId, {
+                type: ACTION_TYPES.THIEF,
+                playerName: playerInfo.nickname,
+                playerRole: playerInfo.role,
+                message: `${playerInfo.nickname} a choisi deux joueurs en tant que Voleur.`,
+                details: `Choix: ${first.nickname}, ${second.nickname}`,
+                phase: roomData.phase
+            });
+
             break;
         default:
             break;

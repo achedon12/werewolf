@@ -96,7 +96,7 @@ export const startGameLogic = async (socket, io, gameId) => {
     // give specific role to achedon12 if present
     const targetPlayerIndex = connectedPlayersList.findIndex(p => p.nickname === 'achedon12');
     if (targetPlayerIndex !== -1) {
-        const voyanteIndex = roles.findIndex(r => r === 'Sorciere');
+        const voyanteIndex = roles.findIndex(r => r === 'Voleur');
         if (voyanteIndex !== -1 && voyanteIndex !== targetPlayerIndex) {
             // échanger les rôles
             const temp = roles[targetPlayerIndex];

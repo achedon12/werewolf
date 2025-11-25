@@ -30,6 +30,10 @@ const simulateBotAction = (roleName, bot, io, gameId) => {
 
     switch (roleName) {
         case 'Cupidon':
+            if (roomData.config.lovers.exists) {
+                break;
+            }
+
             type = ACTION_TYPES.CUPIDON_MATCH;
             const candidatesPrefer = others.filter(p => !p.isBot);
             const pool = (candidatesPrefer.length >= 2) ? candidatesPrefer : others;
@@ -114,16 +118,6 @@ const simulateBotAction = (roleName, bot, io, gameId) => {
             roomData.config.seer.revealedPlayers.push({seerId: bot.id, targetId: target.id, revealedRole: target.role});
             message = target ? `🔎 ${bot.nickname} (bot) a regardé ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
             break;
-        case 'Salvateur':
-            type = ACTION_TYPES.DOCTOR_HEAL;
-            target = pickRandom(allPlayers);
-            message = target ? `🛡️ ${bot.nickname} (bot) protège ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
-            break;
-        case 'Renard':
-            type = ACTION_TYPES.FOX;
-            target = pickRandom(others);
-            message = target ? `🦊 ${bot.nickname} (bot) a testé ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
-            break;
         case 'Sorciere':
             type = ACTION_TYPES.WITCH_NO_ACTION;
             if (Math.random() <= 0.25) {
@@ -150,7 +144,17 @@ const simulateBotAction = (roleName, bot, io, gameId) => {
             }
             break;
         case 'Voleur':
+            if (roomData.config.thief.swapped) {
+                break;
+            }
             type = ACTION_TYPES.THIEF;
+
+            const firstChoice = pickRandom(others);
+            const secondPool = others.filter(p => p.id !== firstChoice.id);
+            const secondChoice = pickRandom(secondPool.length ? secondPool : others.filter(p => p.id !== firstChoice.id));
+
+            roomData.config.thief.choices = [firstChoice.id, secondChoice.id];
+            roomData.config.thief.swapped = true;
             message = `${bot.nickname} (bot) effectue une action de voleur`;
             break;
         default:
