@@ -218,8 +218,9 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
     };
 
     const emitStartForRole = (roleName, players, roleIdx) => {
-        console.log(`🔔 Début du tour pour le rôle ${roleName} (${players.length} joueur(s)) dans la partie ${gameId}`);
+        console.log(`🔔 Début du tour(${roomData.turn}) pour le rôle ${roleName} (${players.length} joueur(s)) dans la partie ${gameId}`);
         roomData.turn = roleIdx;
+        gameRooms.set(gameId, roomData);
         io.in(`game-${gameId}`).emit('game-update', roomData);
 
         const payload = {
@@ -273,7 +274,6 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
                 if (entry) {
                     entry.executed = (entry.executed || 0) + 1;
                     const remainingSec = Math.max(0, Math.ceil((entry.endTs - Date.now()) / 1000));
-                    // émettre tick pour rafraîchir le timer côté client
                     io.in(`game-${gameId}`).emit('role-call-tick', {role: roleName, remaining: remainingSec});
                     const channel = sanitizeRoleChannel(roleName);
                     io.in(`game-${gameId}-${channel}`).emit && io.in(`game-${gameId}-${channel}`).emit('role-call-tick', {
@@ -281,24 +281,19 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
                         remaining: remainingSec
                     });
 
-                    // Si tous les acteurs sont des bots et qu'ils ont tous agi -> terminer le rôle tôt
                     const playersForThisRole = getPlayersForRole(roleName);
                     const allBotsOnlyNow = playersForThisRole.length > 0 && playersForThisRole.every(p => p.isBot);
                     if (allBotsOnlyNow && entry.executed >= entry.totalBots) {
-                        // annuler l'intervalle principal
                         if (timer) {
                             clearInterval(timer);
                             timer = null;
                         }
-                        // envoyer tick final 0 et terminer le rôle
                         io.in(`game-${gameId}`).emit('role-call-tick', {role: roleName, remaining: 0});
                         io.in(`game-${gameId}-${channel}`).emit && io.in(`game-${gameId}-${channel}`).emit('role-call-tick', {
                             role: roleName,
                             remaining: 0
                         });
-                        // appeler la fin du rôle (cela supprimera les timeouts stockés)
                         emitEndForRole(roleName, roleIdx);
-                        // avancer à la suite (petit délai pour conserver le comportement précédent)
                         index += 1;
                         setTimeout(advance, 300);
                     }

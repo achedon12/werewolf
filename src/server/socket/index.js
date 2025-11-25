@@ -43,8 +43,8 @@ export const initializeSocket = (httpServer, hostname, port) => {
             handleUpdateGame(socket, io, gameId, updatedData));
         socket.on("exclude-player", (gameId, targetPlayerId, reason) =>
             handleExcludePlayer(socket, io, gameId, targetPlayerId, reason));
-        socket.on("add-bot", (gameId, botName) =>
-            handleAddBot(socket, io, gameId, botName));
+        socket.on("add-bot", (gameId, botName, botType) =>
+            handleAddBot(socket, io, gameId, botName, botType));
         socket.on("get-room-info", (gameId) =>
             handleGetRoomInfo(socket, gameId));
 

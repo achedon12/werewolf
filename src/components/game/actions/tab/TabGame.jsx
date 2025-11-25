@@ -23,6 +23,8 @@ const TabGame = ({
     const displayTimer = roleCallRemaining !== null ? formatDuration(roleCallRemaining) : '~';
     const parsedConfiguration = game.configuration ? JSON.parse(game.configuration) : {};
     const currentPlayerIsWitch = currentPlayer && currentPlayer.role === "Sorciere";
+    const isWitchTurn = game.turn === 7 && game.phase === "Nuit";
+
     const phaseInfo = {
         [GAME_PHASES.NIGHT]: {
             icon: Moon,
@@ -39,6 +41,8 @@ const TabGame = ({
     };
     const currentPhase = phaseInfo[game.phase];
     const mostTargetByWolvesId = getMostTargetPlayerId(game);
+    const playerTargetByWolves = players.find(p => String(p.id) === mostTargetByWolvesId);
+
     const roleColor = (roleName) => {
         const role = getRoleByName(roleName);
         const team = role?.team || "";
@@ -46,6 +50,11 @@ const TabGame = ({
         if (team.includes("Village")) return "green";
         return "purple";
     };
+
+    const handleWitchPotion = (type) => {
+        setActionType(type);
+        performAction(type)
+    }
 
     return (
         <div className="space-y-6">
@@ -102,36 +111,34 @@ const TabGame = ({
                                             {numberCanBeSelected > 1 ? "s" : ""}.
                                         </p>
                                     )}
+                                    {game.phase === GAME_PHASES.NIGHT && isWitchTurn && currentPlayerIsWitch && (
+                                        <p className="text-gray-300 text-sm">
+                                            Les Loups-Garous ont ciblé <span className="font-semibold">{playerTargetByWolves ? playerTargetByWolves.nickname : "un joueur inconnu"}</span>.
+                                        </p>
+                                    )}
                                     {game.phase === GAME_PHASES.DAY && (
-                                        <p className="text-gray-300 text-sm">Délibérez ensemble et votez pour éliminer
-                                            un suspect.</p>
+                                        <p className="text-gray-300 text-sm">
+                                            Délibérez ensemble et votez pour éliminer un suspect.
+                                        </p>
                                     )}
                                 </div>
                                 {
                                     game.phase === GAME_PHASES.NIGHT && currentPlayerIsWitch && numberCanBeSelected > 0 && selectedPlayers.length > 0 && (
                                         <div className="flex gap-2 ml-auto">
                                             <button
-                                                onClick={() => {
-                                                    setActionType(ACTION_TYPES.WITCH_POISON);
-                                                    performAction()
-                                                }}
+                                                disabled={String(selectedPlayers[0]) === currentPlayer.id}
+                                                onClick={() => handleWitchPotion(ACTION_TYPES.WITCH_POISON)}
                                                 className="ml-auto btn btn-sm btn-danger">
                                                 Tuer le joueur
                                             </button>
                                             <button
                                                 disabled={String(selectedPlayers[0]) !== mostTargetByWolvesId}
-                                                onClick={() => {
-                                                    setActionType(ACTION_TYPES.WITCH_HEAL);
-                                                    performAction()
-                                                }}
+                                                onClick={() => handleWitchPotion(ACTION_TYPES.WITCH_HEAL)}
                                                 className="ml-auto btn btn-sm btn-success">
                                                 Sauver le joueur
                                             </button>
                                             <button
-                                                onClick={() => {
-                                                    setActionType(ACTION_TYPES.WITCH_NO_ACTION);
-                                                    performAction()
-                                                }}
+                                                onClick={() => handleWitchPotion(ACTION_TYPES.WITCH_NO_ACTION)}
                                                 className="ml-auto btn btn-sm btn-primary">
                                                 Ne rien faire
                                             </button>

@@ -1,7 +1,8 @@
-import {connectedPlayers, getGameRoom} from "../utils/roomManager.js";
+import {connectedPlayers, gameRooms, getGameRoom} from "../utils/roomManager.js";
 import {addGameAction} from "../utils/actionLogger.js";
 import {startGameLogic, updatedGameData, updateGameData} from "../utils/gameManager.js";
 import {ACTION_TYPES, CHANNEL_TYPES} from "../../config/constants.js";
+import {BOT_TYPES} from "../../../utils/Bot.js";
 
 export const handleStartGame = async (socket, io, gameId) => {
     try {
@@ -86,7 +87,7 @@ export const handleExcludePlayer = async (socket, io, gameId, targetPlayerId, re
     }
 }
 
-export const handleAddBot = async (socket, io, gameId, botName) => {
+export const handleAddBot = async (socket, io, gameId, botName, botType) => {
     const roomData = getGameRoom(gameId);
 
     if (!roomData) {
@@ -105,16 +106,18 @@ export const handleAddBot = async (socket, io, gameId, botName) => {
         isAlive: true,
         online: true,
         isBot: true,
+        botType: botType || BOT_TYPES.BASIC,
         joinedAt: new Date()
     };
 
     roomData.players.set(botId, botData);
     roomData.lastActivity = new Date();
+    gameRooms.set(gameId, roomData);
 
     addGameAction(gameId, {
         type: ACTION_TYPES.BOT_ADDED,
         playerName: botData.nickname,
-        playerRole: "Bot",
+        playerRole: "",
         message: `🤖 ${botData.nickname} a rejoint la partie`,
         phase: "game"
     });

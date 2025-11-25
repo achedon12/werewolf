@@ -1,8 +1,8 @@
 import Image from "next/image";
 import {useEffect, useMemo, useState} from "react";
 import {getRoleByName, playerIsWolf} from "@/utils/Roles.js";
-import {Heart} from "lucide-react";
-import { getMostTargetPlayerId, wolfVoteCounts as computeWolfVoteCounts } from "@/server/socket/utils/roleTurnManager.js";
+import {Heart, Skull} from "lucide-react";
+import {getMostTargetPlayerId, wolfVoteCounts as computeWolfVoteCounts} from "@/server/socket/utils/roleTurnManager.js";
 
 const GameBoard = ({
                        players,
@@ -83,9 +83,11 @@ const GameBoard = ({
     const currentPlayerIsWolf = playerIsWolf(currentPlayer?.role)
     const currentPlayerIsCupidon = currentPlayer?.role === "Cupidon";
     const currentPlayerIsLover = currentPlayer && loverIds.includes(String(currentPlayer.id));
-    const currentPlayerIsWitch = currentPlayer?.role === "Sorcière";
+    const currentPlayerIsWitch = currentPlayer?.role === "Sorciere";
+    const currentPlayerIsThief = currentPlayer?.role === "Voleur";
 
-    const wolfVoteCounts = useMemo(() => computeWolfVoteCounts(game), [game?.config?.wolves?.targets || {}]);    const isWolvesTurn = game.turn === 6 && game.phase === "Nuit";
+    const wolfVoteCounts = useMemo(() => computeWolfVoteCounts(game), [game?.config?.wolves?.targets || {}]);
+    const isWolvesTurn = game.turn === 6 && game.phase === "Nuit";
     const isWitchTurn = game.turn === 7 && game.phase === "Nuit";
 
     const isSelected = (id) => {
@@ -93,7 +95,7 @@ const GameBoard = ({
     };
 
     const handleSelect = (player, id) => {
-        if (currentPlayer && id === currentPlayer.id) return;
+        if (currentPlayer && id === currentPlayer.id && (!currentPlayerIsWitch && !currentPlayerIsThief)) return;
         if (!player.isAlive) return;
         const current = Array.isArray(selectedPlayers) ? selectedPlayers.slice() : [];
 
@@ -136,7 +138,6 @@ const GameBoard = ({
 
         return {src: "/cards/card.jpeg", alt: "Dos de carte"};
     }
-    const mostTargetByWolvesPlayer = players.find(p => String(p.id) === String(mostTargetByWolvesId)) || null;
 
     return (
         <div className="relative flex justify-center my-8">
@@ -246,35 +247,23 @@ const GameBoard = ({
 
                             <div className="text-center mt-2 transition-all duration-300">
                                 <span
-                                    className={`text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm ${player.isAlive ? "text-white bg-black/30" : "text-gray-400 bg-red-900/30"} ${isCurrentUser ? "text-purple-300 bg-purple-900/50" : ""} ${selected ? "ring-2 ring-purple-300" : ""}`}
+                                    className={`flex flex-row items-center justify-center text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm ${player.isAlive ? "text-white bg-black/30" : "text-gray-400 bg-red-900/30"} ${isCurrentUser ? "text-purple-300 bg-purple-900/50" : ""} ${selected ? "ring-2 ring-purple-300" : ""}`}
                                 >
-                                  {isCurrentUser ? "(Vous)" : player.nickname}
+                                    {currentPlayerIsWitch && isWitchTurn && mostTargetByWolvesId === String(player.id) && (
+                                        <Skull className="inline mr-1 h-3 w-3"/>
+                                    )}
+                                    {isCurrentUser ? "(Vous)" : player.nickname}
                                 </span>
                                 {currentPlayerIsWolf && isWolvesTurn && voteCount > 0 && (
-                                    <span className="ml-2 inline-block text-xs font-semibold px-2 py-0.5 rounded-full bg-black/50 text-white">
-                                    {voteCount}
-                                </span>
+                                    <span
+                                        className="ml-2 inline-block text-xs font-semibold px-2 py-0.5 rounded-full bg-black/50 text-white">
+                                        {voteCount}
+                                    </span>
                                 )}
                             </div>
                         </div>
                     );
                 })}
-
-                {currentPlayerIsWitch && mostTargetByWolvesPlayer && (
-                    <div className="absolute top-6 right-6 md:top-8 md:right-8 z-30">
-                        <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-lg px-3 py-2">
-                            <div className="text-xs text-gray-300">Ciblé par les loups</div>
-                            <Image
-                                src={mostTargetByWolvesPlayer.isBot ? "/bot-avatar.png" : mostTargetByWolvesPlayer.avatar ? mostTargetByWolvesPlayer.avatar : "/default-avatar.png"}
-                                alt={mostTargetByWolvesPlayer.nickname}
-                                width={40}
-                                height={40}
-                                className="rounded-full object-cover"
-                            />
-                            <div className="text-sm font-semibold text-white">{mostTargetByWolvesPlayer.nickname}</div>
-                        </div>
-                    </div>
-                )}
 
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                     <div

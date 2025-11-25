@@ -115,7 +115,7 @@ const getActionDetails = (role, type) => {
 }
 
 const processAction = async (io, socket, playerInfo, data, roomData) => {
-    const {gameId, selectedPlayers} = data;
+    const {gameId, selectedPlayers, type} = data;
 
     const findPlayerById = (id) => {
         if (!id) return null;
@@ -213,10 +213,10 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
             const witchConfig = roomData.config.witch;
 
             let needReset = false
-            if (data.type === ACTION_TYPES.WITCH_HEAL && witchConfig.lifePotionUsed) {
+            if (type === ACTION_TYPES.WITCH_HEAL && witchConfig.lifePotionUsed) {
                 console.log("La sorcière a déjà utilisé la potion de vie.");
                 needReset = true;
-            } else if(data.type === ACTION_TYPES.WITCH_POISON && witchConfig.poisonPotionUsed) {
+            } else if(type === ACTION_TYPES.WITCH_POISON && witchConfig.poisonPotionUsed) {
                 console.log("La sorcière a déjà utilisé la potion de poison.");
                 needReset = true;
             }
@@ -231,7 +231,7 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
             let message = `${playerInfo.nickname} n'a pas utilisé de potion en tant que Sorcière.`;
             let details = `Aucune action prise.`;
 
-            if (data.type === ACTION_TYPES.WITCH_HEAL) {
+            if (type === ACTION_TYPES.WITCH_HEAL) {
                 const healedPlayer = findPlayerById(selectedPlayers[0]);
                 witchConfig.lifePotionUsed = true;
                 witchConfig.savedTarget = healedPlayer.id;
@@ -242,7 +242,7 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
 
                 message = `${playerInfo.nickname} a utilisé la potion de vie en tant que Sorcière.`;
                 details = `Cible soignée: ${healedPlayer.nickname}`;
-            } else if (data.type === ACTION_TYPES.WITCH_POISON) {
+            } else if (type === ACTION_TYPES.WITCH_POISON) {
                 const poisonedPlayer = findPlayerById(selectedPlayers[0]);
                 witchConfig.poisonPotionUsed = true;
                 witchConfig.poisonedTarget = poisonedPlayer.id;
@@ -259,7 +259,7 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
             }
 
             addGameAction(gameId, {
-                type: data.type,
+                type,
                 playerName: playerInfo.nickname,
                 playerRole: playerInfo.role,
                 message,

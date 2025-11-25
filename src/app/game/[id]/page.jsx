@@ -13,7 +13,7 @@ import {useRouter} from "next/navigation";
 import ConfigurationOverviewModal from "@/components/game/information/modal/ConfigurationOverview";
 import AdminConfigurationModal from "@/components/game/information/modal/Configuration";
 import StartingCounter from "@/components/game/StartingCounter";
-import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "@/server/config/constants";
+import {ACTION_TYPES, GAME_STATES} from "@/server/config/constants";
 import {History} from "lucide-react";
 import LoverAmbient from "@/components/game/ambient/LoverAmbient.jsx";
 
@@ -308,10 +308,10 @@ const GamePage = ({params}) => {
     useEffect(() => {
         if (process.env.NODE_ENV === 'production') {
             toast.warning(
-                <div style={{ cursor: 'pointer' }} onClick={openDiscord}>
-                    App is still in development. <br />
-                    Bugs may occur!<br />
-                    Join our Discord for support.<br />
+                <div style={{cursor: 'pointer'}} onClick={openDiscord}>
+                    App is still in development. <br/>
+                    Bugs may occur!<br/>
+                    Join our Discord for support.<br/>
                     Click this message to open Discord.
                 </div>,
                 {
@@ -424,8 +424,8 @@ const GamePage = ({params}) => {
         socket.emit("exclude-player", id, user, reason);
     }
 
-    const handleAddBot = (botName) => {
-        socket.emit("add-bot", id, botName);
+    const handleAddBot = (botName, botType) => {
+        socket.emit("add-bot", id, botName, botType);
     }
 
     const handleUpdateGame = (newName, newType, newConfig) => {
@@ -451,14 +451,15 @@ const GamePage = ({params}) => {
         socket.emit("start-game", id);
     }
 
-    const performAction = () => {
+    const performAction = (overrideType = null) => {
+        const payloadType = overrideType ?? actionType;
         socket.emit("player-action", {
             gameId: id,
             selectedPlayers,
-            type: actionType
+            type: payloadType
         });
-        // TODO: corriger le fait que je nenvoie pas le type daction
         setSelectedPlayers([]);
+        setActionType(null);
     };
 
     if (loading) {
@@ -548,9 +549,13 @@ const GamePage = ({params}) => {
                     </button>
 
                     {mobileMenuOpen && (
-                        <div className="absolute right-0 mt-2 w-44 bg-base-100/90 backdrop-blur-sm border border-white/10 rounded-lg shadow-lg p-2 space-y-2">
+                        <div
+                            className="absolute right-0 mt-2 w-44 bg-base-100/90 backdrop-blur-sm border border-white/10 rounded-lg shadow-lg p-2 space-y-2">
                             <button
-                                onClick={() => { toggleAmbientTheme(); setMobileMenuOpen(false); }}
+                                onClick={() => {
+                                    toggleAmbientTheme();
+                                    setMobileMenuOpen(false);
+                                }}
                                 className={`w-full text-left p-2 rounded-md transition-all ${
                                     ambientThemeEnabled
                                         ? 'bg-green-500/20 border border-green-500/50 text-green-300'
@@ -561,7 +566,10 @@ const GamePage = ({params}) => {
                             </button>
 
                             <button
-                                onClick={() => { toggleAmbientSounds(); setMobileMenuOpen(false); }}
+                                onClick={() => {
+                                    toggleAmbientSounds();
+                                    setMobileMenuOpen(false);
+                                }}
                                 className={`w-full text-left p-2 rounded-md transition-all ${
                                     ambientSoundsEnabled
                                         ? 'bg-blue-500/20 border border-blue-500/50 text-blue-300'
@@ -630,6 +638,7 @@ const GamePage = ({params}) => {
                                     <div className="space-y-3 max-h-64 overflow-y-auto">
                                         {history
                                             .filter(event => event.type === ACTION_TYPES.GAME_EVENT)
+                                            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                                             .map((event, index) => {
                                                 const startedAtMs = new Date(game.startedAt).getTime();
                                                 const eventAtMs = new Date(event.createdAt).getTime();

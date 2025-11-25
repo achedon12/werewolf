@@ -3,6 +3,7 @@ import Image from 'next/image';
 import {formatDateTime} from "@/utils/Date";
 import {Bot, Plus} from "lucide-react";
 import { faker } from '@faker-js/faker';
+import {BOT_TYPES} from "@/utils/Bot.js";
 
 const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close = () => {}, excludePlayer = () => {}, addBot = () => {} }) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
@@ -30,7 +31,7 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
     };
 
     const handleAddBot = () => {
-        addBot(faker.person.firstName());
+        addBot(faker.person.firstName(), BOT_TYPES.BASIC);
     }
 
     return (
