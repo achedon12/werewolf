@@ -157,7 +157,7 @@ export const RoleSelectionCount = {
     "Loup Garou Blanc": 1,
     "Loup Garou": 1,
     "Sorciere": 1,
-    "Voleur": 1
+    "Voleur": 2
 }
 
 export const RoleActionDescriptions = {
@@ -168,7 +168,7 @@ export const RoleActionDescriptions = {
     "Enfant Sauvage": "Choisissez un modèle parmi les autres joueurs.",
     "Loup-Garou Blanc": "Tuez un autre loup-garou.",
     "Sorciere": "Utilisez une potion de vie ou de mort.",
-    "Voleur": "Échangez une avec celle d'un autre joueur au début du jeu."
+    "Voleur": "Échangez une carte avec celle d'un autre joueur au début du jeu."
 }
 
 export const defaultGameConfig = {

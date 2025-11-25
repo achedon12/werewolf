@@ -137,7 +137,7 @@ export const startGameLogic = async (socket, io, gameId) => {
         }
     }
 
-    roomData.config = defaultGameConfig;
+    roomData.config = Object.assign({}, defaultGameConfig);
     gameRooms.set(gameId, roomData);
 
     io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));

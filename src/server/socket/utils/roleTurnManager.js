@@ -223,7 +223,7 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
 
     const emitStartForRole = (roleName, players, roleIdx) => {
         // Sauter le tour si Cupidon a déjà lié des joueurs
-        if (roleName === 'Cupidon' && roomData.config && roomData.config.lovers && roomData.config.lovers.exists) {
+        if (roleName === 'Cupidon' && roomData.config.lovers.exists) {
             console.log(`🔕 Saut du tour ${roleName} car Cupidon a déjà agi dans la partie ${gameId}`);
             emitEndForRole(roleName, roleIdx);
             index += 1;
@@ -232,7 +232,7 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
         }
 
         // Sauter le tour si le Voleur a déjà effectué son échange
-        if (roleName === 'Voleur' && roomData.config && roomData.config.thief && roomData.config.thief.swapped) {
+        if (roleName === 'Voleur' && roomData.config.thief.swapped) {
             console.log(`🔕 Saut du tour ${roleName} car le Voleur a déjà agi dans la partie ${gameId}`);
             emitEndForRole(roleName, roleIdx);
             index += 1;

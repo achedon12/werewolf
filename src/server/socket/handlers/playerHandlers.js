@@ -33,7 +33,7 @@ export const handlePlayerAction = async (socket, io, data) => {
 
         try {
             if (playerIsWolf(playerInfo.role)) {
-                if (!roomData.config) roomData.config = defaultGameConfig;
+                if (!roomData.config) roomData.config = Object.assign({}, defaultGameConfig);
                 const targets = roomData.config.wolves.targets;
 
                 let wolves = [];
@@ -273,6 +273,7 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
             });
             break;
         case 'Voleur':
+            // TODO: fix thief action processing (cannot select players, cause errors)
             if (roomData.config.thief.swapped) {
                 socket.emit('game-notify', 'Vous avez déjà effectué votre échange de rôles.');
                 console.log("❌ Action du voleur invalide, réinitialisation de la sélection.");

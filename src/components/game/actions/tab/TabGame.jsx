@@ -14,9 +14,7 @@ const TabGame = ({
                      setSelectedPlayers,
                      roleCallRemaining,
                      performAction,
-                     revealedCards,
-                     actionType,
-                     setActionType
+                     revealedCards
                  }) => {
     const alivePlayers = players.filter(p => p.isAlive);
     const deadPlayers = players.filter(p => !p.isAlive);
@@ -52,7 +50,6 @@ const TabGame = ({
     };
 
     const handleWitchPotion = (type) => {
-        setActionType(type);
         performAction(type)
     }
 
@@ -149,7 +146,7 @@ const TabGame = ({
                                     game.phase === GAME_PHASES.NIGHT && !currentPlayerIsWitch && numberCanBeSelected > 0 && selectedPlayers.length > 0 && (
                                         <button
                                             disabled={selectedPlayers.length === 0}
-                                            onClick={performAction}
+                                            onClick={performAction(null)}
                                             className="ml-auto btn btn-sm btn-primary">
                                             Confirmer la sélection
                                         </button>
