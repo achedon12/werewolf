@@ -1,3 +1,4 @@
+// javascript
 import {addPlayerToChannel, connectedPlayers, gameRooms, getGameRoom} from "./roomManager.js";
 import {addGameAction, getGameHistory} from "./actionLogger.js";
 import {defaultGameConfig, getRoleById} from "../../../utils/Roles.js";
@@ -9,7 +10,6 @@ const hostname = "localhost";
 const port = 3000;
 
 export const updatedGameData = async (gameId) => {
-    console.log(`🔄 Récupération des données de la game avec ID ${gameId}...`);
     try {
         const res = await fetch(`http://${hostname}:${port}/api/game/${gameId}`);
         return await res.json();
@@ -20,7 +20,6 @@ export const updatedGameData = async (gameId) => {
 }
 
 export const updateGameData = async (gameId, updatedData) => {
-    console.log(`🔄 Mise à jour des données de la game avec ID ${gameId}...`, updatedData);
     try {
         const res = await fetch(`http://${hostname}:${port}/api/game/${gameId}`, {
             method: 'POST',
@@ -94,18 +93,16 @@ export const startGameLogic = async (socket, io, gameId) => {
     roles = roles.sort(() => Math.random() - 0.5);
 
     // give specific role to achedon12 if present
-    const targetPlayerIndex = connectedPlayersList.findIndex(p => p.nickname === 'achedon12');
-    if (targetPlayerIndex !== -1) {
-        const voyanteIndex = roles.findIndex(r => r === 'Voleur');
-        if (voyanteIndex !== -1 && voyanteIndex !== targetPlayerIndex) {
-            // échanger les rôles
-            const temp = roles[targetPlayerIndex];
-            roles[targetPlayerIndex] = roles[voyanteIndex];
-            roles[voyanteIndex] = temp;
-
-            console.log(`🔮 Le joueur achedon12 a reçu son rôle prédéfini`);
-        }
-    }
+    // const targetPlayerIndex = connectedPlayersList.findIndex(p => p.nickname === 'achedon12');
+    // if (targetPlayerIndex !== -1) {
+    //     const voyanteIndex = roles.findIndex(r => r === 'Voleur');
+    //     if (voyanteIndex !== -1 && voyanteIndex !== targetPlayerIndex) {
+    //         const temp = roles[targetPlayerIndex];
+    //         roles[targetPlayerIndex] = roles[voyanteIndex];
+    //         roles[voyanteIndex] = temp;
+    //         console.log(`🔮 Le joueur achedon12 a reçu son rôle prédéfini`);
+    //     }
+    // }
 
     for (const player of connectedPlayersList) {
         const idx = connectedPlayersList.indexOf(player);
@@ -148,6 +145,8 @@ export const startGameLogic = async (socket, io, gameId) => {
     });
 
     const countdownSeconds = 10;
+    const perRoleSeconds = 60;
+    const votingSeconds = 60;
 
     io.to(`game-${gameId}`).emit("starting-soon", countdownSeconds);
     io.to(`game-${gameId}`).emit("players-update", {
@@ -162,34 +161,130 @@ export const startGameLogic = async (socket, io, gameId) => {
     });
 
     roomData.players = Array.from(roomData.players.values());
-    console.log(`🔄 Mise à jour des joueurs de la partie avec ID ${gameId}...`, roomData.players);
     roomData.lastActivity = new Date();
     gameRooms.set(gameId, roomData);
 
     io.to(`game-${gameId}`).emit("game-update", roomData);
 
-    setTimeout(() => {
-        if (roomData.roleCallController && typeof roomData.roleCallController.stop === 'function') {
-            try { roomData.roleCallController.stop(); } catch (e) {}
+    const runNightCycle = async () => {
+        const room = getGameRoom(gameId);
+        if (!room || room.state !== GAME_STATES.IN_PROGRESS) return;
+
+        if (room.roleCallController && typeof room.roleCallController.stop === 'function') {
+            try {
+                room.roleCallController.stop();
+            } catch (e) {
+                console.error(e);
+            }
+            delete room.roleCallController;
         }
 
-        roomData.roleCallController = startRoleCallSequence(io, gameId, 60, {
+        room.phase = GAME_PHASES.NIGHT;
+        roomData.turnsCount = 1;
+        room.lastActivity = new Date();
+        gameRooms.set(gameId, room);
+        io.to(`game-${gameId}`).emit("game-update", room);
+        io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+
+        room.roleCallController = startRoleCallSequence(io, gameId, perRoleSeconds, {
             onFinished: async () => {
-                roomData.phase = GAME_PHASES.DAY;
-                roomData.lastActivity = new Date();
+                const r = getGameRoom(gameId);
+                if (!r) return;
+
+                r.phase = GAME_PHASES.DAY;
+                r.lastActivity = new Date();
                 addGameAction(gameId, {
                     type: ACTION_TYPES.GAME_EVENT,
                     playerName: "Système",
                     playerRole: "system",
-                    message: `🌞 La nuit est terminée. Passage au Jour.`,
-                    phase: "phase_change"
+                    message: `🌞 La nuit est terminée. Place au jour !`,
+                    phase: GAME_PHASES.DAY
+                });
+                gameRooms.set(gameId, r);
+                io.to(`game-${gameId}`).emit("game-update", r);
+                io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+
+                r.phase = GAME_PHASES.VOTING;
+                r.lastActivity = new Date();
+                gameRooms.set(gameId, r);
+                addGameAction(gameId, {
+                    type: ACTION_TYPES.GAME_EVENT,
+                    playerName: "Système",
+                    playerRole: "system",
+                    message: `🗳️ La phase de vote commence ! Veuillez voter pour éliminer un joueur.`,
+                    phase: GAME_PHASES.VOTING
                 });
 
+                if (r._votingTimeout) {
+                    clearTimeout(r._votingTimeout);
+                    delete r._votingTimeout;
+                }
+                if (r._votingInterval) {
+                    clearInterval(r._votingInterval);
+                    delete r._votingInterval;
+                }
 
-                io.to(`game-${gameId}`).emit("game-update", roomData);
+                io.in(`game-${gameId}`).emit('voting-start', votingSeconds);
+                io.to(`game-${gameId}`).emit("game-update", r);
                 io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
-                delete roomData.roleCallController;
+
+                let remainingVoteSec = votingSeconds;
+                io.in(`game-${gameId}`).emit('voting-tick', {remaining: remainingVoteSec});
+                r._votingInterval = setInterval(() => {
+                    remainingVoteSec -= 1;
+                    if (remainingVoteSec <= 0) {
+                        io.in(`game-${gameId}`).emit('voting-tick', {remaining: 0});
+                        if (r._votingInterval) {
+                            clearInterval(r._votingInterval);
+                            delete r._votingInterval;
+                        }
+                        return;
+                    }
+                    io.in(`game-${gameId}`).emit('voting-tick', {remaining: remainingVoteSec});
+                }, 1000);
+
+                r._votingTimeout = setTimeout(async () => {
+                    const rr = getGameRoom(gameId);
+                    if (!rr) return;
+
+                    if (rr._votingInterval) {
+                        clearInterval(rr._votingInterval);
+                        delete rr._votingInterval;
+                    }
+                    if (rr._votingTimeout) {
+                        clearTimeout(rr._votingTimeout);
+                        delete rr._votingTimeout;
+                    }
+
+                    rr.lastActivity = new Date();
+                    addGameAction(gameId, {
+                        type: ACTION_TYPES.GAME_EVENT,
+                        playerName: "Système",
+                        playerRole: "system",
+                        message: `🗳️ La période de vote est terminée. La nuit commence.`,
+                        phase: GAME_PHASES.NIGHT
+                    });
+
+                    rr.phase = GAME_PHASES.NIGHT;
+                    rr.turnsCount += 1;
+                    gameRooms.set(gameId, rr);
+                    io.to(`game-${gameId}`).emit("game-update", rr);
+                    io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+
+                    delete rr.roleCallController;
+
+                    const still = getGameRoom(gameId);
+                    if (still && still.state === GAME_STATES.IN_PROGRESS) {
+                        setImmediate(runNightCycle);
+                    }
+                }, votingSeconds * 1000);
             }
         });
+    }
+
+    setTimeout(() => {
+        const roomNow = getGameRoom(gameId);
+        if (!roomNow || roomNow.state !== GAME_STATES.IN_PROGRESS) return;
+        runNightCycle();
     }, countdownSeconds * 1000);
 }

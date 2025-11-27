@@ -361,13 +361,6 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
                 if (p && p.socketId) io.to(p.socketId).emit('game-set-number-can-be-selected', 0);
             }
 
-            addGameAction(gameId, {
-                type: ACTION_TYPES.GAME_EVENT,
-                playerName: "Système",
-                playerRole: "system",
-                message: `🌅 Les tours nocturnes sont terminés`,
-                phase: "role_call_finished"
-            });
             if (typeof options.onFinished === 'function') {
                 try {
                     options.onFinished();

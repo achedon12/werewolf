@@ -13,15 +13,16 @@ const TabGame = ({
                      selectedPlayers,
                      setSelectedPlayers,
                      roleCallRemaining,
+                     votingRemaining,
                      performAction,
                      revealedCards
                  }) => {
     const alivePlayers = players.filter(p => p.isAlive);
     const deadPlayers = players.filter(p => !p.isAlive);
-    const displayTimer = roleCallRemaining !== null ? formatDuration(roleCallRemaining) : '~';
     const parsedConfiguration = game.configuration ? JSON.parse(game.configuration) : {};
     const currentPlayerIsWitch = currentPlayer && currentPlayer.role === "Sorciere";
     const isWitchTurn = game.turn === 7 && game.phase === "Nuit";
+    const currentTimer = (game?.phase === GAME_PHASES.VOTING) ? votingRemaining : roleCallRemaining;
 
     const phaseInfo = {
         [GAME_PHASES.NIGHT]: {
@@ -35,6 +36,18 @@ const TabGame = ({
             color: "amber",
             title: "Phase Diurne",
             description: "Délibérations et votes publics"
+        },
+        [GAME_PHASES.VOTING]: {
+            icon: Users,
+            color: "purple",
+            title: "Vote",
+            description: "Vote pour éliminer un joueur"
+        },
+        [GAME_PHASES.STARTING]: {
+            icon: Clock,
+            color: "blue",
+            title: "Démarrage de la partie",
+            description: "Préparation et attribution des rôles"
         }
     };
     const currentPhase = phaseInfo[game.phase];
@@ -80,7 +93,7 @@ const TabGame = ({
                                 </div>
                                 <div
                                     className="text-3xl font-mono font-bold text-white bg-black/30 px-4 py-2 rounded-lg border border-white/10">
-                                    {displayTimer}
+                                    {currentTimer !== null && currentTimer !== undefined ? `${currentTimer}s` : (game?.phase === GAME_PHASES.VOTING ? '—' : '—')}
                                 </div>
                             </div>
                         </div>
@@ -177,6 +190,39 @@ const TabGame = ({
                                         </p>
                                     )}
                                 </div>
+                                {
+                                    game.phase === GAME_PHASES.NIGHT && currentPlayerIsWitch && numberCanBeSelected > 0 && selectedPlayers.length > 0 && (
+                                        <div className="flex gap-2 ml-auto">
+                                            <button
+                                                disabled={String(selectedPlayers[0]) === currentPlayer.id}
+                                                onClick={() => handleWitchPotion(ACTION_TYPES.WITCH_POISON)}
+                                                className="ml-auto btn btn-sm btn-danger">
+                                                Tuer le joueur
+                                            </button>
+                                            <button
+                                                disabled={String(selectedPlayers[0]) !== mostTargetByWolvesId}
+                                                onClick={() => handleWitchPotion(ACTION_TYPES.WITCH_HEAL)}
+                                                className="ml-auto btn btn-sm btn-success">
+                                                Sauver le joueur
+                                            </button>
+                                            <button
+                                                onClick={() => handleWitchPotion(ACTION_TYPES.WITCH_NO_ACTION)}
+                                                className="ml-auto btn btn-sm btn-primary">
+                                                Ne rien faire
+                                            </button>
+                                        </div>
+                                    )
+                                }
+                                {
+                                    game.phase === GAME_PHASES.NIGHT && !currentPlayerIsWitch && numberCanBeSelected > 0 && selectedPlayers.length > 0 && (
+                                        <button
+                                            disabled={selectedPlayers.length === 0}
+                                            onClick={() => performAction(null)}
+                                            className="ml-auto btn btn-sm btn-primary">
+                                            Confirmer la sélection
+                                        </button>
+                                    )
+                                }
                             </div>
                         </div>
                     )}

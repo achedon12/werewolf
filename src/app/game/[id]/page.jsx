@@ -47,6 +47,7 @@ const GamePage = ({params}) => {
     const ambientSoundRef = useRef(null);
     const chatContainerRef = useRef(null);
     const [roleCallRemaining, setRoleCallRemaining] = useState(null);
+    const [votingRemaining, setVotingRemaining] = useState(null);
     const router = useRouter();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [revealedCards, setRevealedCards] = useState([]);
@@ -205,6 +206,15 @@ const GamePage = ({params}) => {
             toast.info(message || "Action administrateur éxécutée.");
         }
 
+        const handleVotingStart = (seconds) => {
+            setVotingRemaining(typeof seconds === 'number' ? seconds : parseInt(seconds, 10) || null);
+        };
+        const handleVotingTick = (data) => {
+            if (!data) return;
+            const remaining = typeof data.remaining === 'number' ? data.remaining : (data.remaining ? parseInt(data.remaining, 10) : null);
+            setVotingRemaining(remaining);
+        };
+
         socket.on("game-update", handleGameUpdate);
         socket.on("game-history", handleGameHistory);
         socket.on("howl", handleHowl);
@@ -221,6 +231,8 @@ const GamePage = ({params}) => {
         socket.on("channel-joined", handleChannelJoined);
         socket.on("chat-error", handleChatError);
         socket.on("starting-soon", handleStartingSoon);
+        socket.on('voting-start', handleVotingStart);
+        socket.on('voting-tick', handleVotingTick);
         socket.on('role-call-start', handleRoleCallStart);
         socket.on('role-call-tick', handleRoleCallTick);
         socket.on('role-call-end', handleRoleCallEnd);
@@ -258,6 +270,8 @@ const GamePage = ({params}) => {
             socket.off('role-call-end', handleRoleCallEnd);
             socket.off('role-call-stopped', handleRoleCallStopped);
             socket.off('role-call-finished', handleRoleCallFinished);
+            socket.off('voting-start', handleVotingStart);
+            socket.off('voting-tick', handleVotingTick);
 
         };
     }, [id]);
@@ -591,6 +605,7 @@ const GamePage = ({params}) => {
                         selectedPlayers={selectedPlayers}
                         setSelectedPlayers={setSelectedPlayers}
                         roleCallRemaining={roleCallRemaining}
+                        votingRemaining={votingRemaining}
                         performAction={performAction}
                         revealedCards={revealedCards}
                     />

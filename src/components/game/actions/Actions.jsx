@@ -14,6 +14,7 @@ const GameActions = ({
                          selectedPlayers,
                          setSelectedPlayers,
                          roleCallRemaining,
+                         votingRemaining,
                          performAction,
                          revealedCards
                      }) => {
@@ -68,6 +69,7 @@ const GameActions = ({
                     selectedPlayers={selectedPlayers}
                     setSelectedPlayers={setSelectedPlayers}
                     roleCallRemaining={roleCallRemaining}
+                    votingRemaining={votingRemaining}
                     performAction={performAction}
                     revealedCards={revealedCards}
                 />
