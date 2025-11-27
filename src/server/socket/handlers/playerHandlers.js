@@ -273,7 +273,6 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
             });
             break;
         case 'Voleur':
-            // TODO: fix thief action processing (cannot select players, cause errors)
             if (roomData.config.thief.swapped) {
                 socket.emit('game-notify', 'Vous avez déjà effectué votre échange de rôles.');
                 console.log("❌ Action du voleur invalide, réinitialisation de la sélection.");
