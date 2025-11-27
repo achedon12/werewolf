@@ -68,7 +68,6 @@ const GamePage = ({params}) => {
 
         const handleGameUpdate = (gameData) => {
             setGame(gameData);
-            console.log("Game data updated:", gameData);
             try {
                 setConfiguration(JSON.parse(gameData.configuration));
                 setCreator(gameData.admin)
@@ -102,7 +101,6 @@ const GamePage = ({params}) => {
         const handleAvailableChannels = (channels) => {
             const keys = Object.keys(channels).filter(key => channels[key]);
             setChatChannels(keys);
-            console.log("Available chat channels:", keys);
             setCurrentChannel(prev => keys.includes(prev) ? prev : keys[0] || null);
             setChatMessages(prev => {
                 const next = {...prev};

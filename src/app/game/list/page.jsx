@@ -6,6 +6,7 @@ import {socket} from "@/socket";
 import {formatDate} from "@/utils/Date";
 import {Calendar, Clock8, Cog, Target, UserRound} from "lucide-react";
 import {useAuth} from "@/app/AuthProvider.jsx";
+import {GAME_STATES} from "@/server/config/constants.js";
 
 const GameListPage = () => {
     const [games, setGames] = useState([]);
@@ -327,10 +328,10 @@ const GameCard = ({game, onJoin, playerCount, maxPlayers, getStatusBadge, connec
         }
     };
 
-    const canJoin = game.state === 'En attente' && playerCount < maxPlayers && user;
-    const isFull = game.state === 'En attente' && playerCount >= maxPlayers;
-    const isInProgress = game.state === 'En cours';
-    const isFinished = game.state === 'terminée';
+    const canJoin = game.state === GAME_STATES.WAITING && playerCount < maxPlayers && user;
+    const isFull = game.state === GAME_STATES.IN_PROGRESS && playerCount >= maxPlayers;
+    const isInProgress = game.state === GAME_STATES.IN_PROGRESS;
+    const isFinished = game.state === GAME_STATES.FINISHED;
 
     return (
         <div
@@ -400,29 +401,37 @@ const GameCard = ({game, onJoin, playerCount, maxPlayers, getStatusBadge, connec
                 <div className="flex space-x-2">
                     <button
                         onClick={handleJoin}
-                        disabled={!canJoin && !isInProgress}
-                        className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
-                            canJoin
-                                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg hover:cursor-pointer'
-                                : isInProgress
-                                    ? 'bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg'
-                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        } ${joining ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={!canJoin || joining}
+                        className={`flex-1 px-6 py-2 rounded-xl font-semibold transition-all duration-300 transform ${
+                            joining
+                                ? 'bg-blue-500 text-white shadow-lg cursor-wait scale-95'
+                                : canJoin
+                                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 cursor-pointer border-2 border-blue-500/20'
+                                    : isInProgress
+                                        ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 cursor-pointer border-2 border-green-500/20'
+                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed border-2 border-gray-200 dark:border-gray-600 shadow-sm'
+                        } disabled:transform-none disabled:hover:scale-100`}
                     >
                         {joining ? (
-                            <span className="flex items-center justify-center hover:cursor-wait">
-                                    <div
-                                        className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                    Connexion...
-                                  </span>
+                            <span className="flex items-center justify-center gap-2">
+                                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                                Connexion en cours...
+                            </span>
+                        ) : canJoin ? (
+                            <span className="flex items-center justify-center gap-2">
+                                <span className="text-lg">🎮</span>
+                                Rejoindre la partie
+                            </span>
                         ) : isInProgress ? (
-                            '👁️ Spectateur'
-                        ) : isFull ? (
-                            '🚫 Complète'
-                        ) : isFinished ? (
-                            '🏁 Terminée'
+                            <span className="flex items-center justify-center gap-2">
+                                <span className="text-lg">⚡</span>
+                                Partie en cours
+                            </span>
                         ) : (
-                            '🎮 Rejoindre'
+                            <span className="flex items-center justify-center gap-2">
+                                <span className="text-lg">🔒</span>
+                                Indisponible
+                            </span>
                         )}
                     </button>
                 </div>

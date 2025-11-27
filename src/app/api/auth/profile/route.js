@@ -83,7 +83,6 @@ export async function PUT(req) {
             try {
                 fs.writeFileSync(filePath, buffer);
                 const stats = fs.statSync(filePath);
-                console.log(`Avatar écrit: ${filePath} (${stats.size} bytes)`);
             } catch (error) {
                 console.error("Erreur lors de l'écriture du fichier avatar :", error);
                 return NextResponse.json({error: "Erreur lors de l'upload de l'avatar"}, {status: 500});

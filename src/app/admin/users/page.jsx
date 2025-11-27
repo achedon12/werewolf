@@ -84,7 +84,6 @@ const AdminUsersPage = () => {
 
     const handleToggleAdmin = async (user) => {
         try {
-            console.log('Toggle admin for:', user.id);
             setUsers(users.map(u =>
                 u.id === user.id ? {...u, role: u.role === 'admin' ? 'user' : 'admin'} : u
             ));
@@ -95,7 +94,6 @@ const AdminUsersPage = () => {
 
     const handleToggleVerification = async (user) => {
         try {
-            console.log('Toggle verification for:', user.id);
             setUsers(users.map(u =>
                 u.id === user.id ? {...u, verified: !u.verified} : u
             ));

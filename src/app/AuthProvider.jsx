@@ -7,12 +7,14 @@ const authContext = createContext({
     user: null,
     token: null,
     loading: true,
+    theme: "light",
     login: async () => false,
     register: async () => false,
     logout: async () => {},
     setUser: () => {},
     setPlayer: () => {},
-    setGame: () => {}
+    setGame: () => {},
+    setTheme: () => {},
 });
 
 export const useAuth = () => {
@@ -26,6 +28,7 @@ export function AuthProvider({children}) {
     const [player, setPlayer] = useState(null);
     const [game, setGame] = useState(null);
     const router = useRouter();
+    const [theme, setTheme] = useState("light");
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
@@ -51,6 +54,9 @@ export function AuthProvider({children}) {
             if (event.key === "token") {
                 setToken(event.newValue);
             }
+            if (event.key === "theme") {
+                setTheme(event.newValue || "light");
+            }
         };
 
         window.addEventListener("storage", handleStorageChange);
@@ -65,6 +71,29 @@ export function AuthProvider({children}) {
             router.push("/auth");
         }
     }, [loading, user, router]);
+
+    useEffect(() => {
+        const storedTheme = localStorage.getItem("theme");
+        if (storedTheme) {
+            setTheme(storedTheme);
+            return;
+        }
+
+        const mql = window.matchMedia("(prefers-color-scheme: dark)");
+        const applyPref = (e) => {
+            setTheme(e?.matches ? "dark" : "light");
+        };
+
+        applyPref(mql);
+
+        if (typeof mql.addEventListener === "function") {
+            mql.addEventListener("change", applyPref);
+            return () => mql.removeEventListener("change", applyPref);
+        } else if (typeof mql.addListener === "function") {
+            mql.addListener(applyPref);
+            return () => mql.removeListener(applyPref);
+        }
+    }, []);
 
     const login = async (email, password) => {
         const res = await fetch("/api/auth", {

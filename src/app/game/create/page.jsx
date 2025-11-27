@@ -349,7 +349,7 @@ const CreateGamePage = () => {
                                 <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 text-center border border-red-200 dark:border-red-800">
                                     <div className="text-red-600 dark:text-red-400 text-sm font-medium mb-1">Loups-Garous</div>
                                     <div className="text-red-800 dark:text-red-300 font-bold text-lg">
-                                        {selectedRoles[1] || 0}
+                                        {selectedRoles[1] + selectedRoles[8] || 0}
                                     </div>
                                 </div>
                             </div>
@@ -357,7 +357,7 @@ const CreateGamePage = () => {
                             <div className="card-actions justify-center">
                                 <button
                                     type="submit"
-                                    disabled={isCreating || totalPlayers > maxPlayers || totalPlayers < 8}
+                                    disabled={isCreating || totalPlayers > maxPlayers || totalPlayers < 8 || selectedRoles[1] + selectedRoles[8] === 0}
                                     className="btn btn-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 dark:from-blue-500 dark:to-purple-500 dark:hover:from-blue-600 dark:hover:to-purple-600 border-none text-white shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:transform-none disabled:hover:shadow-lg w-full max-w-md"
                                 >
                                     {isCreating ? (

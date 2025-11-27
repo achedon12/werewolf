@@ -22,7 +22,6 @@ const StatsPage = () => {
                     },
                 });
                 const data = await res.json();
-                console.log('Données des stats reçues:', data);
                 setStats(data);
             } catch (error) {
                 console.error('Erreur lors du chargement des stats:', error);

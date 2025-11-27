@@ -92,67 +92,91 @@ const TabGame = ({
                 <div
                     className={game.state === GAME_STATES.WAITING ? "xl:col-span-3 span-y-3" : "xl:col-span-2 space-y-6"}>
                     {game.state === GAME_STATES.IN_PROGRESS && (
-                        <div className={`alert bg-${currentPhase.color}-500/10 border-${currentPhase.color}-500/20`}>
+                        <div className={`alert ${
+                            currentPhase.color === 'blue'
+                                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                                : currentPhase.color === 'red'
+                                    ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                                    : currentPhase.color === 'purple'
+                                        ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800'
+                                        : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'
+                        }`}>
                             <div className="flex items-center gap-3">
-                                <AlertTriangle className={`text-${currentPhase.color}-400`}/>
+                                <AlertTriangle className={
+                                    currentPhase.color === 'blue'
+                                        ? 'text-blue-500 dark:text-blue-400'
+                                        : currentPhase.color === 'red'
+                                            ? 'text-red-500 dark:text-red-400'
+                                            : currentPhase.color === 'purple'
+                                                ? 'text-purple-500 dark:text-purple-400'
+                                                : 'text-gray-500 dark:text-gray-400'
+                                }/>
                                 <div className="flex flex-col gap-1">
-                                    <h3 className="font-semibold text-white">
-                                        {game.phase === GAME_PHASES.NIGHT ? "Phase Nocturne" : "Phase Diurne"}
+                                    <h3 className={`font-semibold ${
+                                        currentPhase.color === 'blue'
+                                            ? 'text-blue-900 dark:text-blue-100'
+                                            : currentPhase.color === 'red'
+                                                ? 'text-red-900 dark:text-red-100'
+                                                : currentPhase.color === 'purple'
+                                                    ? 'text-purple-900 dark:text-purple-100'
+                                                    : 'text-gray-900 dark:text-gray-100'
+                                    }`}>
+                                        {game.phase === GAME_PHASES.NIGHT ? "🌙 Phase Nocturne" : "☀️ Phase Diurne"}
                                     </h3>
                                     {game.phase === GAME_PHASES.NIGHT && currentPlayer && (
-                                        <p className="text-gray-300 text-sm">{RoleActionDescriptions.hasOwnProperty(currentPlayer.role) ? RoleActionDescriptions[currentPlayer.role] : "Observez et tentez de déduire les rôles des autres joueurs."}</p>
+                                        <p className={
+                                            currentPhase.color === 'blue'
+                                                ? 'text-blue-700 dark:text-blue-300'
+                                                : currentPhase.color === 'red'
+                                                    ? 'text-red-700 dark:text-red-300'
+                                                    : currentPhase.color === 'purple'
+                                                        ? 'text-purple-700 dark:text-purple-300'
+                                                        : 'text-gray-700 dark:text-gray-300'
+                                        }>
+                                            {RoleActionDescriptions.hasOwnProperty(currentPlayer.role) ? RoleActionDescriptions[currentPlayer.role] : "Observez et tentez de déduire les rôles des autres joueurs."}
+                                        </p>
                                     )}
                                     {game.phase === GAME_PHASES.NIGHT && numberCanBeSelected > 0 && (
-                                        <p className="text-gray-300 text-sm">Vous pouvez sélectionner jusqu'à <span
-                                            className="font-semibold">{numberCanBeSelected}</span> joueur
+                                        <p className={
+                                            currentPhase.color === 'blue'
+                                                ? 'text-blue-700 dark:text-blue-300'
+                                                : currentPhase.color === 'red'
+                                                    ? 'text-red-700 dark:text-red-300'
+                                                    : currentPhase.color === 'purple'
+                                                        ? 'text-purple-700 dark:text-purple-300'
+                                                        : 'text-gray-700 dark:text-gray-300'
+                                        }>
+                                            Vous pouvez sélectionner jusqu'à <span className="font-semibold text-blue-600 dark:text-blue-400">{numberCanBeSelected}</span> joueur
                                             {numberCanBeSelected > 1 ? "s" : ""}.
                                         </p>
                                     )}
                                     {game.phase === GAME_PHASES.NIGHT && isWitchTurn && currentPlayerIsWitch && (
-                                        <p className="text-gray-300 text-sm">
-                                            Les Loups-Garous ont ciblé <span className="font-semibold">{playerTargetByWolves ? playerTargetByWolves.nickname : "un joueur inconnu"}</span>.
+                                        <p className={
+                                            currentPhase.color === 'blue'
+                                                ? 'text-blue-700 dark:text-blue-300'
+                                                : currentPhase.color === 'red'
+                                                    ? 'text-red-700 dark:text-red-300'
+                                                    : currentPhase.color === 'purple'
+                                                        ? 'text-purple-700 dark:text-purple-300'
+                                                        : 'text-gray-700 dark:text-gray-300'
+                                        }>
+                                            Les Loups-Garous ont ciblé <span className="font-semibold text-red-600 dark:text-red-400">{playerTargetByWolves ? playerTargetByWolves.nickname : "un joueur inconnu"}</span>.
                                         </p>
                                     )}
                                     {game.phase === GAME_PHASES.DAY && (
-                                        <p className="text-gray-300 text-sm">
+                                        <p className={
+                                            currentPhase.color === 'blue'
+                                                ? 'text-blue-700 dark:text-blue-300'
+                                                : currentPhase.color === 'red'
+                                                    ? 'text-red-700 dark:text-red-300'
+                                                    : currentPhase.color === 'purple'
+                                                        ? 'text-purple-700 dark:text-purple-300'
+                                                        : 'text-gray-700 dark:text-gray-300'
+                                        }>
                                             Délibérez ensemble et votez pour éliminer un suspect.
                                         </p>
                                     )}
                                 </div>
-                                {
-                                    game.phase === GAME_PHASES.NIGHT && currentPlayerIsWitch && numberCanBeSelected > 0 && selectedPlayers.length > 0 && (
-                                        <div className="flex gap-2 ml-auto">
-                                            <button
-                                                disabled={String(selectedPlayers[0]) === currentPlayer.id}
-                                                onClick={() => handleWitchPotion(ACTION_TYPES.WITCH_POISON)}
-                                                className="ml-auto btn btn-sm btn-danger">
-                                                Tuer le joueur
-                                            </button>
-                                            <button
-                                                disabled={String(selectedPlayers[0]) !== mostTargetByWolvesId}
-                                                onClick={() => handleWitchPotion(ACTION_TYPES.WITCH_HEAL)}
-                                                className="ml-auto btn btn-sm btn-success">
-                                                Sauver le joueur
-                                            </button>
-                                            <button
-                                                onClick={() => handleWitchPotion(ACTION_TYPES.WITCH_NO_ACTION)}
-                                                className="ml-auto btn btn-sm btn-primary">
-                                                Ne rien faire
-                                            </button>
-                                        </div>
-                                    )
-                                }
-                                {
-                                    game.phase === GAME_PHASES.NIGHT && !currentPlayerIsWitch && numberCanBeSelected > 0 && selectedPlayers.length > 0 && (
-                                        <button
-                                            disabled={selectedPlayers.length === 0}
-                                            onClick={() => performAction(null)}
-                                            className="ml-auto btn btn-sm btn-primary">
-                                            Confirmer la sélection
-                                        </button>
-                                    )
-                                }
-
                             </div>
                         </div>
                     )}

@@ -1,9 +1,24 @@
 {
   "name": "werewolf",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A real-time multiplayer online version of the classic social deduction game Werewolf",
   "type": "module",
   "author": "Leo Deroin <l.deroin@netcourrier.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/achedon12/werewolf"
+  },
+  "keywords": [
+    "werewolf",
+    "multiplayer",
+    "online",
+    "game",
+    "social deduction",
+    "nextjs",
+    "react",
+    "socket.io",
+    "prisma"
+  ],
   "license": "MIT",
   "private": true,
   "scripts": {

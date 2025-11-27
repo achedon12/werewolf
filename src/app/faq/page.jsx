@@ -21,7 +21,7 @@ const FAQPage = () => {
             questions: [
                 {
                     id: 'what-is',
-                    question: "Qu'est-ce que Loup-Garou Online ?",
+                    question: "Qu'est-ce que werewolf.leoderoin.fr ?",
                     answer: "Loup-Garou Online est une plateforme web immersive qui vous permet de jouer au célèbre jeu de société Loup-Garou avec des amis ou d'autres joueurs en ligne. Profitez d'une expérience complète avec chat, animations, et système de rôles avancé."
                 },
                 {
@@ -146,14 +146,14 @@ const FAQPage = () => {
                         {categories[activeCategory].questions.map((item, index) => (
                             <div
                                 key={item.id}
-                                className="group bg-base-200/30 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden transition-all duration-300 hover:border-purple-500/30"
+                                className="group bg-base-200/30 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden transition-all duration-300 hover:border-purple-500/30 faq-item"
                                 style={{
                                     animationDelay: `${index * 100}ms`
                                 }}
                             >
                                 <button
                                     onClick={() => toggleItem(item.id)}
-                                    className="w-full px-6 py-5 text-left flex justify-between items-center hover:bg-white/5 transition-colors duration-200"
+                                    className="w-full px-6 py-5 text-left flex justify-between items-center hover:bg-white/5 transition-colors duration-200 cursor-pointer"
                                 >
                                     <div className="flex items-center space-x-4">
                                         <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold">
