@@ -4,29 +4,17 @@ import {useEffect, useState} from 'react';
 import packageJson from '../../../../package.json';
 import {usePathname} from 'next/navigation';
 import {Github, Globe, Heart, HelpCircle, Home, MessageCircle, Moon, Shield, Sun} from 'lucide-react';
+import {useAuth} from "@/app/AuthProvider.jsx";
 
 export default function Footer() {
-    const [theme, setTheme] = useState('dark');
+    const { theme, setTheme } = useAuth();
     const pathname = usePathname();
-
-    useEffect(() => {
-        const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-        setTheme(currentTheme);
-    }, []);
 
     if (pathname?.startsWith('/admin')) return null;
 
     const handleThemeToggle = () => {
         const newTheme = theme === 'dark' ? 'light' : 'dark';
         setTheme(newTheme);
-
-        if (newTheme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-
-        localStorage.setItem('theme', newTheme);
     };
 
     const version = packageJson?.version || '0.0.0';
@@ -177,14 +165,6 @@ export default function Footer() {
                                     <span
                                         className="w-1 h-1 rounded-full bg-gray-400 group-hover:bg-blue-500 transition-colors"></span>
                                     Conditions d'utilisation
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/cookies"
-                                      className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-2 group">
-                                    <span
-                                        className="w-1 h-1 rounded-full bg-gray-400 group-hover:bg-blue-500 transition-colors"></span>
-                                    Cookies
                                 </Link>
                             </li>
                         </ul>
