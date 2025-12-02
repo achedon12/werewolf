@@ -205,6 +205,7 @@ export const defaultGameConfig = {
         whiteTarget: null
     },
     thief: {
+        applied: false,
         choices: [],
         swapped: false
     }

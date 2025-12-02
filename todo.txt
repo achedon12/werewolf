@@ -1,5 +1,3 @@
 - add voting chat
 - fix bug for witch (ux/ui, she can use her ability more 1 time per game for each potion)
-- thief exchange role
 - hunter shoot after death
-- game ux/ui improvements (dark/white theme, animations, sounds)

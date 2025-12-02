@@ -6,7 +6,6 @@ import {handleUpdateAvailableChannels} from "../handlers/chatHandlers.js";
 import {countPlayersByCamp, simulateBotVoteAction, startRoleCallSequence} from "../utils/roleTurnManager.js";
 import {processNightEliminations} from "../utils/eliminationManager.js";
 import {findPlayerById} from "../utils/playerManager.js";
-import {updatePlayersChannels} from "../utils/chatManager.js";
 import {sanitizeRoom} from './sanitizeRoom.js';
 
 const hostname = "localhost";
@@ -216,6 +215,8 @@ export const startGameLogic = async (socket, io, gameId) => {
                 gameRooms.set(gameId, r);
                 io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(r));
                 io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+
+                applyThiefExchange(io, gameId, r);
 
                 await processNightEliminations(io, gameId);
                 if (evaluateWinCondition(io, gameId, r)) {
@@ -595,3 +596,47 @@ const persistGameLogs = async (gameId) => {
         console.error("❌ Erreur lors de la persistance des logs de la game :", err);
     }
 }
+
+const applyThiefExchange = (io, gameId, room) => {
+    if (!room || !room.config || !room.config.thief) return;
+    const thiefCfg = room.config.thief;
+
+    if (thiefCfg.applied) return;
+    const choices = Array.isArray(thiefCfg.choices) ? thiefCfg.choices : [];
+
+    if (choices.length !== 2) return;
+
+    const [idA, idB] = choices;
+    const pA = findPlayerById(room, idA);
+    const pB = findPlayerById(room, idB);
+
+    if (!pA || !pB) return;
+
+    const oldRoleA = pA.role;
+    pA.role = pB.role;
+    pB.role = oldRoleA;
+
+    thiefCfg.applied = true;
+    thiefCfg.swapped = true;
+
+    addGameAction(gameId, {
+        type: ACTION_TYPES.GAME_EVENT,
+        playerName: "Système",
+        playerRole: "system",
+        message: `🃏 Le Voleur a échangé les cartes de ${pA.nickname} et ${pB.nickname}.`,
+        phase: GAME_PHASES.DAY,
+        createdAt: new Date().toISOString()
+    });
+
+    if (pA.socketId) {
+        io.to(pA.socketId).emit('game-notify', `Votre carte a été changée au lever du jour. Vous êtes maintenant ${pA.role}.`);
+    }
+    if (pB.socketId) {
+        io.to(pB.socketId).emit('game-notify', `Votre carte a été changée au lever du jour. Vous êtes maintenant ${pB.role}.`);
+    }
+
+    room.lastActivity = new Date();
+    gameRooms.set(gameId, room);
+    io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(room));
+    io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+};
