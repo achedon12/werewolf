@@ -11,6 +11,7 @@ export const GAME_PHASES = {
     NIGHT: 'Nuit',
     VOTING: 'voting',
     STARTING: 'Démarrage',
+    FINISHED: 'Terminée'
 };
 
 export const ACTION_TYPES = {

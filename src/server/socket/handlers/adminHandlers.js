@@ -146,7 +146,8 @@ export const handleGetRoomInfo = (socket, gameId) => {
             channels: {
                 general: roomData.channels.general.size,
                 werewolves: roomData.channels.werewolves.size,
-                vote: roomData.channels.vote.size
+                vote: roomData.channels.vote.size,
+                sisters: roomData.channels.sisters.size
             },
             historyCount: roomData.actionHistory.length,
             lastActivity: roomData.lastActivity

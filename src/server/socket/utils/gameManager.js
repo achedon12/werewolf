@@ -1,10 +1,12 @@
-// javascript
 import {addPlayerToChannel, connectedPlayers, gameRooms, getGameRoom} from "./roomManager.js";
 import {addGameAction, getGameHistory} from "./actionLogger.js";
 import {defaultGameConfig, getRoleById} from "../../../utils/Roles.js";
 import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "../../config/constants.js";
 import {handleUpdateAvailableChannels} from "../handlers/chatHandlers.js";
-import {startRoleCallSequence} from "../utils/roleTurnManager.js";
+import {countPlayersByCamp, simulateBotVoteAction, startRoleCallSequence} from "../utils/roleTurnManager.js";
+import {processNightEliminations} from "../utils/eliminationManager.js";
+import {findPlayerById} from "../utils/playerManager.js";
+import {updatePlayersChannels} from "../utils/chatManager.js";
 
 const hostname = "localhost";
 const port = 3000;
@@ -21,18 +23,27 @@ export const updatedGameData = async (gameId) => {
 
 export const updateGameData = async (gameId, updatedData) => {
     try {
+        const body = {
+            name: updatedData.name,
+            configuration: updatedData.configuration,
+            type: updatedData.type,
+            state: updatedData.state,
+            phase: updatedData.phase,
+            players: updatedData.players,
+            startedAt: updatedData.startedAt
+        };
+
+        if (Array.isArray(updatedData.users)) {
+            body.users = updatedData.users;
+        }
+        if (Array.isArray(updatedData.winners)) {
+            body.winners = updatedData.winners;
+        }
+
         const res = await fetch(`http://${hostname}:${port}/api/game/${gameId}`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                name: updatedData.name,
-                configuration: updatedData.configuration,
-                type: updatedData.type,
-                state: updatedData.state,
-                phase: updatedData.phase,
-                players: updatedData.players,
-                startedAt: updatedData.startedAt,
-            })
+            body: JSON.stringify(body)
         });
         return await res.json();
     } catch (err) {
@@ -157,7 +168,7 @@ export const startGameLogic = async (socket, io, gameId) => {
         state: GAME_STATES.IN_PROGRESS,
         phase: GAME_PHASES.NIGHT,
         players: Array.from(roomData.players.values()),
-        startedAt: new Date().toISOString()
+        startedAt: new Date().toISOString(),
     });
 
     roomData.players = Array.from(roomData.players.values());
@@ -204,6 +215,12 @@ export const startGameLogic = async (socket, io, gameId) => {
                 io.to(`game-${gameId}`).emit("game-update", r);
                 io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 
+                await processNightEliminations(io, gameId);
+                if (evaluateWinCondition(io, gameId, r)) {
+                    return;
+                }
+
+                // Start voting phase
                 r.phase = GAME_PHASES.VOTING;
                 r.lastActivity = new Date();
                 gameRooms.set(gameId, r);
@@ -227,6 +244,10 @@ export const startGameLogic = async (socket, io, gameId) => {
                 io.in(`game-${gameId}`).emit('voting-start', votingSeconds);
                 io.to(`game-${gameId}`).emit("game-update", r);
                 io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+                io.to(`game-${gameId}`).emit('game-set-number-can-be-selected', 1);
+
+                // Simulate bot votes
+                simulateBotVoteAction(io, gameId, votingSeconds);
 
                 let remainingVoteSec = votingSeconds;
                 io.in(`game-${gameId}`).emit('voting-tick', {remaining: remainingVoteSec});
@@ -256,6 +277,65 @@ export const startGameLogic = async (socket, io, gameId) => {
                         delete rr._votingTimeout;
                     }
 
+                    try {
+                        const votesMap = (rr.config && rr.config.votes) ? rr.config.votes : {};
+                        const counts = {};
+                        for (const voterId of Object.keys(votesMap)) {
+                            const targetId = votesMap[voterId];
+                            if (targetId == null) continue;
+                            const key = String(targetId);
+                            counts[key] = (counts[key] || 0) + 1;
+                        }
+
+                        let maxCount = 0;
+                        for (const k of Object.keys(counts)) {
+                            if (counts[k] > maxCount) maxCount = counts[k];
+                        }
+
+                        if (maxCount > 0) {
+                            const topIds = Object.keys(counts).filter(k => counts[k] === maxCount);
+                            const selectedId = topIds.length === 1 ? topIds[0] : topIds[Math.floor(Math.random() * topIds.length)];
+
+                            const eliminated = findPlayerById(rr, selectedId);
+                            if (eliminated && eliminated.isAlive !== false) {
+                                eliminated.isAlive = false;
+                                eliminated.eliminatedByVote = true;
+                                eliminated.eliminatedAt = new Date().toISOString();
+
+                                addGameAction(gameId, {
+                                    type: ACTION_TYPES.GAME_EVENT,
+                                    playerName: "Système",
+                                    playerRole: "system",
+                                    message: `⚰️ ${eliminated.nickname} a été éliminé(e) par vote (${maxCount} vote${maxCount > 1 ? 's' : ''}).`,
+                                    details: `Votes: ${maxCount}`,
+                                    phase: GAME_PHASES.VOTING,
+                                    createdAt: new Date().toISOString()
+                                });
+
+                                console.log(`⚰️ Élimination par vote dans la partie ${gameId} : ${eliminated.nickname} (${maxCount} votes)`);
+
+                                if (rr.config) rr.config.votes = {};
+                                rr.lastActivity = new Date();
+                                gameRooms.set(gameId, rr);
+                                io.to(`game-${gameId}`).emit("game-update", rr);
+                                io.to(`game-${gameId}`).emit("players-update", {players: room.players});
+                                io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+
+                                if (evaluateWinCondition(io, gameId, rr)) {
+                                    return;
+                                }
+                            } else {
+                                if (rr.config) rr.config.votes = {};
+                                gameRooms.set(gameId, rr);
+                            }
+                        } else {
+                            if (rr.config) rr.config.votes = {};
+                            gameRooms.set(gameId, rr);
+                        }
+                    } catch (e) {
+                        console.error("❌ Erreur lors du décompte des votes:", e);
+                    }
+
                     rr.lastActivity = new Date();
                     addGameAction(gameId, {
                         type: ACTION_TYPES.GAME_EVENT,
@@ -267,7 +347,14 @@ export const startGameLogic = async (socket, io, gameId) => {
 
                     rr.phase = GAME_PHASES.NIGHT;
                     rr.turnsCount += 1;
+                    rr.config.wolves.targets = {};
+                    rr.config.witch.savedTarget = null;
+                    rr.config.witch.poisonedTarget = null;
+                    rr.config.hunter.target = null;
+                    rr.config.saving.prevTarget = rr.config.saving.target;
+                    rr.config.saving.target = null;
                     gameRooms.set(gameId, rr);
+                    //await updatePlayersChannels(io, Array.from(rr.players.values()).filter(p => p.online), gameId);
                     io.to(`game-${gameId}`).emit("game-update", rr);
                     io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 
@@ -287,4 +374,219 @@ export const startGameLogic = async (socket, io, gameId) => {
         if (!roomNow || roomNow.state !== GAME_STATES.IN_PROGRESS) return;
         runNightCycle();
     }, countdownSeconds * 1000);
+}
+
+const evaluateWinCondition = (io, gameId, room) => {
+    const r = room || getGameRoom(gameId);
+    if (!r) return false;
+
+    const counts = countPlayersByCamp(gameId);
+    const wolves = counts.wolves || 0;
+    const villagers = counts.villagers || 0;
+    const totalAlive = counts.totalAlive || 0;
+    const loversCount = counts.lovers || 0;
+
+    const getAlivePlayers = (roomObj) => {
+        if (!roomObj) return [];
+        const playersArray = roomObj.players instanceof Map
+            ? Array.from(roomObj.players.values())
+            : Array.isArray(roomObj.players)
+                ? roomObj.players
+                : [];
+        return playersArray.filter(p => p && p.isAlive !== false);
+    };
+
+    const hasCrossAlignedLoversWithOthers = (roomObj) => {
+        const alive = getAlivePlayers(roomObj);
+        if (!alive.length) return false;
+
+        const loverPairs = [];
+        if (roomObj.config && roomObj.config.lovers && Array.isArray(roomObj.config.lovers.players)) {
+            const pair = roomObj.config.lovers.players;
+            if (pair.length >= 2) {
+                const a = alive.find(p => p.id === pair[0]);
+                const b = alive.find(p => p.id === pair[1]);
+                if (a && b) loverPairs.push([a, b]);
+            }
+        }
+
+        for (const p of alive) {
+            if (p.isLover && p.loverWith) {
+                const partner = alive.find(x => x.id === p.loverWith);
+                if (partner) loverPairs.push([p, partner]);
+            } else if (p.isLover && typeof p.loverId !== 'undefined') {
+                const partner = alive.find(x => x.id === p.loverId);
+                if (partner) loverPairs.push([p, partner]);
+            }
+        }
+
+        const unique = [];
+        const seen = new Set();
+        for (const [a, b] of loverPairs) {
+            const key = [String(a.id), String(b.id)].sort().join('|');
+            if (!seen.has(key)) {
+                seen.add(key);
+                unique.push([a, b]);
+            }
+        }
+
+        for (const [a, b] of unique) {
+            const aIsWolf = /Loup-Garou/i.test(a.role);
+            const bIsWolf = /Loup-Garou/i.test(b.role);
+            if (aIsWolf !== bIsWolf) {
+                const others = alive.filter(p => p.id !== a.id && p.id !== b.id);
+                if (others.length > 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    if (loversCount >= 2 && totalAlive === 2) {
+        r.state = GAME_STATES.FINISHED;
+        r.phase = GAME_PHASES.FINISHED;
+        addGameAction(gameId, {
+            type: ACTION_TYPES.GAME_EVENT,
+            playerName: "Système",
+            playerRole: "system",
+            message: `🏆 Les Amoureux ont gagné !`,
+            phase: r.phase,
+            createdAt: new Date().toISOString()
+        });
+
+        const winners = getAlivePlayers(r).map(p => p.id).filter(Boolean);
+        persistWinners(gameId, winners).catch(e => console.error(e));
+
+        if (r.roleCallController && typeof r.roleCallController.stop === 'function') {
+            try { r.roleCallController.stop(); } catch (e) { console.error(e); }
+            delete r.roleCallController;
+        }
+        if (r._votingInterval) { clearInterval(r._votingInterval); delete r._votingInterval; }
+        if (r._votingTimeout) { clearTimeout(r._votingTimeout); delete r._votingTimeout; }
+        r.lastActivity = new Date();
+        gameRooms.set(gameId, r);
+        io.to(`game-${gameId}`).emit("game-update", r);
+        io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+        return true;
+    }
+
+    if (wolves <= 0 && totalAlive > 0) {
+        r.state = GAME_STATES.FINISHED;
+        r.phase = GAME_PHASES.FINISHED;
+        addGameAction(gameId, {
+            type: ACTION_TYPES.GAME_EVENT,
+            playerName: "Système",
+            playerRole: "system",
+            message: `🏆 Les Villageois ont gagné !`,
+            phase: r.phase,
+            createdAt: new Date().toISOString()
+        });
+
+        const winners = room.players
+            .filter(p => !/Loup-Garou/i.test(p.role))
+            .map(p => p.id)
+            .filter(Boolean);
+        persistWinners(gameId, winners).catch(e => console.error(e));
+
+        if (r.roleCallController && typeof r.roleCallController.stop === 'function') {
+            try { r.roleCallController.stop(); } catch (e) { console.error(e); }
+            delete r.roleCallController;
+        }
+        if (r._votingInterval) { clearInterval(r._votingInterval); delete r._votingInterval; }
+        if (r._votingTimeout) { clearTimeout(r._votingTimeout); delete r._votingTimeout; }
+        r.lastActivity = new Date();
+        gameRooms.set(gameId, r);
+        io.to(`game-${gameId}`).emit("game-update", r);
+        io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+        return true;
+    }
+
+    if (wolves > 0 && villagers === 0) {
+        if (hasCrossAlignedLoversWithOthers(r)) {
+            return false;
+        }
+
+        r.state = GAME_STATES.FINISHED;
+        r.phase = GAME_PHASES.FINISHED;
+        addGameAction(gameId, {
+            type: ACTION_TYPES.GAME_EVENT,
+            playerName: "Système",
+            playerRole: "system",
+            message: `🏆 Les Loups-Garous ont gagné !`,
+            phase: r.phase,
+            createdAt: new Date().toISOString()
+        });
+
+        const winners = room.players
+            .filter(p => /Loup-Garou/i.test(p.role))
+            .map(p => p.id)
+            .filter(Boolean);
+        persistWinners(gameId, winners).catch(e => console.error(e));
+
+        if (r.roleCallController && typeof r.roleCallController.stop === 'function') {
+            try { r.roleCallController.stop(); } catch (e) { console.error(e); }
+            delete r.roleCallController;
+        }
+        if (r._votingInterval) { clearInterval(r._votingInterval); delete r._votingInterval; }
+        if (r._votingTimeout) { clearTimeout(r._votingTimeout); delete r._votingTimeout; }
+        r.lastActivity = new Date();
+        gameRooms.set(gameId, r);
+        io.to(`game-${gameId}`).emit("game-update", r);
+        io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+        return true;
+    }
+
+    return false;
+};
+
+const persistWinners = async (gameId, winnerIds = []) => {
+    try {
+        const uniqueUserIds = Array.from(new Set((winnerIds || []).filter(Boolean)));
+        if (uniqueUserIds.length === 0) return;
+
+        const r = getGameRoom(gameId);
+        if (!r) return;
+
+        const playersArray = r.players instanceof Map
+            ? Array.from(r.players.values())
+            : Array.isArray(r.players)
+                ? r.players
+                : [];
+
+        for (const p of playersArray) {
+            if (p && p.id && uniqueUserIds.includes(p.id)) {
+                p.victories = (p.victories || 0) + 1;
+            }
+        }
+
+        r.players = playersArray instanceof Array ? playersArray : Array.from(playersArray);
+        gameRooms.set(gameId, r);
+
+        await updateGameData(gameId, {
+            state: GAME_STATES.FINISHED,
+            phase: GAME_PHASES.FINISHED,
+            winners: uniqueUserIds
+        });
+        console.log(`✅ Gagnants persistés pour la partie ${gameId}:`, uniqueUserIds);
+
+        await persistGameLogs(gameId)
+
+    } catch (err) {
+        console.error('❌ Erreur persistWinnersViaUpdate:', err);
+    }
+};
+
+const persistGameLogs = async (gameId) => {
+    console.log(`💾 Persistance des logs de la partie ${gameId}...`);
+    const history = getGameHistory(gameId);
+    try {
+        await fetch(`http://${hostname}:${port}/api/game/${gameId}/log`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({logs: history})
+        });
+    } catch (err) {
+        console.error("❌ Erreur lors de la persistance des logs de la game :", err);
+    }
 }

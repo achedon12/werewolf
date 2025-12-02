@@ -2,7 +2,8 @@ import Image from "next/image";
 import {useEffect, useMemo, useState} from "react";
 import {getRoleByName, playerIsWolf} from "@/utils/Roles.js";
 import {Heart, Skull} from "lucide-react";
-import {getMostTargetPlayerId, wolfVoteCounts as computeWolfVoteCounts} from "@/server/socket/utils/roleTurnManager.js";
+import {getMostTargetByWolvesPlayerId, wolfVoteCounts as computeWolfVoteCounts} from "@/server/socket/utils/roleTurnManager.js";
+import {GAME_PHASES} from "@/server/config/constants.js";
 
 const GameBoard = ({
                        players,
@@ -19,7 +20,7 @@ const GameBoard = ({
     const [boardSize, setBoardSize] = useState(400);
     const [viewport, setViewport] = useState({w: 0, h: 0});
 
-    const mostTargetByWolvesId = getMostTargetPlayerId(game);
+    const mostTargetByWolvesId = getMostTargetByWolvesPlayerId(game);
     const baseRadius = 160;
     const referencePlayers = 8;
     const paddingHorizontal = 32;

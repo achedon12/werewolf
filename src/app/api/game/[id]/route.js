@@ -34,89 +34,119 @@ export async function POST(request, context) {
         body = {};
     }
 
-    let data = {};
+    const data = {};
 
-    if (body.name) {
-        data.name = body.name;
-    }
-    if (body.phase) {
-        data.phase = body.phase;
-    }
-    if (body.state) {
-        data.state = body.state;
-    }
-    if (body.adminId) {
-        data.adminId = body.adminId;
-    }
-    if (body.type) {
-        data.type = body.type;
-    }
-    if (body.configuration) {
-        data.configuration = body.configuration;
-    }
-    if (body.startedAt) {
-        data.startedAt = body.startedAt;
-    }
+    if (body.name) data.name = body.name;
+    if (body.phase) data.phase = body.phase;
+    if (body.state) data.state = body.state;
+    if (body.adminId) data.adminId = body.adminId;
+    if (body.type) data.type = body.type;
+    if (body.configuration) data.configuration = body.configuration;
+    if (body.startedAt) data.startedAt = body.startedAt;
+    if (body.endedAt) data.endedAt = body.endedAt;
 
-    const updatedGame = await prisma.game.update({
-        where: {id: id},
-        data
-    });
+    const playerIdsToConnect = [];
+    const userIdsToConnect = [];
 
     if (body.players) {
         for (const player of body.players) {
-            const isAlive = player.isAlive;
-            const isAdmin = !!player.isAdmin;
+            try {
+                const isBot = !!player.isBot;
+                const isAlive = typeof player.isAlive === 'undefined' ? true : player.isAlive;
+                const isAdmin = !!player.isAdmin;
+                const role = player.role || null;
 
-            if (player.isBot) {
-                await prisma.player.upsert({
+                const upserted = await prisma.player.upsert({
                     where: {id: player.id},
                     update: {
-                        role: player.role,
+                        role,
                         isAlive,
                         isAdmin,
                         gameId: id,
-                        isBot: true,
-                        botName: player.nickname,
-                        botType: player.botType,
-                        userId: null
+                        isBot: isBot,
+                        botName: isBot ? (player.nickname || player.botName) : null,
+                        botType: isBot ? player.botType : null,
+                        userId: isBot ? null : (player.id || null)
                     },
                     create: {
                         id: player.id,
-                        role: player.role,
+                        role,
                         gameId: id,
                         isAlive,
                         isAdmin,
-                        isBot: true,
-                        botName: player.nickname,
-                        botType: player.botType,
-                        userId: null
+                        isBot: isBot,
+                        botName: isBot ? (player.nickname || player.botName) : null,
+                        botType: isBot ? player.botType : null,
+                        userId: isBot ? null : (player.id || null)
                     }
                 });
-            } else {
-                await prisma.player.upsert({
-                    where: {id: player.id},
-                    update: {
-                        role: player.role,
-                        isAlive,
-                        isAdmin,
-                        gameId: id,
-                        isBot: false,
-                        userId: player.id
-                    },
-                    create: {
-                        id: player.id,
-                        role: player.role,
-                        gameId: id,
-                        isAlive,
-                        isAdmin,
-                        isBot: false,
-                        userId: player.id
+
+                if (upserted && upserted.id) {
+                    playerIdsToConnect.push(upserted.id);
+                }
+                if (upserted && upserted.userId) {
+                    userIdsToConnect.push(upserted.userId);
+                }
+            } catch (err) {
+                console.error('Erreur lors de la persistence d\'un player:', err);
+            }
+        }
+
+        if (playerIdsToConnect.length) {
+            data.players = {
+                connect: playerIdsToConnect.map(pid => ({id: pid}))
+            };
+        }
+
+        if (userIdsToConnect.length) {
+            const uniqueUserIds = Array.from(new Set(userIdsToConnect));
+            data.users = {
+                connect: uniqueUserIds.map(uid => ({id: uid}))
+            };
+        }
+    }
+
+    if (body.winners) {
+        const winnersConnect = body.winners;
+        if (winnersConnect.length) {
+            data.winners = {connect: winnersConnect};
+        }
+
+        for (const winnerId of body.winners) {
+            try {
+                await prisma.user.update({
+                    where: {id: winnerId},
+                    data: {
+                        victories: {
+                            increment: 1
+                        }
                     }
                 });
+            } catch (err) {
+                console.error('Erreur lors de l\'incrément des victoires:', err);
             }
         }
     }
 
-    return NextResponse.json(updatedGame);
+    try {
+        await prisma.game.update({
+            where: {id: id},
+            data: data
+        });
+    } catch (err) {
+        console.error('Erreur lors de la mise à jour de la game:', err);
+        return NextResponse.json({error: 'Failed to update game'}, {status: 500});
+    }
+
+    const result = await prisma.game.findFirst({
+        where: {id},
+        include: {
+            admin: true,
+            players: {include: {user: true}},
+            users: true,
+            winners: true
+        }
+    });
+
+    return NextResponse.json(result);
 }

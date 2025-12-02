@@ -636,7 +636,7 @@ const GamePage = ({params}) => {
                             sendChatMessage={sendChatMessage}
                             currentPlayer={currentPlayer}/>
 
-                        {game.state === GAME_STATES.IN_PROGRESS && (
+                        {(game.state === GAME_STATES.IN_PROGRESS || game.state === GAME_STATES.FINISHED) && (
                             <div className="card glass shadow-2xl backdrop-blur-sm border border-white/10 mt-6">
                                 <div className="card-body p-4">
                                     <h3 className="card-title text-white text-lg mb-4">

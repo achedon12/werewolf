@@ -1,6 +1,7 @@
 import {PrismaClient} from '@/generated/prisma';
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import {GAME_STATES} from "@/server/config/constants.js";
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
@@ -59,7 +60,7 @@ export async function PUT(request) {
         return NextResponse.json({error: 'Game ID and new state are required'}, {status: 400});
     }
 
-    const validStates = ['En attente', 'En cours', 'Terminé'];
+    const validStates = [GAME_STATES.WAITING, GAME_STATES.IN_PROGRESS, GAME_STATES.FINISHED, GAME_STATES.FINISHED];
 
     if (!validStates.includes(newState)) {
         return NextResponse.json({error: 'Invalid game state'}, {status: 400});

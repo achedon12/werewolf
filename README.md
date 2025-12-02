@@ -247,18 +247,18 @@ npm run analyze  # Analyse la taille du bundle
 
 ### Variables d'Environnement
 
-| Variable | Description | Exemple |
-|----------|-------------|---------|
-| `DATABASE_URL` | URL de connexion PostgreSQL | `postgresql://user:pass@localhost:5432/db` |
-| `JWT_SECRET` | Clé secrète pour les tokens JWT | `votre_clé_secrète_très_sécurisée` |
-| `NEXT_PUBLIC_APP_URL` | URL de l'application | `http://localhost:3000` |
-| `NEXT_PUBLIC_DISCORD_URL` | Lien vers Discord | URL du serveur Discord |
-| `NEXT_PUBLIC_GITHUB_URL` | Lien vers GitHub | URL du dépôt |
-| `NODE_ENV` | Environnement d'exécution | `development` ou `production` |
-| `SMTP_HOST` | Serveur SMTP pour les emails | `localhost` ou serveur SMTP |
-| `SMTP_PORT` | Port SMTP | `1025` (dev) ou `587` (prod) |
-| `SMTP_USER` | Utilisateur SMTP | Votre email SMTP |
-| `SMTP_PASSWORD` | Mot de passe SMTP | Mot de passe SMTP |
+| Variable                  | Description                     | Exemple                                    |
+|---------------------------|---------------------------------|--------------------------------------------|
+| `DATABASE_URL`            | URL de connexion PostgreSQL     | `postgresql://user:pass@localhost:5432/db` |
+| `JWT_SECRET`              | Clé secrète pour les tokens JWT | `votre_clé_secrète_très_sécurisée`         |
+| `NEXT_PUBLIC_APP_URL`     | URL de l'application            | `http://localhost:3000`                    |
+| `NEXT_PUBLIC_DISCORD_URL` | Lien vers Discord               | URL du serveur Discord                     |
+| `NEXT_PUBLIC_GITHUB_URL`  | Lien vers GitHub                | URL du dépôt                               |
+| `NODE_ENV`                | Environnement d'exécution       | `development` ou `production`              |
+| `SMTP_HOST`               | Serveur SMTP pour les emails    | `localhost` ou serveur SMTP                |
+| `SMTP_PORT`               | Port SMTP                       | `1025` (dev) ou `587` (prod)               |
+| `SMTP_USER`               | Utilisateur SMTP                | Votre email SMTP                           |
+| `SMTP_PASSWORD`           | Mot de passe SMTP               | Mot de passe SMTP                          |
 
 ### Configuration des Rôles
 

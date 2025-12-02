@@ -90,9 +90,9 @@ export const removePlayerFromGame = (socket, io, gameId, playerInfo, isDisconnec
     if (roomData.state === GAME_STATES.WAITING) {
         roomData.players.delete(socket.id);
     } else {
-        const player = roomData.players.get(socket.id);
-        if (player) {
-            player.online = false;
+        if (roomData.players.has(socket.id)) {
+            const player = roomData.players.get(socket.id);
+            player.isAlive = false;
             roomData.players.set(socket.id, player);
         }
     }

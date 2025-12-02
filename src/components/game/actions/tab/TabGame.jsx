@@ -3,7 +3,7 @@ import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "@/server/config/constants"
 import {AlertTriangle, Clock, History, Moon, Sun, Users} from "lucide-react";
 import {formatDuration} from "@/utils/Date";
 import {gameRoleCallOrder, getRoleByName, RoleActionDescriptions} from "@/utils/Roles";
-import {getMostTargetPlayerId} from "@/server/socket/utils/roleTurnManager.js";
+import {getMostTargetByWolvesPlayerId} from "@/server/socket/utils/roleTurnManager.js";
 
 const TabGame = ({
                      game,
@@ -48,10 +48,16 @@ const TabGame = ({
             color: "blue",
             title: "Démarrage de la partie",
             description: "Préparation et attribution des rôles"
+        },
+        [GAME_PHASES.FINISHED]: {
+            icon: History,
+            color: "gray",
+            title: "Partie Terminée",
+            description: "Consultez les résultats et l'historique"
         }
     };
     const currentPhase = phaseInfo[game.phase];
-    const mostTargetByWolvesId = getMostTargetPlayerId(game);
+    const mostTargetByWolvesId = getMostTargetByWolvesPlayerId(game);
     const playerTargetByWolves = players.find(p => String(p.id) === mostTargetByWolvesId);
 
     const roleColor = (roleName) => {
@@ -68,7 +74,7 @@ const TabGame = ({
 
     return (
         <div className="space-y-6">
-            {game.state === GAME_STATES.IN_PROGRESS && (
+            {(game.state === GAME_STATES.IN_PROGRESS || game.state === GAME_STATES.FINISHED) && (
                 <div
                     className={`card glass shadow-2xl backdrop-blur-sm border border-${currentPhase.color}-500/30 bg-gradient-to-r from-${currentPhase.color}-500/10 to-${currentPhase.color}-600/10`}>
                     <div className="card-body p-4">
@@ -104,7 +110,7 @@ const TabGame = ({
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 <div
                     className={game.state === GAME_STATES.WAITING ? "xl:col-span-3 span-y-3" : "xl:col-span-2 space-y-6"}>
-                    {game.state === GAME_STATES.IN_PROGRESS && (
+                    {(game.state === GAME_STATES.IN_PROGRESS || game.state === GAME_STATES.FINISHED) && (
                         <div className={`alert ${
                             currentPhase.color === 'blue'
                                 ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
@@ -149,7 +155,7 @@ const TabGame = ({
                                             {RoleActionDescriptions.hasOwnProperty(currentPlayer.role) ? RoleActionDescriptions[currentPlayer.role] : "Observez et tentez de déduire les rôles des autres joueurs."}
                                         </p>
                                     )}
-                                    {game.phase === GAME_PHASES.NIGHT && numberCanBeSelected > 0 && (
+                                    {numberCanBeSelected > 0 && (
                                         <p className={
                                             currentPhase.color === 'blue'
                                                 ? 'text-blue-700 dark:text-blue-300'
@@ -211,6 +217,16 @@ const TabGame = ({
                                                 Ne rien faire
                                             </button>
                                         </div>
+                                    )
+                                }
+                                {
+                                    game.phase === GAME_PHASES.VOTING && numberCanBeSelected > 0 && selectedPlayers.length > 0 && (
+                                        <button
+                                            disabled={selectedPlayers.length === 0}
+                                            onClick={() => performAction(ACTION_TYPES.PLAYER_VOTE)}
+                                            className="ml-auto btn btn-sm btn-primary">
+                                            Confirmer le vote
+                                        </button>
                                     )
                                 }
                                 {

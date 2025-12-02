@@ -74,20 +74,11 @@ export const handleUpdateAvailableChannels = (socket, io, gameId) => {
 
         const playerInfo = connectedPlayers.get(socket.id);
         if (!playerInfo) return;
-        console.log("Checking available channels for", playerInfo.nickname, "with role", playerInfo.role);
 
-        const isWerewolf = playerInfo.role === "Loup-Garou";
-        const isVotePhase = roomData.phase === GAME_PHASES.VOTING || roomData.phase === "voting";
+        const isWerewolf = playerInfo.role === "Loup-Garou" || playerInfo.role === "Loup-Garou Blanc";
+        const isVotePhase = roomData.phase === GAME_PHASES.VOTING;
         const isSister = playerInfo.role === "Sœur";
         const isGeneral = roomData.state === GAME_STATES.WAITING;
-
-        console.log("Updating available channels for", playerInfo.nickname, {
-            isGeneral,
-            isWerewolf,
-            isVotePhase,
-            isSister
-        })
-        console.log("Current room phase:", roomData.phase, "state:", roomData.state);
 
         const availableChannels = {
             general: isGeneral,

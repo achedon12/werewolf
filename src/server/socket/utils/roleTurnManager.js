@@ -1,7 +1,8 @@
 import {gameRoleCallOrder, RoleSelectionCount} from '../../../utils/Roles.js';
 import {gameRooms, getGameRoom} from '../../socket/utils/roomManager.js';
 import {addGameAction, getGameHistory} from './actionLogger.js';
-import {ACTION_TYPES} from '../../config/constants.js';
+import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from '../../config/constants.js';
+import {sanitizeRoom} from '../../socket/utils/sanitizeRoom.js';
 
 const sanitizeRoleChannel = (roleName) =>
     roleName.toLowerCase().replace(/\s+/g, '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w-]/g, '');
@@ -17,6 +18,84 @@ const getSelectionCountForRole = (roleName, players) => {
         return Math.min(base, players.length);
     }
     return base;
+};
+
+export const simulateBotVoteAction = (io, gameId, votingSeconds = 60) => {
+    const room = getGameRoom(gameId);
+    if (!room) return;
+
+    room.config = room.config || {};
+    room.config.votes = room.config.votes || {};
+
+    // clear existing timeouts
+    if (room._botVotingTimeouts && Array.isArray(room._botVotingTimeouts)) {
+        for (const t of room._botVotingTimeouts) clearTimeout(t);
+    }
+    room._botVotingTimeouts = [];
+
+    // Normalize players collection (support Map or Array)
+    const playersArray = room.players instanceof Map
+        ? Array.from(room.players.values())
+        : Array.isArray(room.players)
+            ? room.players
+            : [];
+
+    const botPlayers = playersArray.filter(p => p && p.isBot && p.isAlive !== false);
+    if (!botPlayers.length) {
+        gameRooms.set(gameId, room);
+        return;
+    }
+
+    const minBotDelay = 10;
+    const maxBotDelay = 30;
+    const allowedMax = Math.max(1, votingSeconds - 1);
+
+    for (const bot of botPlayers) {
+        const minDelay = Math.min(minBotDelay, allowedMax);
+        const maxDelay = Math.min(maxBotDelay, allowedMax);
+        const delaySec = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+
+        const t = setTimeout(() => {
+            const latest = getGameRoom(gameId);
+            if (!latest || latest.phase !== GAME_PHASES.VOTING || latest.state !== GAME_STATES.IN_PROGRESS) return;
+
+            const latestPlayers = latest.players instanceof Map
+                ? Array.from(latest.players.values())
+                : Array.isArray(latest.players)
+                    ? latest.players
+                    : [];
+
+            const aliveTargets = latestPlayers.filter(p => p && p.isAlive !== false && p.id !== bot.id);
+            if (!aliveTargets.length) return;
+
+            const target = aliveTargets[Math.floor(Math.random() * aliveTargets.length)];
+            if (!target) return;
+
+            latest.config = latest.config || {};
+            latest.config.votes = latest.config.votes || {};
+            latest.config.votes[bot.id] = target.id;
+
+            addGameAction(gameId, {
+                type: ACTION_TYPES.GAME_EVENT,
+                playerName: bot.nickname,
+                playerRole: bot.role || 'bot',
+                message: `🗳️ ${bot.nickname} a voté pour ${target.nickname}`,
+                phase: GAME_PHASES.VOTING,
+                createdAt: new Date().toISOString()
+            });
+
+            console.log(`🗳️ Vote simulé pour le bot ${bot.nickname} qui a voté pour ${target.nickname} après ${delaySec}s dans la partie ${gameId}`);
+
+            latest.lastActivity = new Date();
+            gameRooms.set(gameId, latest);
+            io.to(`game-${gameId}`).emit("game-update", latest);
+            io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+        }, delaySec * 1000);
+
+        room._botVotingTimeouts.push(t);
+    }
+
+    gameRooms.set(gameId, room);
 };
 
 const simulateBotAction = (roleName, bot, io, gameId) => {
@@ -78,7 +157,7 @@ const simulateBotAction = (roleName, bot, io, gameId) => {
                     }
 
                     message = `💘 ${bot.nickname} (bot) a lié ${first.nickname} et ${second.nickname}`;
-                    io.in(`game-${gameId}`).emit('game-update', roomData);
+                    io.in(`game-${gameId}`).emit('game-update', sanitizeRoom(roomData));
                 }
             }
             break;
@@ -86,7 +165,7 @@ const simulateBotAction = (roleName, bot, io, gameId) => {
         case 'Loup-Garou Blanc':
             type = ACTION_TYPES.WEREWOLF_ATTACK;
 
-            const targetId = getMostTargetPlayerId(roomData);
+            const targetId = getMostTargetByWolvesPlayerId(roomData);
             if (targetId) {
                 target = others.find(p => p.id === targetId);
             }
@@ -110,7 +189,7 @@ const simulateBotAction = (roleName, bot, io, gameId) => {
             roomData.config.wolves.targets[bot.id] = target.id;
 
             message = target ? `🐺 ${bot.nickname} (bot) attaque ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
-            io.in(`game-${gameId}`).emit('game-update', roomData);
+            io.in(`game-${gameId}`).emit('game-update', sanitizeRoom(roomData));
             break;
         case 'Voyante':
             type = ACTION_TYPES.SEER_REVEAL;
@@ -243,7 +322,7 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
         console.log(`🔔 Début du tour(${roomData.turn}) pour le rôle ${roleName} (${players.length} joueur(s)) dans la partie ${gameId}`);
         roomData.turn = roleIdx;
         gameRooms.set(gameId, roomData);
-        io.in(`game-${gameId}`).emit('game-update', roomData);
+        io.in(`game-${gameId}`).emit('game-update', sanitizeRoom(roomData));
 
         const payload = {
             role: roleName,
@@ -445,7 +524,7 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
     return {stop, next, getStatus};
 };
 
-export const getMostTargetPlayerId = (room) => {
+export const getMostTargetByWolvesPlayerId = (room) => {
     if (!room?.config) return null;
     const wolvesTarget = room.config.wolves && room.config.wolves.targets;
     if (!wolvesTarget) return null;
@@ -486,7 +565,6 @@ export const wolfVoteCounts = (room) => {
     const counts = {};
     if (!wolvesTarget) return counts;
 
-
     for (const k of Object.keys(wolvesTarget)) {
         const v = wolvesTarget[k];
         if (v == null) continue;
@@ -511,4 +589,53 @@ export const wolfVoteCounts = (room) => {
     }
 
     return counts;
+};
+
+export const countPlayersByCamp = (gamId) => {
+    const room = getGameRoom(gamId);
+    if (!room) {
+        return {
+            totalAlive: 0,
+            wolves: 0,
+            villagers: 0,
+            lovers: 0,
+            byRole: {},
+            alivePlayers: []
+        };
+    }
+
+    const playersArray = room.players instanceof Map
+        ? Array.from(room.players.values())
+        : Array.isArray(room.players)
+            ? room.players
+            : [];
+
+    const alivePlayers = playersArray.filter(p => p && p.isAlive !== false);
+
+    const byRole = {};
+    let wolves = 0;
+    let villagers = 0;
+    let lovers = 0;
+
+    for (const p of alivePlayers) {
+        const role = p?.role || 'Inconnu';
+        byRole[role] = (byRole[role] || 0) + 1;
+
+        if (/Loup-Garou/i.test(role)) {
+            wolves += 1;
+        } else {
+            villagers += 1;
+        }
+
+        if (p.isLover) lovers += 1;
+    }
+
+    return {
+        totalAlive: alivePlayers.length,
+        wolves,
+        villagers,
+        lovers,
+        byRole,
+        alivePlayers
+    };
 };

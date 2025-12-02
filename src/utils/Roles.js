@@ -174,7 +174,7 @@ export const RoleActionDescriptions = {
 export const defaultGameConfig = {
     day: 0,
     night: 1,
-    roles: roles,
+    votes: {},
     lovers: {
         exists: false,
         players: []

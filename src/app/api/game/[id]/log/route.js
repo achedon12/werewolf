@@ -22,35 +22,32 @@ export async function GET(req, {params}) {
 }
 
 export async function POST(req, {params}) {
-    const {id} = await params;
-
-    const gameId = id;
-    if (!gameId) {
-        return NextResponse.json({error: "ID manquant"}, {status: 400});
-    }
-
-    const game = await prisma.game.findUnique({
-        where: {id: gameId},
-        include: {players: true}
-    });
-
-    if (!game) {
-        return NextResponse.json({error: "Partie non trouvée"}, {status: 404});
+    const { id } = params;
+    if (!id) {
+        return NextResponse.json({ error: "ID manquant" }, { status: 400 });
     }
 
     const body = await req.json();
-    const message = body.message;
+    const logs = Array.isArray(body.logs) ? body.logs : [];
 
-    if (!message) {
-        return NextResponse.json({error: "Message manquant"}, {status: 400});
+    if (logs.length === 0) {
+        return NextResponse.json({ inserted: 0 });
     }
 
-    await prisma.gameLog.create({
-        data: {
-            gameId: gameId,
-            message
-        }
-    });
+    const data = logs.map(l => ({
+        gameId: id,
+        message: l.message || "",
+        createdAt: l.createdAt ? new Date(l.createdAt) : new Date(),
+    }));
 
-    return NextResponse.json({message: "Log ajouté"});
+    try {
+        const result = await prisma.gameLog.createMany({
+            data,
+            skipDuplicates: true
+        });
+        return NextResponse.json({ inserted: result.count || data.length });
+    } catch (err) {
+        console.error("❌ Erreur batch logs:", err);
+        return NextResponse.json({ error: "Erreur lors de l'insertion des logs" }, { status: 500 });
+    }
 }

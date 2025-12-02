@@ -21,7 +21,7 @@ const GameActions = ({
 
     return (
         <div className="lg:col-span-3 space-y-6">
-            {game.state === GAME_STATES.IN_PROGRESS && (
+            {(game.state === GAME_STATES.IN_PROGRESS || game.state === GAME_STATES.FINISHED) && (
                 <div
                     className="tabs tabs-boxed bg-gray-100 dark:bg-gray-800/50 backdrop-blur-sm flex gap-4 justify-center border border-gray-300 dark:border-gray-600 rounded-lg p-1">
                     <button
