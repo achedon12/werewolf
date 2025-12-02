@@ -67,3 +67,26 @@ export const parseTimeRange = (raw) => {
 
     return 7 * 24 * 60 * 60 * 1000;
 }
+
+export const getTimeDifference = (startDate, endDate) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffMs = end - start;
+
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    const diffSeconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+    return {days: diffDays, hours: diffHours, minutes: diffMinutes, seconds: diffSeconds};
+}
+
+export const formatTimeDifference = (startDate, endDate, join = ' ') => {
+    const {days, hours, minutes, seconds} = getTimeDifference(startDate, endDate);
+    const parts = [];
+    if (days > 0) parts.push(`${days}j`);
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+    return parts.join(join);
+}

@@ -88,7 +88,8 @@ export const simulateBotVoteAction = (io, gameId, votingSeconds = 60) => {
 
             latest.lastActivity = new Date();
             gameRooms.set(gameId, latest);
-            io.to(`game-${gameId}`).emit("game-update", latest);
+
+            io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(latest));
             io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
         }, delaySec * 1000);
 

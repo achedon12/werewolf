@@ -20,7 +20,7 @@ export const handlePlayerAction = async (socket, io, data) => {
 
         await processAction(io, socket, playerInfo, data, roomData);
         socket.emit('game-set-number-can-be-selected', 0);
-        console.log(`➡️ Action reçue de ${playerInfo.nickname}(${playerInfo.role}) dans le jeu ${gameId}:`, data);
+        console.log(`➡️ Action reçue de ${playerInfo.nickname}(${playerInfo.role}) dans le jeu ${gameId}:`);
 
         const {actionMessage, actionType} = getActionDetails(playerInfo.role, type);
 
@@ -34,32 +34,36 @@ export const handlePlayerAction = async (socket, io, data) => {
         });
 
         try {
-            if (playerIsWolf(playerInfo.role)) {
-                if (!roomData.config) roomData.config = Object.assign({}, defaultGameConfig);
-                const targets = roomData.config.wolves.targets;
+            if (roomData.phase === GAME_PHASES.NIGHT && type !== ACTION_TYPES.PLAYER_VOTE) {
+                io.in(`game-${gameId}`).emit('game-update', sanitizeRoom(roomData));
+                io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+                if (playerIsWolf(playerInfo.role)) {
+                    if (!roomData.config) roomData.config = Object.assign({}, defaultGameConfig);
+                    const targets = roomData.config.wolves.targets;
 
-                let wolves = [];
-                if (roomData.players && typeof roomData.players.get === 'function') {
-                    wolves = Array.from(roomData.players.values()).filter(p => p.isAlive && playerIsWolf(p.role));
-                } else if (Array.isArray(roomData.players)) {
-                    wolves = roomData.players.filter(p => p.isAlive && playerIsWolf(p.role));
-                }
+                    let wolves = [];
+                    if (roomData.players && typeof roomData.players.get === 'function') {
+                        wolves = Array.from(roomData.players.values()).filter(p => p.isAlive && playerIsWolf(p.role));
+                    } else if (Array.isArray(roomData.players)) {
+                        wolves = roomData.players.filter(p => p.isAlive && playerIsWolf(p.role));
+                    }
 
-                const needed = wolves.length;
+                    const needed = wolves.length;
 
-                let votes = Object.keys(targets).filter(k => {
-                    const v = targets[k];
-                    return v != null && v !== '';
-                }).length;
+                    let votes = Object.keys(targets).filter(k => {
+                        const v = targets[k];
+                        return v != null && v !== '';
+                    }).length;
 
-                if (votes >= needed) {
+                    if (votes >= needed) {
+                        if (roomData && roomData.roleCallController && typeof roomData.roleCallController.next === 'function') {
+                            roomData.roleCallController.next();
+                        }
+                    }
+                } else {
                     if (roomData && roomData.roleCallController && typeof roomData.roleCallController.next === 'function') {
                         roomData.roleCallController.next();
                     }
-                }
-            } else {
-                if (roomData && roomData.roleCallController && typeof roomData.roleCallController.next === 'function') {
-                    roomData.roleCallController.next();
                 }
             }
         } catch (err) {

@@ -16,6 +16,7 @@ import StartingCounter from "@/components/game/StartingCounter";
 import {ACTION_TYPES, GAME_STATES} from "@/server/config/constants";
 import {History} from "lucide-react";
 import LoverAmbient from "@/components/game/ambient/LoverAmbient.jsx";
+import {formatTimeDifference} from "@/utils/Date.js";
 
 const GamePage = ({params}) => {
     const {id} = use(params);
@@ -405,30 +406,17 @@ const GamePage = ({params}) => {
     const toggleAmbientTheme = () => {
         const newValue = !ambientThemeEnabled;
         setAmbientThemeEnabled(newValue);
-        // localStorage.setItem('ambientThemeEnabled', newValue.toString());
-        // socket.emit("ambient-settings-update", {
-        //     gameId: id,
-        //     themeEnabled: newValue,
-        //     soundsEnabled: ambientSoundsEnabled
-        // });
     };
 
     const toggleAmbientSounds = () => {
         const newValue = !ambientSoundsEnabled;
         setAmbientSoundsEnabled(newValue);
-        // localStorage.setItem('ambientSoundsEnabled', newValue.toString());
-        //
+
         if (newValue) {
             playAmbientSound();
         } else {
             stopAmbientSound();
         }
-        //
-        // socket.emit("ambient-settings-update", {
-        //     gameId: id,
-        //     themeEnabled: ambientThemeEnabled,
-        //     soundsEnabled: newValue
-        // });
     };
 
     const handleExcludePlayer = (user, reason) => {
@@ -473,11 +461,10 @@ const GamePage = ({params}) => {
 
     if (loading) {
         return (
-            <div
-                className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
                 <div className="text-center">
-                    <span className="loading loading-spinner loading-lg text-primary"></span>
-                    <p className="text-gray-400 mt-4">Chargement de la partie...</p>
+                    <span className="loading loading-spinner loading-lg text-blue-600 dark:text-blue-400"></span>
+                    <p className="text-gray-600 dark:text-gray-400 mt-4">Chargement de la partie...</p>
                 </div>
             </div>
         );
@@ -485,11 +472,10 @@ const GamePage = ({params}) => {
 
     if (!game && !loading) {
         return (
-            <div
-                className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
                 <div className="text-center">
-                    <h1 className="text-2xl text-white">Partie non trouvée</h1>
-                    <p className="text-gray-400">La partie que vous cherchez n'existe pas.</p>
+                    <h1 className="text-2xl text-gray-900 dark:text-white">Partie non trouvée</h1>
+                    <p className="text-gray-600 dark:text-gray-400">La partie que vous cherchez n'existe pas.</p>
                 </div>
             </div>
         );
@@ -506,8 +492,7 @@ const GamePage = ({params}) => {
     };
 
     return (
-        <div
-            className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 relative overflow-hidden">
             <GameHeader game={game} players={players} configuration={configuration} creator={creator}/>
 
             {!loverAmbientEnabled && ambientThemeEnabled && <AmbientForest/>}
@@ -526,8 +511,8 @@ const GamePage = ({params}) => {
                         onClick={toggleAmbientTheme}
                         className={`p-2 rounded-lg backdrop-blur-sm border transition-all ${
                             ambientThemeEnabled
-                                ? 'bg-green-500/20 border-green-500/50 text-green-300'
-                                : 'bg-gray-500/20 border-gray-500/50 text-gray-300'
+                                ? 'bg-green-500/20 border-green-500/50 text-green-700 dark:text-green-300'
+                                : 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'
                         }`}
                         title="Thème forêt"
                     >
@@ -537,8 +522,8 @@ const GamePage = ({params}) => {
                         onClick={toggleAmbientSounds}
                         className={`p-2 rounded-lg backdrop-blur-sm border transition-all ${
                             ambientSoundsEnabled
-                                ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
-                                : 'bg-gray-500/20 border-gray-500/50 text-gray-300'
+                                ? 'bg-blue-500/20 border-blue-500/50 text-blue-700 dark:text-blue-300'
+                                : 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'
                         }`}
                         title="Sons d'ambiance"
                     >
@@ -549,7 +534,7 @@ const GamePage = ({params}) => {
                 <div className="flex lg:hidden absolute top-4 right-4 z-50" ref={mobileMenuRef}>
                     <button
                         onClick={() => setMobileMenuOpen(v => !v)}
-                        className="p-2 rounded-lg backdrop-blur-sm border bg-gray-500/20 border-gray-500/50 text-gray-300"
+                        className="p-2 rounded-lg backdrop-blur-sm border bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
                         title="Options"
                         aria-expanded={mobileMenuOpen}
                         aria-haspopup="true"
@@ -559,7 +544,7 @@ const GamePage = ({params}) => {
 
                     {mobileMenuOpen && (
                         <div
-                            className="absolute right-0 mt-2 w-44 bg-base-100/90 backdrop-blur-sm border border-white/10 rounded-lg shadow-lg p-2 space-y-2">
+                            className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2 space-y-2">
                             <button
                                 onClick={() => {
                                     toggleAmbientTheme();
@@ -567,8 +552,8 @@ const GamePage = ({params}) => {
                                 }}
                                 className={`w-full text-left p-2 rounded-md transition-all ${
                                     ambientThemeEnabled
-                                        ? 'bg-green-500/20 border border-green-500/50 text-green-300'
-                                        : 'bg-gray-500/20 border border-gray-500/50 text-gray-300'
+                                        ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 text-green-800 dark:text-green-300'
+                                        : 'bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'
                                 }`}
                             >
                                 🌲 Thème forêt
@@ -581,8 +566,8 @@ const GamePage = ({params}) => {
                                 }}
                                 className={`w-full text-left p-2 rounded-md transition-all ${
                                     ambientSoundsEnabled
-                                        ? 'bg-blue-500/20 border border-blue-500/50 text-blue-300'
-                                        : 'bg-gray-500/20 border border-gray-500/50 text-gray-300'
+                                        ? 'bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-300'
+                                        : 'bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'
                                 }`}
                             >
                                 🎵 Sons d'ambiance
@@ -637,9 +622,9 @@ const GamePage = ({params}) => {
                             currentPlayer={currentPlayer}/>
 
                         {(game.state === GAME_STATES.IN_PROGRESS || game.state === GAME_STATES.FINISHED) && (
-                            <div className="card glass shadow-2xl backdrop-blur-sm border border-white/10 mt-6">
-                                <div className="card-body p-4">
-                                    <h3 className="card-title text-white text-lg mb-4">
+                            <div className="card bg-white dark:bg-gray-800 shadow-2xl border border-gray-200 dark:border-gray-700 mt-6">
+                                <div className="card-body p-4 md:p-6">
+                                    <h3 className="card-title text-gray-900 dark:text-white text-lg mb-4">
                                         <History className="inline mr-2" size={20}/>
                                         Derniers Événements
                                     </h3>
@@ -648,24 +633,15 @@ const GamePage = ({params}) => {
                                             .filter(event => event.type === ACTION_TYPES.GAME_EVENT)
                                             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                                             .map((event, index) => {
-                                                const startedAtMs = new Date(game.startedAt).getTime();
-                                                const eventAtMs = new Date(event.createdAt).getTime();
-                                                const diffMs = Math.max(0, eventAtMs - startedAtMs);
-                                                const totalSeconds = Math.floor(diffMs / 1000);
-                                                const hours = Math.floor(totalSeconds / 3600);
-                                                const minutes = Math.floor((totalSeconds % 3600) / 60);
-                                                const seconds = totalSeconds % 60;
-                                                const elapsed = [
-                                                    hours.toString().padStart(2, '0'),
-                                                    minutes.toString().padStart(2, '0'),
-                                                    seconds.toString().padStart(2, '0')
-                                                ].join(':');
+                                                const startedAtMs = new Date(game.startedAt);
+                                                const eventAtMs = new Date(event.createdAt);
+                                                const elapsed = formatTimeDifference(startedAtMs, eventAtMs);
 
                                                 return (
                                                     <div key={index}
-                                                         className="flex items-start gap-3 p-3 bg-base-200/30 rounded-lg">
-                                                        <span className="text-gray-400 text-xs mt-1">{elapsed}</span>
-                                                        <p className="text-gray-300 text-sm">{event.message}</p>
+                                                         className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                                        <span className="text-gray-500 dark:text-gray-400 text-xs mt-1">{elapsed}</span>
+                                                        <p className="text-gray-700 dark:text-gray-300 text-sm">{event.message}</p>
                                                     </div>
                                                 );
                                             })}

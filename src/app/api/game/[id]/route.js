@@ -107,12 +107,17 @@ export async function POST(request, context) {
     }
 
     if (body.winners) {
-        const winnersConnect = body.winners;
-        if (winnersConnect.length) {
-            data.winners = {connect: winnersConnect};
+        const winnersConnect = Array.isArray(body.winners) ? body.winners : [];
+
+        const userWinnerIds = winnersConnect.filter(id => typeof id === 'string' && !id.startsWith('bot-'));
+
+        if (userWinnerIds.length) {
+            data.winners = {
+                connect: userWinnerIds.map(id => ({ id }))
+            };
         }
 
-        for (const winnerId of body.winners) {
+        for (const winnerId of userWinnerIds) {
             try {
                 await prisma.user.update({
                     where: {id: winnerId},
@@ -123,7 +128,7 @@ export async function POST(request, context) {
                     }
                 });
             } catch (err) {
-                console.error('Erreur lors de l\'incrément des victoires:', err);
+                console.error('Erreur lors de la mise à jour des victoires pour', winnerId, err);
             }
         }
     }

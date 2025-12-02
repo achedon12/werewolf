@@ -7,6 +7,7 @@ import {countPlayersByCamp, simulateBotVoteAction, startRoleCallSequence} from "
 import {processNightEliminations} from "../utils/eliminationManager.js";
 import {findPlayerById} from "../utils/playerManager.js";
 import {updatePlayersChannels} from "../utils/chatManager.js";
+import {sanitizeRoom} from './sanitizeRoom.js';
 
 const hostname = "localhost";
 const port = 3000;
@@ -30,7 +31,8 @@ export const updateGameData = async (gameId, updatedData) => {
             state: updatedData.state,
             phase: updatedData.phase,
             players: updatedData.players,
-            startedAt: updatedData.startedAt
+            startedAt: updatedData.startedAt,
+            endedAt: updatedData.endedAt
         };
 
         if (Array.isArray(updatedData.users)) {
@@ -54,7 +56,7 @@ export const updateGameData = async (gameId, updatedData) => {
 
 export const startGameLogic = async (socket, io, gameId) => {
     const roomData = getGameRoom(gameId);
-    console.log(`▶️ Démarrage de la partie avec ID ${gameId}...`, roomData);
+    console.log(`▶️ Démarrage de la partie avec ID ${gameId}...`);
 
     if (!roomData) {
         throw new Error(`Partie avec ID ${gameId} non trouvée, Veuillez recharger la page.`);
@@ -175,7 +177,7 @@ export const startGameLogic = async (socket, io, gameId) => {
     roomData.lastActivity = new Date();
     gameRooms.set(gameId, roomData);
 
-    io.to(`game-${gameId}`).emit("game-update", roomData);
+    io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(roomData));
 
     const runNightCycle = async () => {
         const room = getGameRoom(gameId);
@@ -194,7 +196,7 @@ export const startGameLogic = async (socket, io, gameId) => {
         roomData.turnsCount = 1;
         room.lastActivity = new Date();
         gameRooms.set(gameId, room);
-        io.to(`game-${gameId}`).emit("game-update", room);
+        io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(room));
         io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 
         room.roleCallController = startRoleCallSequence(io, gameId, perRoleSeconds, {
@@ -212,7 +214,7 @@ export const startGameLogic = async (socket, io, gameId) => {
                     phase: GAME_PHASES.DAY
                 });
                 gameRooms.set(gameId, r);
-                io.to(`game-${gameId}`).emit("game-update", r);
+                io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(r));
                 io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 
                 await processNightEliminations(io, gameId);
@@ -242,7 +244,7 @@ export const startGameLogic = async (socket, io, gameId) => {
                 }
 
                 io.in(`game-${gameId}`).emit('voting-start', votingSeconds);
-                io.to(`game-${gameId}`).emit("game-update", r);
+                io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(r));
                 io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
                 io.to(`game-${gameId}`).emit('game-set-number-can-be-selected', 1);
 
@@ -317,7 +319,7 @@ export const startGameLogic = async (socket, io, gameId) => {
                                 if (rr.config) rr.config.votes = {};
                                 rr.lastActivity = new Date();
                                 gameRooms.set(gameId, rr);
-                                io.to(`game-${gameId}`).emit("game-update", rr);
+                                io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(rr));
                                 io.to(`game-${gameId}`).emit("players-update", {players: room.players});
                                 io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 
@@ -355,7 +357,7 @@ export const startGameLogic = async (socket, io, gameId) => {
                     rr.config.saving.target = null;
                     gameRooms.set(gameId, rr);
                     //await updatePlayersChannels(io, Array.from(rr.players.values()).filter(p => p.online), gameId);
-                    io.to(`game-${gameId}`).emit("game-update", rr);
+                    io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(rr));
                     io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 
                     delete rr.roleCallController;
@@ -466,7 +468,7 @@ const evaluateWinCondition = (io, gameId, room) => {
         if (r._votingTimeout) { clearTimeout(r._votingTimeout); delete r._votingTimeout; }
         r.lastActivity = new Date();
         gameRooms.set(gameId, r);
-        io.to(`game-${gameId}`).emit("game-update", r);
+        io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(r));
         io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
         return true;
     }
@@ -497,7 +499,7 @@ const evaluateWinCondition = (io, gameId, room) => {
         if (r._votingTimeout) { clearTimeout(r._votingTimeout); delete r._votingTimeout; }
         r.lastActivity = new Date();
         gameRooms.set(gameId, r);
-        io.to(`game-${gameId}`).emit("game-update", r);
+        io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(r));
         io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
         return true;
     }
@@ -532,7 +534,7 @@ const evaluateWinCondition = (io, gameId, room) => {
         if (r._votingTimeout) { clearTimeout(r._votingTimeout); delete r._votingTimeout; }
         r.lastActivity = new Date();
         gameRooms.set(gameId, r);
-        io.to(`game-${gameId}`).emit("game-update", r);
+        io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(r));
         io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
         return true;
     }
@@ -561,12 +563,15 @@ const persistWinners = async (gameId, winnerIds = []) => {
         }
 
         r.players = playersArray instanceof Array ? playersArray : Array.from(playersArray);
+        r.endedAt = new Date().toISOString();
+        r.lastActivity = new Date();
         gameRooms.set(gameId, r);
 
         await updateGameData(gameId, {
             state: GAME_STATES.FINISHED,
             phase: GAME_PHASES.FINISHED,
-            winners: uniqueUserIds
+            winners: uniqueUserIds,
+            endedAt: new Date().toISOString(),
         });
         console.log(`✅ Gagnants persistés pour la partie ${gameId}:`, uniqueUserIds);
 

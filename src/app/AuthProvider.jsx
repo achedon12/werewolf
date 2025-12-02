@@ -2,7 +2,6 @@
 import {createContext, useContext, useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
 
-
 const authContext = createContext({
     user: null,
     token: null,
@@ -10,15 +9,20 @@ const authContext = createContext({
     theme: "light",
     login: async () => false,
     register: async () => false,
-    logout: async () => {},
-    setUser: () => {},
-    setPlayer: () => {},
-    setGame: () => {},
-    setTheme: () => {},
+    logout: async () => {
+    },
+    setUser: () => {
+    },
+    setPlayer: () => {
+    },
+    setGame: () => {
+    },
+    setTheme: () => {
+    },
 });
 
 export const useAuth = () => {
-    return useContext(authContext)
+    return useContext(authContext);
 }
 
 export function AuthProvider({children}) {
@@ -76,12 +80,23 @@ export function AuthProvider({children}) {
         const storedTheme = localStorage.getItem("theme");
         if (storedTheme) {
             setTheme(storedTheme);
+            if (storedTheme === "dark") {
+                document.documentElement.classList.add("dark");
+            } else {
+                document.documentElement.classList.remove("dark");
+            }
             return;
         }
 
         const mql = window.matchMedia("(prefers-color-scheme: dark)");
         const applyPref = (e) => {
-            setTheme(e?.matches ? "dark" : "light");
+            const isDark = e?.matches ?? mql.matches;
+            setTheme(isDark ? "dark" : "light");
+            if (isDark) {
+                document.documentElement.classList.add("dark");
+            } else {
+                document.documentElement.classList.remove("dark");
+            }
         };
 
         applyPref(mql);
@@ -95,11 +110,21 @@ export function AuthProvider({children}) {
         }
     }, []);
 
+    useEffect(() => {
+        if (!theme) return;
+        if (theme === "dark") {
+            document.documentElement.classList.add("dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+        }
+        localStorage.setItem("theme", theme);
+    }, [theme]);
+
     const login = async (email, password) => {
         const res = await fetch("/api/auth", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "login", email, password }),
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({action: "login", email, password}),
         });
         const data = await res.json();
         if (res.ok) {
@@ -115,8 +140,8 @@ export function AuthProvider({children}) {
     const register = async (email, password, name, nickname) => {
         const res = await fetch("/api/auth", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "register", email, password, name, nickname }),
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({action: "register", email, password, name, nickname}),
         });
         const data = await res.json();
         if (res.ok) {
@@ -130,7 +155,7 @@ export function AuthProvider({children}) {
     };
 
     const logout = async () => {
-        setLoading(true)
+        setLoading(true);
         router.push("/auth");
         setUser(null);
         setToken(null);
@@ -138,11 +163,25 @@ export function AuthProvider({children}) {
         setGame(null);
         localStorage.removeItem("user");
         localStorage.removeItem("token");
-        setLoading(false)
+        setLoading(false);
     };
 
     return (
-        <authContext.Provider value={{ user, token, loading, game, player, login, register, logout, setUser, setPlayer, setGame }}>
+        <authContext.Provider value={{
+            user,
+            token,
+            loading,
+            game,
+            player,
+            login,
+            register,
+            logout,
+            setUser,
+            setPlayer,
+            setGame,
+            theme,
+            setTheme
+        }}>
             {children}
         </authContext.Provider>
     );

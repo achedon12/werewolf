@@ -1,13 +1,30 @@
 'use client';
 
 import Link from 'next/link';
-import {useEffect, useState} from 'react';
-import {useRouter, useSearchParams} from 'next/navigation';
-import {useAuth} from "@/app/AuthProvider";
-import {toast} from 'react-toastify';
-import {Gamepad2, House, Joystick, NotebookText, Search, Trophy, UserRound} from "lucide-react";
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from "@/app/AuthProvider";
+import { toast } from 'react-toastify';
+import {
+    Gamepad2,
+    House,
+    Joystick,
+    NotebookText,
+    Search,
+    Trophy,
+    UserRound,
+    LogIn,
+    Menu,
+    X,
+    PlusCircle,
+    Users,
+    Bell,
+    Settings,
+    LogOut,
+    Hash
+} from "lucide-react";
 import Image from "next/image";
-import {usePathname} from "next/navigation";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,12 +32,12 @@ export default function Header() {
     const [roomId, setRoomId] = useState('');
     const [error, setError] = useState(null);
     const [isClient, setIsClient] = useState(false);
+    const [showUserMenu, setShowUserMenu] = useState(false);
 
     const auth = useAuth();
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
-
 
     useEffect(() => {
         setIsClient(true);
@@ -33,11 +50,22 @@ export default function Header() {
         }
     }, [searchParams]);
 
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (showUserMenu && !event.target.closest('.user-menu')) {
+                setShowUserMenu(false);
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, [showUserMenu]);
+
     if (pathname?.startsWith('/admin')) return null;
 
     const handleJoinById = async () => {
         if (!auth.user) {
             toast.error("Vous devez être connecté pour rejoindre une partie.");
+            router.push('/auth');
             return;
         }
         if (!roomId.trim()) {
@@ -55,6 +83,7 @@ export default function Header() {
             });
             if (res.ok) {
                 setShowJoinModal(false);
+                setRoomId('');
                 router.push(`/game/${roomId.trim()}`);
             } else {
                 setError("Aucune partie trouvée avec cet ID.");
@@ -67,20 +96,20 @@ export default function Header() {
     const handleJoinRandom = async () => {
         if (!auth.user) {
             toast.error("Vous devez être connecté pour rejoindre une partie.");
+            router.push('/auth');
             return;
         }
         setError(null);
-        const token = localStorage.getItem('token');
         try {
             const res = await fetch('/api/game/list', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${auth.token}`,
                 },
             });
             const data = await res.json();
-            const game = data.games.find(g => g.state === 'En attente');
+            const game = data.games?.find(g => g.state === 'En attente');
             if (game) {
                 setShowJoinModal(false);
                 router.push(`/game/${game.id}`);
@@ -95,226 +124,304 @@ export default function Header() {
     const createGame = () => {
         if (!auth.user) {
             toast.error("Vous devez être connecté pour créer une partie.");
+            router.push('/auth');
             return;
         }
         router.push('/game/create');
     }
 
-    const redirectLogin = () => {
-        if (auth.user) {
-            router.push('/auth/profile');
-        } else {
-            router.push('/auth');
-        }
-    }
+    const handleLogout = () => {
+        auth.logout();
+        setShowUserMenu(false);
+        router.push('/');
+    };
 
     const renderProfileButton = () => {
         if (!isClient) {
-            return <UserRound className="w-6 h-6" suppressHydrationWarning/>;
+            return <UserRound className="w-5 h-5" suppressHydrationWarning/>;
         }
 
-        return auth.user ? (
-            <div className="flex items-center space-x-2 gap-2">
-                <Image
-                    src={auth?.user?.avatar || '/default-avatar.png'}
-                    alt={auth.user.name ? `${auth.user.name} — avatar` : 'Avatar utilisateur'}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                />
-            </div>
-        ) : (
-            <UserRound className="w-6 h-6"/>
+        if (auth.user) {
+            return (
+                <div className="flex items-center gap-2 user-menu">
+                    <button
+                        onClick={() => setShowUserMenu(!showUserMenu)}
+                        className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full p-1 transition-colors"
+                        aria-label="Ouvrir le menu utilisateur"
+                    >
+                        <div className="relative">
+                            <Image
+                                src={auth.user.avatar || '/default-avatar.png'}
+                                alt={`${auth.user.name} — avatar`}
+                                width={36}
+                                height={36}
+                                className="rounded-full border-2 border-transparent hover:border-blue-500 transition-colors"
+                            />
+                            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+                        </div>
+                        <span className="hidden md:inline text-sm font-medium text-gray-700 dark:text-gray-300">
+              {auth.user.name?.split(' ')[0] || 'Profil'}
+            </span>
+                    </button>
+
+                    {showUserMenu && (
+                        <div className="absolute right-0 top-12 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+                            <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+                                <p className="font-semibold text-gray-900 dark:text-white">{auth.user.name}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{auth.user.email}</p>
+                            </div>
+                            <Link
+                                href="/auth/profile"
+                                className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                onClick={() => setShowUserMenu(false)}
+                            >
+                                <UserRound className="w-4 h-4" />
+                                Mon profil
+                            </Link>
+                            <Link
+                                href="/settings"
+                                className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                onClick={() => setShowUserMenu(false)}
+                            >
+                                <Settings className="w-4 h-4" />
+                                Paramètres
+                            </Link>
+                            <div className="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+                            <button
+                                onClick={handleLogout}
+                                className="flex items-center gap-2 px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors w-full text-left"
+                            >
+                                <LogOut className="w-4 h-4" />
+                                Déconnexion
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        return (
+            <button
+                onClick={() => router.push('/auth')}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                aria-label="Se connecter"
+            >
+                <LogIn className="w-4 h-4" />
+                <span className="hidden md:inline">Connexion</span>
+            </button>
         );
+    };
+
+    const isActive = (path) => {
+        return pathname === path ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300';
     };
 
     return (
         <>
-            <header className="bg-base-200 shadow-lg">
-                <div className="navbar container mx-auto">
-                    <div className="navbar-start">
-                        <Link href="/" className="btn btn-ghost normal-case text-xl gap-2 text-base-content">
-                            <span className="text-2xl">🐺</span>
-                            Loup-Garou
+            <header className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
+                <div className="container mx-auto px-4 py-3">
+                    <div className="flex items-center justify-between">
+                        <Link href="/" className="flex items-center gap-3 group">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                                <span className="text-2xl">🐺</span>
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Loup-Garou</h1>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Online</p>
+                            </div>
                         </Link>
-                    </div>
 
-                    <div className="navbar-center hidden lg:flex">
-                        <ul className="menu menu-horizontal px-1 space-x-2">
-                            <li>
-                                <button onClick={createGame} className="btn btn-ghost text-base-content"
-                                        name="create-game-button">
-                                    <Gamepad2 className="inline w-5 h-5 mr-1"/>
-                                    Créer une partie
-                                </button>
-                            </li>
-                            <li>
-                                <Link href="/game/list" className="btn btn-ghost text-base-content">
-                                    <Joystick className="inline w-5 h-5 mr-1"/>
-                                    Parties
-                                </Link>
-                            </li>
-                            <li>
-                                <button
-                                    className="btn btn-ghost text-base-content"
-                                    onClick={() => setShowJoinModal(true)}
-                                    name="join-game-button"
-                                >
-                                    <Search className="inline w-5 h-5 mr-1"/>
-                                    Rejoindre
-                                </button>
-                            </li>
-                            <li>
-                                <Link href="/leaderboard" className="btn btn-ghost text-base-content">
-                                    <Trophy className="inline w-5 h-5 mr-1"/>
-                                    Classement
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/rules" className="btn btn-ghost text-base-content">
-                                    <NotebookText className="inline w-5 h-5 mr-1"/>
-                                    Règles
-                                </Link>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div className="navbar-end">
-                        <div className="dropdown dropdown-end lg:hidden">
+                        <nav className="hidden lg:flex items-center gap-1">
+                            <Link
+                                href="/game/create"
+                                onClick={createGame}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 ${isActive('/game/create')}`}
+                            >
+                                <PlusCircle className="w-4 h-4" />
+                                <span>Créer</span>
+                            </Link>
+                            <Link
+                                href="/game/list"
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 ${isActive('/game/list')}`}
+                            >
+                                <Joystick className="w-4 h-4" />
+                                <span>Parties</span>
+                            </Link>
                             <button
-                                id="mobile-menu-button"
-                                className="btn btn-ghost btn-circle"
+                                onClick={() => setShowJoinModal(true)}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+                            >
+                                <Search className="w-4 h-4" />
+                                <span>Rejoindre</span>
+                            </button>
+                            <Link
+                                href="/leaderboard"
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 ${isActive('/leaderboard')}`}
+                            >
+                                <Trophy className="w-4 h-4" />
+                                <span>Classement</span>
+                            </Link>
+                            <Link
+                                href="/rules"
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 ${isActive('/rules')}`}
+                            >
+                                <NotebookText className="w-4 h-4" />
+                                <span>Règles</span>
+                            </Link>
+                        </nav>
+
+                        <div className="flex items-center gap-3">
+                            {/*{auth.user && (
+                                <button
+                                    className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                    aria-label="Notifications"
+                                >
+                                    <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                                </button>
+                            )}*/}
+
+                            <button
+                                className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                                 aria-label={isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-                                aria-expanded={isMenuOpen}
-                                aria-controls="mobile-menu"
-                                title={isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
                             >
-                                <svg
-                                    className="w-5 h-5 text-base-content"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    aria-hidden="true"
-                                    focusable="false"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    ></path>
-                                </svg>
+                                {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                             </button>
 
-                            {isMenuOpen && (
-                                <ul
-                                    id="mobile-menu"
-                                    role="menu"
-                                    aria-labelledby="mobile-menu-button"
-                                    aria-hidden={!isMenuOpen}
-                                    className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
-                                >
-                                    <li>
-                                        <Link href="/game/create" onClick={() => setIsMenuOpen(false)}
-                                              className="text-base-content">
-                                            <Gamepad2 className="inline w-5 h-5 mr-1"/>
-                                            Créer une partie
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/game/list" onClick={() => setIsMenuOpen(false)}
-                                              className="text-base-content">
-                                            <Joystick className="inline w-5 h-5 mr-1"/>
-                                            Parties
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <button
-                                            className="text-base-content w-full text-left"
-                                            onClick={() => {
-                                                setIsMenuOpen(false);
-                                                setShowJoinModal(true);
-                                            }}
-                                            name="join-game-button-mobile"
-                                        >
-                                            <Search className="inline w-5 h-5 mr-1"/>
-                                            Rejoindre
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <Link href="/leaderboard" onClick={() => setIsMenuOpen(false)}
-                                              className="text-base-content">
-                                            <Trophy className="inline w-5 h-5 mr-1"/>
-                                            Classement
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link href="/rules" onClick={() => setIsMenuOpen(false)}
-                                              className="text-base-content">
-                                            <NotebookText className="inline w-5 h-5 mr-1"/>
-                                            Règles
-                                        </Link>
-                                    </li>
-                                </ul>
-                            )}
+                            {renderProfileButton()}
                         </div>
-
-                        <button
-                            onClick={redirectLogin}
-                            aria-label={auth?.user ? 'Ouvrir le profil' : 'Se connecter'}
-                            className="flex items-center justify-center text-base-content hover:bg-base-200 hover:scale-105 transition-all hover:cursor-pointer"
-                            name="profile-button"
-                            suppressHydrationWarning
-                        >
-                            <span className="text-sm">
-                                {renderProfileButton()}
-                            </span>
-                        </button>
                     </div>
+
+                    {isMenuOpen && (
+                        <div className="lg:hidden mt-4 pb-4 border-t border-gray-200 dark:border-gray-800 pt-4">
+                            <div className="flex flex-col gap-2">
+                                <button
+                                    onClick={() => {
+                                        createGame();
+                                        setIsMenuOpen(false);
+                                    }}
+                                    className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 text-left"
+                                >
+                                    <PlusCircle className="w-5 h-5" />
+                                    <span className="font-medium">Créer une partie</span>
+                                </button>
+                                <Link
+                                    href="/game/list"
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+                                >
+                                    <Joystick className="w-5 h-5" />
+                                    <span className="font-medium">Parties disponibles</span>
+                                </Link>
+                                <button
+                                    onClick={() => {
+                                        setShowJoinModal(true);
+                                        setIsMenuOpen(false);
+                                    }}
+                                    className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 text-left"
+                                >
+                                    <Search className="w-5 h-5" />
+                                    <span className="font-medium">Rejoindre une partie</span>
+                                </button>
+                                <Link
+                                    href="/leaderboard"
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+                                >
+                                    <Trophy className="w-5 h-5" />
+                                    <span className="font-medium">Classement</span>
+                                </Link>
+                                <Link
+                                    href="/rules"
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+                                >
+                                    <NotebookText className="w-5 h-5" />
+                                    <span className="font-medium">Règles du jeu</span>
+                                </Link>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </header>
 
             {showJoinModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="bg-base-100 rounded-xl p-8 shadow-lg w-full max-w-md relative">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl w-full max-w-md mx-4 relative border border-gray-200 dark:border-gray-700">
                         <button
-                            className="absolute top-2 right-2 btn btn-sm btn-circle btn-ghost"
+                            className="absolute top-4 right-4 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                             onClick={() => {
                                 setShowJoinModal(false);
                                 setError(null);
                                 setRoomId('');
                             }}
-                            name="close-join-modal-button"
-                        >✕
+                            aria-label="Fermer"
+                        >
+                            <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         </button>
-                        <h2 className="text-xl font-bold mb-4 text-base-content">Rejoindre une partie</h2>
+
+                        <div className="mb-6">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Rejoindre une partie</h2>
+                            <p className="text-gray-600 dark:text-gray-400 text-sm">
+                                Entrez un code de partie ou rejoignez une partie aléatoire
+                            </p>
+                        </div>
+
                         <div className="space-y-4">
                             <div>
-                                <label className="block mb-2 text-base-content">Entrer l'ID de la salle</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Code de la partie
+                                </label>
                                 <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        className="input input-bordered w-full"
-                                        value={roomId}
-                                        onChange={e => setRoomId(e.target.value)}
-                                        placeholder="ID de la salle"
-                                    />
-                                    <button className="btn btn-primary" onClick={handleJoinById}>
+                                    <div className="relative flex-1">
+                                        <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            className="pl-10 pr-4 py-3 w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                                            value={roomId}
+                                            onChange={e => setRoomId(e.target.value)}
+                                            placeholder="ex: ABC123"
+                                            onKeyDown={(e) => e.key === 'Enter' && handleJoinById()}
+                                        />
+                                    </div>
+                                    <button
+                                        className="btn bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-6"
+                                        onClick={handleJoinById}
+                                    >
                                         Rejoindre
                                     </button>
                                 </div>
                             </div>
-                            <div className="divider">ou</div>
+
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                                </div>
+                                <div className="relative flex justify-center text-sm">
+                                    <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">ou</span>
+                                </div>
+                            </div>
+
                             <button
-                                className="btn btn-secondary w-full"
+                                className="w-full flex items-center justify-center gap-2 py-3 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
                                 onClick={handleJoinRandom}
-                                name="join-random-game-button"
                             >
-                                Rejoindre une salle aléatoire
+                                <Users className="w-4 h-4" />
+                                Rejoindre une partie aléatoire
                             </button>
-                            {error && <div className="text-error text-sm mt-2">{error}</div>}
+
+                            {error && (
+                                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                                    <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                                </div>
+                            )}
+
+                            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                                    Besoin d'aide ? <Link href="/faq" className="text-blue-600 dark:text-blue-400 hover:underline">Consultez la FAQ</Link>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
