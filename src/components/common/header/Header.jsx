@@ -179,7 +179,7 @@ export default function Header() {
                                 Mon profil
                             </Link>
                             <Link
-                                href="/settings"
+                                href="/auth/profile/settings"
                                 className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                                 onClick={() => setShowUserMenu(false)}
                             >

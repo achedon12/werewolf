@@ -1,6 +1,6 @@
 {
   "name": "werewolf",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "A real-time multiplayer online version of the classic social deduction game Werewolf",
   "type": "module",
   "author": "Leo Deroin <l.deroin@netcourrier.com>",
