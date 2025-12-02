@@ -1,3 +1,7 @@
 - add voting chat
 - fix bug for witch (ux/ui, she can use her ability more 1 time per game for each potion)
 - hunter shoot after death
+- if dead people, turn off their card
+- if couple die in vote, all members of couple die
+- remove email address when seing game history
+- display botName in game history
