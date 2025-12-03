@@ -34,6 +34,7 @@ model User {
   Game              Game[]
   ambientSoundsEnabled Boolean  @default(true)
   ambientThemeEnabled  Boolean  @default(true)
+  lastLogin         DateTime?   @default(now())
 }
 
 model Player {

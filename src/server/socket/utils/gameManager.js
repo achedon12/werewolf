@@ -56,6 +56,7 @@ export const updateGameData = async (gameId, updatedData) => {
 export const startGameLogic = async (socket, io, gameId) => {
     const roomData = getGameRoom(gameId);
     console.log(`▶️ Démarrage de la partie avec ID ${gameId}...`);
+    console.log(roomData.players)
 
     if (!roomData) {
         throw new Error(`Partie avec ID ${gameId} non trouvée, Veuillez recharger la page.`);

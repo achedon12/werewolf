@@ -26,10 +26,11 @@ export async function GET(req) {
     }
 
     const user = await prisma.user.findUnique({
-        where: {id: payload.id},
+        where: { id: payload.id },
         include: {
-            games: true,
-            wins: true
+            _count: {
+                select: { games: true, wins: true },
+            }
         }
     });
 

@@ -15,6 +15,7 @@ export async function GET(request, context) {
                     user: true
                 }
             },
+            winners: true
         }
     });
 
@@ -107,13 +108,11 @@ export async function POST(request, context) {
     }
 
     if (body.winners) {
-        const winnersConnect = Array.isArray(body.winners) ? body.winners : [];
-
-        const userWinnerIds = winnersConnect.filter(id => typeof id === 'string' && !id.startsWith('bot-'));
+        const userWinnerIds = body.winners.filter(id => typeof id === 'string' && !id.startsWith('bot-'));
 
         if (userWinnerIds.length) {
             data.winners = {
-                connect: userWinnerIds.map(id => ({ id }))
+                connect: userWinnerIds.map(id => ({ id: id }))
             };
         }
 

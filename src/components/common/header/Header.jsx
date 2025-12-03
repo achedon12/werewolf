@@ -165,8 +165,8 @@ export default function Header() {
                             <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
                         </div>
                         <span className="hidden md:inline text-sm font-medium text-gray-700 dark:text-gray-300">
-              {auth.user.name?.split(' ')[0] || 'Profil'}
-            </span>
+                          {auth.user.name?.split(' ')[0] || 'Profil'}
+                        </span>
                     </button>
 
                     {showUserMenu && (

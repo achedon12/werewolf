@@ -39,6 +39,8 @@ export async function POST(req) {
         if (!user) return NextResponse.json({error: "Identifiants invalides"}, {status: 401});
         if (!user || !(await bcrypt.compare(password, user.password)))
             return NextResponse.json({error: "Identifiants invalides"}, {status: 401});
+        user.lastLogin = new Date();
+        await prisma.user.update({where: {id: user.id}, data: {lastLogin: user.lastLogin}});
         const token = jwt.sign({id: user.id, role: user.role || "user"}, JWT_SECRET, {expiresIn: "7d"});
         return NextResponse.json({user, token});
     }

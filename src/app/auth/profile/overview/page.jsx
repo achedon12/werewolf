@@ -132,7 +132,7 @@ const OverviewPage = () => {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1">
-                <div className="card bg-white dark:bg-slate-800 shadow-xl sticky top-8">
+                <div className="card bg-white dark:bg-slate-800 shadow-xl sticky top-24">
                     <div className="card-body items-center text-center">
                         <div className="avatar mb-4">
                             <div
@@ -212,7 +212,7 @@ const OverviewPage = () => {
                                     jouées
                                 </div>
                                 <div
-                                    className="text-xl font-bold text-gray-900 dark:text-white">{user?.games?.length || 0}</div>
+                                    className="text-xl font-bold text-gray-900 dark:text-white">{user?._count?.games || 0}</div>
                             </div>
 
                             <div
@@ -235,7 +235,7 @@ const OverviewPage = () => {
                                     victoire
                                 </div>
                                 <div className="text-xl font-bold text-gray-900 dark:text-white">
-                                    {user && user.games && user.games.length > 0 ? Math.round((user.victories / user.games.length) * 100) : 0}%
+                                    {user && user._count.games > 0 ? Math.round((user.victories / user._count.games) * 100) : 0}%
                                 </div>
                             </div>
 
