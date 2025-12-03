@@ -3,5 +3,3 @@
 - hunter shoot after death
 - if dead people, turn off their card
 - if couple die in vote, all members of couple die
-- remove email address when seing game history
-- display botName in game history

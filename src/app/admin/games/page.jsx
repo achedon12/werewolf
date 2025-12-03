@@ -531,7 +531,7 @@ const AdminGamesPage = () => {
                                     {selectedGame.players.map((player) => (
                                         <div key={player.id}
                                              className="flex items-center justify-between p-2 bg-base-200 rounded">
-                                            <span>{player.name}</span>
+                                            <span>{player.isBot ? player.botName : player.name}</span>
                                             <div className="flex gap-2">
                                                 {player.role && (
                                                     <span className="badge badge-primary">{player.role}</span>

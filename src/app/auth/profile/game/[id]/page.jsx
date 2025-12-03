@@ -198,13 +198,6 @@ const GameDetailPage = () => {
                             <IconComponent className="h-4 w-4"/>
                             {statusConfig.text}
                         </div>
-                        <button
-                            className="btn btn-outline gap-2"
-                            onClick={fetchGame}
-                        >
-                            <RefreshCw className="h-4 w-4"/>
-                            Actualiser
-                        </button>
                     </div>
                 </div>
 
@@ -320,9 +313,8 @@ const GameDetailPage = () => {
                                                     />
                                                     <div>
                                                         <div
-                                                            className="font-bold text-lg">{game.admin.name || game.admin.nickname}</div>
-                                                        <div
-                                                            className="text-gray-600 dark:text-gray-400">{game.admin.email}</div>
+                                                            className="font-bold text-lg">{game.admin.nickname}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ) : (
@@ -430,7 +422,7 @@ const GameDetailPage = () => {
                                                     />
                                                     <div className="flex-1 min-w-0">
                                                         <div className="font-bold truncate">
-                                                            {player?.user?.name || player.user?.nickname || 'Joueur'}
+                                                            {player.isBot ? player.botName : player.user?.nickname || 'Joueur'}
                                                         </div>
                                                         <div className="flex items-center gap-2 mt-1">
                                                             <div className="badge gap-1 badge-ghost">
@@ -464,14 +456,6 @@ const GameDetailPage = () => {
                                             <ScrollText className="h-6 w-6 text-primary"/>
                                             Journal des événements
                                         </h2>
-                                        <button
-                                            className="btn btn-outline btn-sm gap-2"
-                                            onClick={fetchLogs}
-                                            disabled={isLogsLoading}
-                                        >
-                                            <RefreshCw className={`h-4 w-4 ${isLogsLoading ? 'animate-spin' : ''}`}/>
-                                            {isLogsLoading ? 'Chargement...' : 'Actualiser'}
-                                        </button>
                                     </div>
 
                                     {isLogsLoading && (
