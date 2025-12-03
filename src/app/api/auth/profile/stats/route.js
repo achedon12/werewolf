@@ -61,51 +61,43 @@ export async function GET(req) {
     const rangeParam = url.searchParams.get("timeRange") || url.searchParams.get("range") || "all";
     const range = rangeParam.toLowerCase();
 
-    let cutoff = null;
-    if (range === "week") cutoff = startOfWeek();
-    else if (range === "month") cutoff = startOfMonth();
-
-    const gameDateFilter = cutoff ? {createdAt: {gte: cutoff}} : undefined;
-
-    const players = await prisma.player.findMany({
-        where: {
-            userId: payload.id,
-            ...(gameDateFilter ? {game: gameDateFilter} : {})
-        },
-        include: {game: true}
-    });
-
-    const winGames = await prisma.game.findMany({
-        where: {
-            winners: {some: {id: payload.id}},
-            ...(gameDateFilter ? {createdAt: {gte: cutoff}} : {})
-        },
-        select: {id: true}
-    });
-
-    const winsSet = new Set(winGames.map(g => g.id));
-
-    const gamesMap = new Map();
-    for (const p of players) {
-        if (!p.game || !p.game.id) continue;
-        if (gamesMap.has(p.game.id)) continue;
-        const dateVal = p.game.createdAt || p.game.startedAt || new Date();
-        gamesMap.set(p.game.id, {
-            id: p.game.id,
-            date: new Date(dateVal),
-            won: winsSet.has(p.game.id)
-        });
+    let rangeStart = null;
+    let rangeEnd = null;
+    if (range === "week") {
+        rangeStart = startOfWeek();
+        rangeEnd = new Date(rangeStart);
+        rangeEnd.setDate(rangeEnd.getDate() + 7);
+    } else if (range === "month") {
+        rangeStart = startOfMonth();
+        rangeEnd = new Date(rangeStart.getFullYear(), rangeStart.getMonth() + 1, 1);
+        rangeEnd.setHours(0, 0, 0, 0);
     }
-    const gamesList = Array.from(gamesMap.values()).sort((a, b) => a.date - b.date);
 
-    const gamesPlayed = gamesList.length;
+    const games = await prisma.game.findMany({
+        where: {
+            users: {some: {id: payload.id}},
+            ...(rangeStart && rangeEnd ? {startedAt: {gte: rangeStart, lt: rangeEnd}} : {})
+        },
+        include: {
+            winners: true,
+            players: true
+        }
+    });
+
+    console.log(`Found ${games.length} games for user ${payload.id} in range ${range} (${rangeStart} - ${rangeEnd})`);
+
+    const winGames = games.filter(g => Array.isArray(g.winners) && g.winners.some(w => w.id === payload.id)).map(g => g.id);
+
+    const gamesPlayed = games.length;
     const gamesWon = winGames.length;
     const winRate = gamesPlayed > 0 ? Number(((gamesWon / gamesPlayed) * 100).toFixed(1)) : 0;
 
     // rolesPlayed
     const rolesPlayed = {};
-    for (const p of players) {
-        const r = p.role || "Inconnu";
+    for (const game of games) {
+        const currentPlayer = Array.isArray(game.players) ? game.players.find(p => p.userId === payload.id) : undefined;
+        if (!currentPlayer) continue;
+        const r = currentPlayer.role || "Inconnu";
         rolesPlayed[r] = (rolesPlayed[r] || 0) + 1;
     }
 
@@ -119,43 +111,47 @@ export async function GET(req) {
         }
     }
 
-    // streaks
+    // streaks + total play time
     let bestStreak = 0;
     let currentRun = 0;
-    for (const g of gamesList) {
-        if (g.won) {
+    let currentStreak = 0;
+    let totalPlayTime = 0;
+    for (const g of games) {
+        const won = winGames.includes(g.id);
+        if (g.startedAt && g.endedAt) {
+            const started = new Date(g.startedAt).getTime();
+            const ended = new Date(g.endedAt).getTime();
+            if (!isNaN(started) && !isNaN(ended) && ended >= started) {
+                totalPlayTime += (ended - started) / 1000;
+            }
+        }
+
+        if (won) {
             currentRun += 1;
             if (currentRun > bestStreak) bestStreak = currentRun;
         } else {
             currentRun = 0;
         }
     }
-    let currentStreak = 0;
-    for (let i = gamesList.length - 1; i >= 0; i--) {
-        if (gamesList[i].won) currentStreak += 1;
+    // currentStreak: count wins from most recent game backwards
+    for (let i = games.length - 1; i >= 0; i--) {
+        const g = games[i];
+        if (winGames.includes(g.id)) currentStreak += 1;
         else break;
     }
 
-    // total play time (seconds)
-    let totalPlayTime = 0;
-    for (const p of players) {
-        if (p.game && p.game.endedAt && p.game.startedAt) {
-            const duration = (p.game.endedAt.getTime() - p.game.startedAt.getTime()) / 1000;
-            totalPlayTime += duration;
-        }
-    }
-
     let prevGamesPlayed = null;
-    if (cutoff) {
+    if (rangeStart && rangeEnd) {
         let prevStart = null;
+        let prevEnd = rangeStart;
         if (range === "week") prevStart = startOfWeekAgo();
         else if (range === "month") prevStart = startOfPrevMonth();
 
         if (prevStart) {
-            prevGamesPlayed = await prisma.player.count({
+            prevGamesPlayed = await prisma.game.count({
                 where: {
-                    userId: payload.id,
-                    game: {createdAt: {gte: prevStart, lt: cutoff}}
+                    users: {some: {id: payload.id}},
+                    startedAt: {gte: prevStart, lt: prevEnd}
                 }
             });
         }
@@ -163,39 +159,31 @@ export async function GET(req) {
 
     const gamesDelta = prevGamesPlayed === null ? null : (gamesPlayed - prevGamesPlayed);
 
-    const recentPlayers = Array.from(gamesList)
-        .sort((a, b) => b.date - a.date)
+    const recentPlayers = Array.from(games)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 5)
         .map(g => ({
-            date: g.date.toISOString().slice(0, 10),
-            result: g.won ? "win" : "loss",
+            date: new Date(g.createdAt).toISOString().slice(0, 10),
+            result: winGames.includes(g.id) ? "win" : "loss",
             role: (() => {
-                const p = players.find(pp => pp.game && pp.game.id === g.id);
+                const p = Array.isArray(g.players) ? g.players.find(pl => pl.userId === payload.id) : undefined;
                 return p ? (p.role || "Inconnu") : "Inconnu";
             })()
         }));
 
     const monthStart = startOfMonth();
+    const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 1);
+    monthEnd.setHours(0, 0, 0, 0);
     const daysInMonth = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate();
-
-    const monthPlayers = await prisma.player.findMany({
-        where: {
-            userId: payload.id,
-            game: { createdAt: { gte: monthStart } }
-        },
-        include: {
-            game: { select: { id: true, createdAt: true, winners: { select: { id: true } } } }
-        }
-    });
 
     const playedPerDay = Array(daysInMonth).fill(0);
     const winsPerDay = Array(daysInMonth).fill(0);
 
-    for (const p of monthPlayers) {
-        const g = p.game;
-        if (!g || !g.createdAt) continue;
+    for (const g of games) {
+        if (!g.createdAt) continue;
         const d = new Date(g.createdAt);
-        const day = d.getDate(); // 1..daysInMonth
+        if (isNaN(d.getTime())) continue;
+        const day = d.getDate();
         playedPerDay[day - 1] += 1;
         if (Array.isArray(g.winners) && g.winners.some(w => w.id === payload.id)) {
             winsPerDay[day - 1] += 1;
@@ -208,7 +196,9 @@ export async function GET(req) {
     }
 
     const higherCount = await prisma.user.count({
-        where: {victories: {gt: userRecord.victories || 0}}
+        where: {
+            victories: {gt: userRecord.victories || 0}
+        }
     });
     const globalRank = higherCount + 1;
 

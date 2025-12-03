@@ -85,7 +85,7 @@ const OverviewPage = () => {
         };
 
         init();
-    }, [logout]);
+    }, []);
 
     if (isLoading && !user) {
         return (
