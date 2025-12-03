@@ -134,14 +134,6 @@ export default function Footer() {
                                     Support
                                 </Link>
                             </li>
-                            <li>
-                                <Link href="/contact"
-                                      className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-2 group">
-                                    <span
-                                        className="w-1 h-1 rounded-full bg-gray-400 group-hover:bg-blue-500 transition-colors"></span>
-                                    Contact
-                                </Link>
-                            </li>
                         </ul>
                     </div>
 

@@ -425,7 +425,7 @@ const PrivacyPage = () => {
                             <p className="text-gray-300 mb-4">
                                 Notre équice de protection des données est là pour vous aider
                             </p>
-                            <Link href="/contact" className="btn btn-primary">
+                            <Link href="/support" className="btn btn-primary">
                                 📧 Contacter notre DPO
                             </Link>
                         </div>
