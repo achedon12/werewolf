@@ -1,6 +1,7 @@
 import {Geist, Geist_Mono} from 'next/font/google';
 import './globals.css';
 import ClientLayout from './ClientLayout';
+import {siteUrl} from "@/utils/publicEmail.js";
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -32,9 +33,9 @@ export default function RootLayout({children}) {
 }
 
 export const metadata = {
-    metadataBase: new URL(SITE_URL),
-    title: 'Online Werewolf - Jouez au Loup-Garou en ligne',
-    description: 'Plateforme en ligne pour jouer au jeu de société Loup-Garou avec vos amis.',
+    metadataBase: new URL(siteUrl),
+    title: 'Jouez au Loup-Garou en ligne',
+    description: 'Jouez au Loup-Garou en ligne avec vos amis, gratuitement et immersivement.',
     keywords: [
         'Loup-Garou',
         'jeu de société',
@@ -52,11 +53,11 @@ export const metadata = {
     openGraph: {
         title: 'Online Werewolf - Jouez au Loup-Garou en ligne',
         description: 'Jouez au Loup-Garou en ligne avec vos amis, gratuitement et sans inscription.',
-        url: SITE_URL,
+        url: siteUrl,
         siteName: 'Online Werewolf',
         images: [
             {
-                url: `${SITE_URL}/logo.png`,
+                url: `${siteUrl}/logo.png`,
                 width: 1200,
                 height: 630,
                 alt: 'Online Werewolf - Loup-Garou en ligne',
@@ -66,8 +67,8 @@ export const metadata = {
         type: 'website',
     },
     icons: {
-        icon: `${SITE_URL}/logo.png`,
-        shortcut: `${SITE_URL}/logo.png`,
-        apple: `${SITE_URL}/logo.png`,
+        icon: `${siteUrl}/logo.png`,
+        shortcut: `${siteUrl}/logo.png`,
+        apple: `${siteUrl}/logo.png`,
     },
 };
