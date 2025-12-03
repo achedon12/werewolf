@@ -246,7 +246,7 @@ export default function Footer() {
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-500 text-center md:text-right">
                             <p>
-                                Loup-Garou Online n'est pas affilié à "Les Loups-garous de Thiercelieux" •
+                                Ce site n'est pas affilié à "Les Loups-garous de Thiercelieux" •
                                 Jeu créé par Philippe des Pallières et Hervé Marly
                             </p>
                         </div>
