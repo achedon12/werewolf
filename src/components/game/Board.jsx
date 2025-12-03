@@ -2,8 +2,10 @@ import Image from "next/image";
 import {useEffect, useMemo, useState} from "react";
 import {getRoleByName, playerIsWolf} from "@/utils/Roles.js";
 import {Heart, Skull} from "lucide-react";
-import {getMostTargetByWolvesPlayerId, wolfVoteCounts as computeWolfVoteCounts} from "@/server/socket/utils/roleTurnManager.js";
-import {GAME_PHASES} from "@/server/config/constants.js";
+import {
+    getMostTargetByWolvesPlayerId,
+    wolfVoteCounts as computeWolfVoteCounts
+} from "@/server/socket/utils/roleTurnManager.js";
 
 const GameBoard = ({
                        players,
@@ -133,6 +135,11 @@ const GameBoard = ({
         }
 
         if (player.id === currentPlayer?.id) {
+            const role = getRoleByName(player.role);
+            return {src: role?.image ?? "/cards/card.jpeg", alt: player.role};
+        }
+
+        if (!player.isAlive) {
             const role = getRoleByName(player.role);
             return {src: role?.image ?? "/cards/card.jpeg", alt: player.role};
         }

@@ -1,5 +1,8 @@
 - add voting chat
 - fix bug for witch (ux/ui, she can use her ability more 1 time per game for each potion)
 - hunter shoot after death
-- if dead people, turn off their card
 - if couple die in vote, all members of couple die
+- ❌ Erreur leave-game: TypeError: roomData.players.has is not a function
+      at removePlayerFromGame (src/server/socket/utils/roomManager.js:93:30)
+      at handleLeaveGame (src/server/socket/handlers/gameHandlers.js:96:9)
+      at Socket.<anonymous> (src/server/socket/index.js:31:13)

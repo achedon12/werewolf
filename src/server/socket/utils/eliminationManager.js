@@ -25,7 +25,7 @@ export const processNightEliminations = async (io, gameId) => {
                     type: ACTION_TYPES.GAME_EVENT,
                     playerName: "Système",
                     playerRole: "system",
-                    message: `🐺 Les Loups-Garous ont tué ${targetPlayer.nickname}.`,
+                    message: `🐺 Les Loups-Garous ont tué ${targetPlayer.nickname}.({$targetPlayer.role}})`,
                     phase: GAME_PHASES.DAY
                 });
             }
@@ -41,7 +41,7 @@ export const processNightEliminations = async (io, gameId) => {
                 type: ACTION_TYPES.GAME_EVENT,
                 playerName: "Système",
                 playerRole: "system",
-                message: `🐺 Le Loup Blanc a tué ${whiteTargetPlayer.nickname}.`,
+                message: `🐺 Le Loup Blanc a tué ${whiteTargetPlayer.nickname}.({$targetPlayer.role}})`,
                 phase: GAME_PHASES.DAY
             });
         }

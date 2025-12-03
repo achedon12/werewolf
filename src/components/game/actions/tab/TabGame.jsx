@@ -258,35 +258,6 @@ const TabGame = ({
                         <div className="card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                             <div className="card-body p-4 md:p-6">
                                 <h3 className="card-title text-gray-900 dark:text-white text-lg mb-4 flex items-center gap-2">
-                                    <Users className="w-5 h-5" />
-                                    État des Joueurs
-                                </h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 border border-green-200 dark:border-green-800">
-                                        <div className="text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400">
-                                            {alivePlayers.length}
-                                        </div>
-                                        <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1 mt-1">
-                                            <Heart className="w-4 h-4" />
-                                            En Vie
-                                        </div>
-                                    </div>
-                                    <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 border border-red-200 dark:border-red-800">
-                                        <div className="text-2xl md:text-3xl font-bold text-red-600 dark:text-red-400">
-                                            {deadPlayers.length}
-                                        </div>
-                                        <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1 mt-1">
-                                            <Skull className="w-4 h-4" />
-                                            Morts
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-                            <div className="card-body p-4 md:p-6">
-                                <h3 className="card-title text-gray-900 dark:text-white text-lg mb-4 flex items-center gap-2">
                                     <History className="w-5 h-5" />
                                     Ordre des Tours
                                 </h3>

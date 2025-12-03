@@ -38,16 +38,6 @@ export const getGameRoom = (gameId) => {
     return gameRooms.get(gameId);
 }
 
-export const updateGameRoom = (gameId, updates) => {
-    const roomData = getGameRoom(gameId);
-    if (!roomData) return null;
-
-    Object.assign(roomData, updates);
-    roomData.lastActivity = new Date();
-    gameRooms.set(gameId, roomData);
-    return roomData;
-}
-
 export const addPlayerToGame = (socket, gameId, userData) => {
     const roomData = getGameRoom(gameId);
     const mainRoom = `game-${gameId}`;

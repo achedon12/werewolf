@@ -309,7 +309,7 @@ export const startGameLogic = async (socket, io, gameId) => {
                                     type: ACTION_TYPES.GAME_EVENT,
                                     playerName: "Système",
                                     playerRole: "system",
-                                    message: `⚰️ ${eliminated.nickname} a été éliminé(e) par vote (${maxCount} vote${maxCount > 1 ? 's' : ''}).`,
+                                    message: `⚰️ ${eliminated.nickname}(${eliminated.role}) a été éliminé(e) par vote (${maxCount} vote${maxCount > 1 ? 's' : ''}).`,
                                     details: `Votes: ${maxCount}`,
                                     phase: GAME_PHASES.VOTING,
                                     createdAt: new Date().toISOString()

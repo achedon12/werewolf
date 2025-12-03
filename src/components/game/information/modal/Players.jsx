@@ -286,7 +286,7 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
                         {players.length < maxPlayers && (
                             <button
                                 onClick={handleAddBot}
-                                className="group flex flex-col items-center justify-center p-6 bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
+                                className="group flex flex-col items-center justify-center p-6 bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 hover:cursor-pointer"
                             >
                                 <div className="w-16 h-16 mb-3 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
                                     <Plus className="w-8 h-8 text-blue-600 dark:text-blue-400" />

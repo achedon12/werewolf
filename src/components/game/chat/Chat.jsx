@@ -1,6 +1,7 @@
 import TabMessages from "@/components/game/chat/tab/TabMessages";
 import TabParticipants from "@/components/game/chat/tab/TabParticipants";
-import {MessageSquare, Users} from "lucide-react";
+import {Maximize, MessageSquare, Minimize, Users} from "lucide-react";
+import {useState} from "react";
 
 const GameChat = ({
                       chatChannels,
@@ -21,6 +22,8 @@ const GameChat = ({
                       currentPlayer
                   }) => {
 
+    if (chatChannels.length === 0) return null;
+
     return (
         <div className="card bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700 mt-6">
             <div className="card-body flex flex-col p-4 md:p-6">
@@ -35,11 +38,6 @@ const GameChat = ({
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                        {chatChannels.length === 0 && (
-                            <div className="text-gray-500 dark:text-gray-400 text-sm">
-                                Aucun canal de chat disponible
-                            </div>
-                        )}
                         {chatChannels.map(ch => (
                             <button
                                 key={ch}

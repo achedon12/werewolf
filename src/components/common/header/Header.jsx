@@ -41,14 +41,19 @@ export default function Header() {
 
     useEffect(() => {
         setIsClient(true);
+        const gameParam = searchParams.get('gameId');
+        if (gameParam) {
+            setRoomId(gameParam);
+            setShowJoinModal(true);
+        }
     }, []);
 
     useEffect(() => {
-        const gameParam = searchParams.get('game');
+        const gameParam = searchParams.get('gameId');
         if (gameParam) {
             setRoomId(gameParam);
         }
-    }, [searchParams]);
+    }, [showJoinModal]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
