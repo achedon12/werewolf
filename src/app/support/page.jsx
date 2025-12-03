@@ -1,10 +1,22 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
+import {useEffect, useState} from 'react';
+import {
+    AlertCircle,
+    CheckCircle,
+    ChevronRight,
+    Clock,
+    Gamepad2,
+    Headphones,
+    Mail,
+    MessageSquare,
+    Send,
+    Settings,
+    Shield,
+    User
+} from 'lucide-react';
 
 const SupportPage = () => {
-    const [activeTab, setActiveTab] = useState('contact');
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -17,7 +29,7 @@ const SupportPage = () => {
     const [submitStatus, setSubmitStatus] = useState(null);
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value
@@ -47,358 +59,399 @@ const SupportPage = () => {
     const supportCategories = [
         {
             id: 'technical',
-            title: '🔧 Problème Technique',
-            icon: '🔧',
+            title: 'Problème Technique',
+            icon: Settings,
             description: 'Bugs, connexion, performances',
-            color: 'from-blue-500 to-cyan-500'
+            color: 'bg-gradient-to-br from-blue-500 to-cyan-500',
+            iconColor: 'text-blue-600 dark:text-blue-400'
         },
         {
             id: 'gameplay',
-            title: '🎮 Question de Gameplay',
-            icon: '🎮',
+            title: 'Question de Gameplay',
+            icon: Gamepad2,
             description: 'Règles, stratégies, mécaniques',
-            color: 'from-green-500 to-emerald-500'
+            color: 'bg-gradient-to-br from-green-500 to-emerald-500',
+            iconColor: 'text-green-600 dark:text-green-400'
         },
         {
             id: 'account',
-            title: '👤 Problème de Compte',
-            icon: '👤',
+            title: 'Problème de Compte',
+            icon: User,
             description: 'Connexion, mot de passe, profil',
-            color: 'from-purple-500 to-pink-500'
+            color: 'bg-gradient-to-br from-purple-500 to-pink-500',
+            iconColor: 'text-purple-600 dark:text-purple-400'
         },
         {
             id: 'report',
-            title: '🚨 Signaler un Joueur',
-            icon: '🚨',
+            title: 'Signaler un Joueur',
+            icon: Shield,
             description: 'Comportement abusif, triche',
-            color: 'from-red-500 to-rose-500'
-        },
-        {
-            id: 'suggestion',
-            title: '💡 Suggestion',
-            icon: '💡',
-            description: 'Idées, améliorations, feedback',
-            color: 'from-indigo-500 to-purple-500'
+            color: 'bg-gradient-to-br from-red-500 to-rose-500',
+            iconColor: 'text-red-600 dark:text-red-400'
         }
     ];
 
     const urgencyLevels = [
-        { value: 'low', label: '🟢 Peu urgent', description: 'Question générale' },
-        { value: 'medium', label: '🟡 Normal', description: 'Problème gênant' },
-        { value: 'high', label: '🟠 Urgent', description: 'Impossible de jouer' },
-        { value: 'critical', label: '🔴 Critique', description: 'Sécurité/compte' }
-    ];
-
-    const faqQuick = [
         {
-            question: "Je ne peux pas rejoindre une partie",
-            answer: "Vérifiez votre connexion internet et rafraîchissez la page. Si le problème persiste, déconnectez-vous et reconnectez-vous."
+            value: 'low',
+            label: 'Faible',
+            description: 'Question générale',
+            color: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+            borderColor: 'border-green-200 dark:border-green-800'
         },
         {
-            question: "Mon audio ne fonctionne pas",
-            answer: "Vérifiez que votre navigateur a l'autorisation d'utiliser l'audio. Cliquez sur l'icône de son dans la barre d'adresse."
+            value: 'medium',
+            label: 'Moyenne',
+            description: 'Problème gênant',
+            color: 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+            borderColor: 'border-yellow-200 dark:border-yellow-800'
         },
         {
-            question: "Comment signaler un bug ?",
-            answer: "Utilisez le formulaire de contact en sélectionnant 'Problème Technique'. Incluez des captures d'écran si possible."
+            value: 'high',
+            label: 'Haute',
+            description: 'Impossible de jouer',
+            color: 'bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+            borderColor: 'border-orange-200 dark:border-orange-800'
         },
         {
-            question: "J'ai oublié mon mot de passe",
-            answer: "Utilisez la fonction 'Mot de passe oublié' sur la page de connexion. Un email de réinitialisation vous sera envoyé."
+            value: 'critical',
+            label: 'Critique',
+            description: 'Sécurité/compte',
+            color: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+            borderColor: 'border-red-200 dark:border-red-800'
         }
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8">
-            <div className="container mx-auto px-4 max-w-6xl">
-
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+            <div className="max-w-7xl mx-auto px-4 py-8">
                 <div className="text-center mb-12">
-                    <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-4">
-                        🛡️ Centre de Support
+                    <div
+                        className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg">
+                        <Mail className="w-8 h-8 text-white"/>
+                    </div>
+                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                        Contactez-nous
                     </h1>
-                    <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-                        Notre équipe de loups expérimentés est là pour vous aider à résoudre tous vos problèmes
+                    <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                        Notre équipe de support est là pour vous aider. Remplissez le formulaire ci-dessous
+                        et nous vous répondrons dans les plus brefs délais.
                     </p>
                 </div>
 
-                <div className="flex flex-wrap justify-center gap-2 mb-12 bg-base-200/30 backdrop-blur-sm rounded-2xl p-2 border border-white/10 max-w-2xl mx-auto">
-                    <button
-                        onClick={() => setActiveTab('contact')}
-                        className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex-1 min-w-[140px] ${
-                            activeTab === 'contact'
-                                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                                : 'text-gray-300 hover:bg-white/5'
-                        }`}
-                    >
-                        📧 Nous Contacter
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('faq')}
-                        className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex-1 min-w-[140px] ${
-                            activeTab === 'faq'
-                                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                                : 'text-gray-300 hover:bg-white/5'
-                        }`}
-                    >
-                        ❓ FAQ Rapide
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('status')}
-                        className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex-1 min-w-[140px] ${
-                            activeTab === 'status'
-                                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                                : 'text-gray-300 hover:bg-white/5'
-                        }`}
-                    >
-                        📊 Statut des Services
-                    </button>
-                </div>
-
-                <div className="max-w-4xl mx-auto">
-
-                    {activeTab === 'contact' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <div className="lg:col-span-1">
-                                <h3 className="text-xl font-bold text-white mb-6">Type de demande</h3>
+                <div className="grid lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-1">
+                        <div className="sticky top-6">
+                            <div
+                                className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm mb-6">
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                    <Settings className="w-5 h-5"/>
+                                    Type de demande
+                                </h2>
                                 <div className="space-y-3">
-                                    {supportCategories.map(category => (
-                                        <button
-                                            key={category.id}
-                                            onClick={() => setFormData(prev => ({ ...prev, category: category.id }))}
-                                            className={`w-full text-left p-4 rounded-xl border transition-all duration-300 ${
-                                                formData.category === category.id
-                                                    ? `bg-gradient-to-r ${category.color} text-white border-transparent shadow-lg`
-                                                    : 'bg-base-200/30 border-white/10 text-gray-300 hover:bg-base-200/50'
-                                            }`}
-                                        >
-                                            <div className="flex items-center space-x-3">
-                                                <span className="text-2xl">{category.icon}</span>
-                                                <div>
-                                                    <div className="font-semibold">{category.title}</div>
-                                                    <div className="text-sm opacity-80">{category.description}</div>
+                                    {supportCategories.map(category => {
+                                        const Icon = category.icon;
+                                        const isSelected = formData.category === category.id;
+                                        return (
+                                            <button
+                                                key={category.id}
+                                                onClick={() => setFormData(prev => ({...prev, category: category.id}))}
+                                                className={`w-full text-left p-4 rounded-xl border transition-all duration-200 group hover:scale-[1.02] ${
+                                                    isSelected
+                                                        ? `${category.color} border-transparent text-white shadow-lg`
+                                                        : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                                                }`}
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <div
+                                                        className={`p-3 rounded-lg ${isSelected ? 'bg-white/20' : 'bg-white dark:bg-gray-700'}`}>
+                                                        <Icon
+                                                            className={`w-6 h-6 ${isSelected ? 'text-white' : category.iconColor}`}/>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="font-semibold">{category.title}</div>
+                                                        <div
+                                                            className={`text-sm ${isSelected ? 'text-white/90' : 'text-gray-500 dark:text-gray-400'}`}>
+                                                            {category.description}
+                                                        </div>
+                                                    </div>
+                                                    {isSelected && (
+                                                        <ChevronRight className="w-5 h-5 text-white/80"/>
+                                                    )}
                                                 </div>
-                                            </div>
-                                        </button>
-                                    ))}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
 
-                            <div className="lg:col-span-2">
-                                <div className="bg-base-200/30 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-                                    <h3 className="text-2xl font-bold text-white mb-6">
-                                        📝 Formulaire de Contact
-                                    </h3>
+                            <div
+                                className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-6 border border-blue-100 dark:border-gray-700">
+                                <div className="flex items-start gap-3 mb-4">
+                                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                                        <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400"/>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                                            Temps de réponse
+                                        </h3>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            Généralement en moins de 24 heures
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
+                                        <Headphones className="w-5 h-5 text-green-600 dark:text-green-400"/>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                                            Support disponible
+                                        </h3>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            7 jours sur 7
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                                    {submitStatus === 'success' && (
-                                        <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-xl text-green-300">
-                                            ✅ Votre message a été envoyé ! Notre équipe vous répondra dans les 24h.
+                    <div className="lg:col-span-2">
+                        <div
+                            className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden">
+                            <div
+                                className="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                                            Formulaire de contact
+                                        </h2>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            Tous les champs sont obligatoires
+                                        </p>
+                                    </div>
+                                    <div className="hidden sm:block">
+                                        <div
+                                            className="text-xs px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
+                                            {supportCategories.find(c => c.id === formData.category)?.title}
                                         </div>
-                                    )}
+                                    </div>
+                                </div>
+                            </div>
 
-                                    <form onSubmit={handleSubmit} className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text text-white">Votre nom</span>
+                            <div className="p-6">
+                                {submitStatus === 'success' && (
+                                    <div
+                                        className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                                        <div className="flex items-center gap-3">
+                                            <CheckCircle
+                                                className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0"/>
+                                            <div>
+                                                <h3 className="font-semibold text-green-800 dark:text-green-300">
+                                                    Message envoyé avec succès !
+                                                </h3>
+                                                <p className="text-green-700 dark:text-green-400 text-sm">
+                                                    Notre équipe vous répondra dans les 24 heures.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleSubmit} className="space-y-8">
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                            <User className="w-5 h-5 text-gray-500"/>
+                                            Informations personnelles
+                                        </h3>
+                                        <div className="grid md:grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <label
+                                                    className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    Nom complet
                                                 </label>
                                                 <input
                                                     type="text"
                                                     name="name"
                                                     value={formData.name}
                                                     onChange={handleInputChange}
-                                                    className="input input-bordered bg-base-200/50 border-white/10"
+                                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all"
+                                                    placeholder="Votre nom"
                                                     required
                                                 />
                                             </div>
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text text-white">Email</span>
+                                            <div className="space-y-2">
+                                                <label
+                                                    className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    Adresse email
                                                 </label>
                                                 <input
                                                     type="email"
                                                     name="email"
                                                     value={formData.email}
                                                     onChange={handleInputChange}
-                                                    className="input input-bordered bg-base-200/50 border-white/10"
+                                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all"
+                                                    placeholder="votre@email.com"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid md:grid-cols-2 gap-8">
+                                        <div className="space-y-4">
+                                            <div>
+                                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                                    Sujet du message
+                                                </h3>
+                                                <input
+                                                    type="text"
+                                                    name="subject"
+                                                    value={formData.subject}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all"
+                                                    placeholder="Décrivez brièvement votre problème..."
                                                     required
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className="form-control">
-                                            <label className="label">
-                                                <span className="label-text text-white">Sujet</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="subject"
-                                                value={formData.subject}
-                                                onChange={handleInputChange}
-                                                className="input input-bordered bg-base-200/50 border-white/10"
-                                                placeholder="Décrivez brièvement votre problème..."
-                                                required
-                                            />
-                                        </div>
-
-                                        <div className="form-control">
-                                            <label className="label">
-                                                <span className="label-text text-white">Niveau d'urgence</span>
-                                            </label>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                        <div className="space-y-4">
+                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                                Niveau d'urgence
+                                            </h3>
+                                            <div className="space-y-2">
                                                 {urgencyLevels.map(level => (
-                                                    <button
+                                                    <label
                                                         key={level.value}
-                                                        type="button"
-                                                        onClick={() => setFormData(prev => ({ ...prev, urgency: level.value }))}
-                                                        className={`p-3 rounded-lg border text-sm transition-all ${
+                                                        className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all hover:scale-[1.02] ${
                                                             formData.urgency === level.value
-                                                                ? 'bg-purple-500/20 border-purple-500 text-purple-300'
-                                                                : 'bg-base-200/30 border-white/10 text-gray-300 hover:bg-base-200/50'
+                                                                ? `${level.color} ${level.borderColor} ring-2 ring-offset-2 ring-blue-500 dark:ring-blue-400`
+                                                                : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                                                         }`}
                                                     >
-                                                        <div className="font-medium">{level.label}</div>
-                                                        <div className="text-xs opacity-80">{level.description}</div>
-                                                    </button>
+                                                        <input
+                                                            type="radio"
+                                                            name="urgency"
+                                                            value={level.value}
+                                                            checked={formData.urgency === level.value}
+                                                            onChange={handleInputChange}
+                                                            className="h-4 w-4 text-blue-600 dark:text-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400"
+                                                        />
+                                                        <div className="flex-1">
+                                                            <div className="font-medium text-gray-900 dark:text-white">
+                                                                {level.label}
+                                                            </div>
+                                                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                                {level.description}
+                                                            </div>
+                                                        </div>
+                                                    </label>
                                                 ))}
                                             </div>
                                         </div>
+                                    </div>
 
-                                        <div className="form-control">
-                                            <label className="label">
-                                                <span className="label-text text-white">Description détaillée</span>
-                                            </label>
-                                            <textarea
-                                                name="message"
-                                                value={formData.message}
-                                                onChange={handleInputChange}
-                                                rows={6}
-                                                className="textarea textarea-bordered bg-base-200/50 border-white/10"
-                                                placeholder="Décrivez votre problème en détail... Incluez les étapes pour le reproduire si possible."
-                                                required
-                                            />
-                                        </div>
-
-                                        <div className="form-control">
-                                            <button
-                                                type="submit"
-                                                disabled={isSubmitting}
-                                                className={`btn btn-primary btn-lg ${
-                                                    isSubmitting ? 'loading' : ''
-                                                }`}
-                                            >
-                                                {isSubmitting ? 'Envoi en cours...' : '🚀 Envoyer la demande'}
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'faq' && (
-                        <div className="space-y-6">
-                            <div className="bg-base-200/30 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-                                <h3 className="text-2xl font-bold text-white mb-6">❓ Questions Fréquentes</h3>
-                                <div className="space-y-4">
-                                    {faqQuick.map((item, index) => (
-                                        <div key={index} className="collapse collapse-plus bg-base-200/50 border border-white/10 rounded-xl">
-                                            <input type="checkbox" />
-                                            <div className="collapse-title text-lg font-medium text-white">
-                                                {item.question}
-                                            </div>
-                                            <div className="collapse-content">
-                                                <p className="text-gray-300">{item.answer}</p>
+                                    <div className="space-y-4">
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                            <MessageSquare className="w-5 h-5 text-gray-500"/>
+                                            Décrivez votre problème
+                                        </h3>
+                                        <div className="relative">
+                                                                <textarea
+                                                                    name="message"
+                                                                    value={formData.message}
+                                                                    onChange={handleInputChange}
+                                                                    rows={8}
+                                                                    className="w-full px-4 py-4 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all resize-none"
+                                                                    placeholder="Décrivez votre problème en détail. Incluez les étapes pour reproduire le problème, les messages d'erreur, et toute autre information utile..."
+                                                                    required
+                                                                />
+                                            <div
+                                                className="absolute bottom-3 right-3 text-xs text-gray-500 dark:text-gray-400">
+                                                Minimum 50 caractères
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
+                                        <div
+                                            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                            <AlertCircle className="w-4 h-4"/>
+                                            <span>Inclure des captures d'écran aide beaucoup notre équipe</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting || formData.message.length < 50}
+                                            className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center gap-3 ${
+                                                isSubmitting || formData.message.length < 50
+                                                    ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
+                                                    : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white hover:shadow-xl hover:scale-[1.02]'
+                                            }`}
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <div
+                                                        className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                                    <span>Envoi en cours...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Send className="w-5 h-5"/>
+                                                    <span>Envoyer la demande de support</span>
+                                                </>
+                                            )}
+                                        </button>
+                                        <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-3">
+                                            En cliquant, vous acceptez nos conditions de traitement des données
+                                        </p>
+                                    </div>
+                                </form>
                             </div>
-                        </div>
-                    )}
 
-                    {activeTab === 'status' && (
-                        <div className="space-y-6">
-                            <div className="bg-base-200/30 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-                                <h3 className="text-2xl font-bold text-white mb-6">📊 Statut des Services</h3>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                                    <div className="p-4 bg-green-500/20 border border-green-500/50 rounded-xl">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-white font-semibold">Serveurs de Jeu</span>
-                                            <span className="badge badge-success">🟢 Opérationnel</span>
-                                        </div>
-                                        <p className="text-green-300 text-sm">Tous les serveurs fonctionnent normalement</p>
-                                    </div>
-
-                                    <div className="p-4 bg-green-500/20 border border-green-500/50 rounded-xl">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-white font-semibold">Base de Données</span>
-                                            <span className="badge badge-success">🟢 Opérationnel</span>
-                                        </div>
-                                        <p className="text-green-300 text-sm">Performances optimales</p>
-                                    </div>
-
-                                    <div className="p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-xl">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-white font-semibold">Chat Vocal</span>
-                                            <span className="badge badge-warning">🟡 Maintenance</span>
-                                        </div>
-                                        <p className="text-yellow-300 text-sm">Maintenance planifiée en cours</p>
-                                    </div>
-                                </div>
-
-                                <div className="p-4 bg-blue-500/20 border border-blue-500/50 rounded-xl">
-                                    <h4 className="text-lg font-semibold text-white mb-2">📈 Statistiques Récentes</h4>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                                        <div>
-                                            <div className="text-2xl font-bold text-blue-400">99.9%</div>
-                                            <div className="text-gray-400 text-sm">Uptime</div>
-                                        </div>
-                                        <div>
-                                            <div className="text-2xl font-bold text-green-400">42ms</div>
-                                            <div className="text-gray-400 text-sm">Latence moyenne</div>
-                                        </div>
-                                        <div>
-                                            <div className="text-2xl font-bold text-purple-400">5k+</div>
-                                            <div className="text-gray-400 text-sm">Joueurs actifs</div>
-                                        </div>
-                                        <div>
-                                            <div className="text-2xl font-bold text-yellow-400">2min</div>
-                                            <div className="text-gray-400 text-sm">Temps de réponse</div>
-                                        </div>
+                            <div
+                                className="border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-900/50">
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                                            Équipe de support connectée
+                                        </span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    )}
-                </div>
-
-                <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                    <div className="text-center p-6 bg-base-200/30 rounded-2xl border border-white/10">
-                        <div className="text-4xl mb-4">💬</div>
-                        <h4 className="text-xl font-bold text-white mb-2">Discord</h4>
-                        <p className="text-gray-300 mb-4">Rejoignez notre communauté</p>
-                        <Link href={process.env.NEXT_PUBLIC_DISCORD_URL} target="_blank" className="btn btn-outline btn-primary btn-sm">
-                            Rejoindre le serveur
-                        </Link>
-                    </div>
-                    <div className="text-center p-6 bg-base-200/30 rounded-2xl border border-white/10">
-                        <div className="text-4xl mb-4">📋</div>
-                        <h4 className="text-xl font-bold text-white mb-2">Statut Live</h4>
-                        <p className="text-gray-300 mb-4">Surveillez les services</p>
-                        <button className="btn btn-outline btn-primary btn-sm">
-                            Voir le statut
-                        </button>
                     </div>
                 </div>
 
-                <div className="mt-12 p-8 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-2xl border border-purple-500/20 text-center">
-                    <h3 className="text-2xl font-bold text-white mb-4">
-                        🎯 Besoin d'aide immédiate ?
+                <div
+                    className="mt-12 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-8 border border-blue-100 dark:border-gray-700">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400"/>
+                        Pour une réponse plus rapide
                     </h3>
-                    <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-                        Notre équipe de support est disponible 24h/24 et 7j/7 pour les urgences critiques.
-                    </p>
+                    <div className="grid md:grid-cols-3 gap-6">
+                        <div className="space-y-3">
+                            <h4 className="font-semibold text-gray-900 dark:text-white">📝 Soignez la description</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Plus votre description est détaillée, plus nous pourrons vous aider rapidement.
+                            </p>
+                        </div>
+                        <div className="space-y-3">
+                            <h4 className="font-semibold text-gray-900 dark:text-white">📸 Fournissez des captures</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Les captures d'écran et vidéos aident à comprendre le problème plus vite.
+                            </p>
+                        </div>
+                        <div className="space-y-3">
+                            <h4 className="font-semibold text-gray-900 dark:text-white">⏱️ Choisissez la bonne
+                                urgence</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Cela nous aide à prioriser les demandes selon leur importance.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
