@@ -106,13 +106,13 @@ export const startGameLogic = async (socket, io, gameId) => {
     roles = roles.sort(() => Math.random() - 0.5);
 
     // give specific role to achedon12 if present
-    // const targetPlayerIndex = connectedPlayersList.findIndex(p => p.nickname === 'achedon12');
+    const targetPlayerIndex = connectedPlayersList.findIndex(p => p.nickname === 'achedon12');
     // if (targetPlayerIndex !== -1) {
-    //     const voyanteIndex = roles.findIndex(r => r === 'Voleur');
-    //     if (voyanteIndex !== -1 && voyanteIndex !== targetPlayerIndex) {
+    //     const roleIndex = roles.findIndex(r => r.toLowerCase() === 'chasseur');
+    //     if (roleIndex !== -1 && roleIndex !== targetPlayerIndex) {
     //         const temp = roles[targetPlayerIndex];
-    //         roles[targetPlayerIndex] = roles[voyanteIndex];
-    //         roles[voyanteIndex] = temp;
+    //         roles[targetPlayerIndex] = roles[roleIndex];
+    //         roles[roleIndex] = temp;
     //         console.log(`🔮 Le joueur achedon12 a reçu son rôle prédéfini`);
     //     }
     // }
@@ -220,7 +220,7 @@ export const startGameLogic = async (socket, io, gameId) => {
                 applyThiefExchange(io, gameId, r);
 
                 await processNightEliminations(io, gameId);
-                if (evaluateWinCondition(io, gameId, r)) {
+                if (evaluateWinCondition(io, gameId)) {
                     return;
                 }
 
@@ -303,7 +303,7 @@ export const startGameLogic = async (socket, io, gameId) => {
                                 const topTwo = topIds.slice(0, 2);
                                 const names = topTwo.map(id => {
                                     const p = findPlayerById(rr, id);
-                                    return p.isBot ? p.nickname : p.BotName || String(id);
+                                    return p.isBot ? p.nickname : p.botName || String(id);
                                 }).filter(Boolean);
 
                                 const message = `${names.join(' et ')} ont le même nombre de vote, le village n'a pas su se décider, personne n'est éliminé.`;
@@ -337,13 +337,18 @@ export const startGameLogic = async (socket, io, gameId) => {
                                         type: ACTION_TYPES.GAME_EVENT,
                                         playerName: "Système",
                                         playerRole: "system",
-                                        message: `⚰️ ${eliminated.nickname}(${eliminated.role}) a été éliminé(e) par vote (${maxCount} vote${maxCount > 1 ? 's' : ''}).`,
+                                        message: `⚰️ ${eliminated.nickname || eliminated.botName}(${eliminated.role}) a été éliminé(e) par vote (${maxCount} vote${maxCount > 1 ? 's' : ''}).`,
                                         details: `Votes: ${maxCount}`,
                                         phase: GAME_PHASES.VOTING,
                                         createdAt: new Date().toISOString()
                                     });
 
                                     console.log(`⚰️ Élimination par vote dans la partie ${gameId} : ${eliminated.nickname} (${maxCount} votes)`);
+
+                                    if (eliminated.role === 'Chasseur') {
+                                        console.log(`Chasseur ${eliminated.nickname || eliminated.botName} eliminated by vote, handling shoot...`);
+                                        await handleHunterShoot(io, gameId, eliminated, 20);
+                                    }
 
                                     try {
                                         const loversCfg = rr.config && rr.config.lovers ? rr.config.lovers : {};
@@ -370,10 +375,15 @@ export const startGameLogic = async (socket, io, gameId) => {
                                                     type: ACTION_TYPES.GAME_EVENT,
                                                     playerName: "Système",
                                                     playerRole: "system",
-                                                    message: `💔 À cause du lien d'amour, ${partner.nickname} meurt de chagrin.`,
+                                                    message: `💔 À cause du lien d'amour, ${partner.nickname || partner.botName} meurt de chagrin.`,
                                                     phase: GAME_PHASES.DAY,
                                                     createdAt: new Date().toISOString()
                                                 });
+
+                                                if (partner.role === 'Chasseur') {
+                                                    console.log(`Chasseur ${partner.nickname || partner.botName} eliminated due to lover link, handling shoot...`);
+                                                    await handleHunterShoot(io, gameId, partner, 20);
+                                                }
                                             }
                                         }
                                     } catch (err) {
@@ -387,7 +397,7 @@ export const startGameLogic = async (socket, io, gameId) => {
                                     io.to(`game-${gameId}`).emit("players-update", {players: room.players});
                                     io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 
-                                    if (evaluateWinCondition(io, gameId, rr)) {
+                                    if (evaluateWinCondition(io, gameId)) {
                                         return;
                                     }
                                 } else {
@@ -443,8 +453,8 @@ export const startGameLogic = async (socket, io, gameId) => {
     }, countdownSeconds * 1000);
 }
 
-const evaluateWinCondition = (io, gameId, room) => {
-    const r = room || getGameRoom(gameId);
+export const evaluateWinCondition = (io, gameId) => {
+    const r = getGameRoom(gameId);
     if (!r) return false;
 
     const counts = countPlayersByCamp(gameId);
@@ -560,7 +570,7 @@ const evaluateWinCondition = (io, gameId, room) => {
             createdAt: new Date().toISOString()
         });
 
-        const winners = room.players
+        const winners = r.players
             .filter(p => !/Loup-Garou/i.test(p.role))
             .map(p => p.id)
             .filter(Boolean);
@@ -605,7 +615,7 @@ const evaluateWinCondition = (io, gameId, room) => {
             createdAt: new Date().toISOString()
         });
 
-        const winners = room.players
+        const winners = r.players
             .filter(p => /Loup-Garou/i.test(p.role))
             .map(p => p.id)
             .filter(Boolean);
@@ -733,4 +743,208 @@ const applyThiefExchange = (io, gameId, room) => {
     gameRooms.set(gameId, room);
     io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(room));
     io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+};
+
+export const handleHunterShoot = async (io, gameId, hunter, seconds = 20, forcedTargetId = null) => {
+    try {
+        const r = getGameRoom(gameId);
+        if (!r || !hunter) return;
+
+        let resolved = false;
+        let resolveCompletion;
+        const completionPromise = new Promise((res) => { resolveCompletion = () => { if (!resolved) { resolved = true; res(); } }; });
+
+        const clearHunterTimers = (room) => {
+            if (!room) return;
+            if (room._hunterTimeout) {
+                clearTimeout(room._hunterTimeout);
+                delete room._hunterTimeout;
+            }
+            if (room._hunterInterval) {
+                clearInterval(room._hunterInterval);
+                delete room._hunterInterval;
+            }
+            if (room._hunterRemainingSeconds !== undefined) {
+                delete room._hunterRemainingSeconds;
+            }
+        };
+
+        const finalizeAndResolve = async (room) => {
+            if (!room) return;
+            clearHunterTimers(room);
+            if (room.config && room.config.hunter) {
+                room.config.hunter.pending = false;
+                room.config.hunter.target = null;
+                room.config.hunter.by = null;
+            }
+            room.lastActivity = new Date();
+            gameRooms.set(gameId, room);
+            io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(room));
+            io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+
+            if (room.roleCallController && typeof room.roleCallController.next === 'function') {
+                try {
+                    room.roleCallController.next();
+                } catch (e) {
+                    console.error("❌ Erreur lors de l'appel à roleCallController.next():", e);
+                }
+            }
+
+            resolveCompletion();
+        };
+
+        if (forcedTargetId) {
+            const target = findPlayerById(r, forcedTargetId);
+            if (!target || target.isAlive === false) {
+                resolveCompletion();
+                return completionPromise;
+            }
+
+            target.isAlive = false;
+            target.eliminatedByHunter = true;
+            target.eliminatedAt = new Date().toISOString();
+
+            addGameAction(gameId, {
+                type: ACTION_TYPES.GAME_EVENT,
+                playerName: hunter.nickname || hunter.botName,
+                playerRole: hunter.role || "Chasseur",
+                message: `🔫 ${hunter.nickname || hunter.botName} a tiré sur ${target.nickname || target.botName} (${target.role}).`,
+                details: `Tir du chasseur`,
+                phase: r.phase,
+                createdAt: new Date().toISOString()
+            });
+
+            await finalizeAndResolve(r);
+            try { evaluateWinCondition(io, gameId); } catch (e) { console.error(e); }
+            return completionPromise;
+        }
+
+        if (hunter.isBot) {
+            const playersArray = r.players instanceof Map ? Array.from(r.players.values()) : (Array.isArray(r.players) ? r.players : []);
+            const targets = playersArray.filter(p => p && p.isAlive !== false && String(p.id) !== String(hunter.id));
+            if (targets.length === 0) {
+                resolveCompletion();
+                return completionPromise;
+            }
+
+            const chosen = targets[Math.floor(Math.random() * targets.length)];
+            chosen.isAlive = false;
+            chosen.eliminatedByHunter = true;
+            chosen.eliminatedAt = new Date().toISOString();
+
+            addGameAction(gameId, {
+                type: ACTION_TYPES.HUNTER_SHOT,
+                playerName: hunter.botName,
+                playerRole: hunter.role,
+                message: `🔫 ${hunter.botName} (bot) a tiré sur ${chosen.nickname || chosen.botName} (${chosen.role}).`,
+                details: `Tir automatique du bot`,
+                phase: r.phase,
+                createdAt: new Date().toISOString()
+            });
+
+            await finalizeAndResolve(r);
+            try { evaluateWinCondition(io, gameId); } catch (e) { console.error(e); }
+            return completionPromise;
+        }
+
+        r.phase = GAME_PHASES.HUNTER_SHOT;
+        if (!r.config) r.config = Object.assign({}, defaultGameConfig);
+        if (!r.config.hunter) r.config.hunter = {};
+        r.config.hunter.pending = true;
+        r.config.hunter.by = hunter.id;
+        r.config.hunter.target = null;
+        r._hunterRemainingSeconds = seconds;
+
+        addGameAction(gameId, {
+            type: ACTION_TYPES.GAME_EVENT,
+            playerName: "Système",
+            playerRole: "system",
+            message: `🔫 ${hunter.nickname || hunter.botName} (Chasseur) peut choisir une cible à abattre.`,
+            phase: r.phase,
+            createdAt: new Date().toISOString()
+        });
+
+        if (hunter.socketId) {
+            io.to(hunter.socketId).emit('game-notify', `Vous avez ${seconds} secondes pour tirer en tant que Chasseur.`);
+            io.to(hunter.socketId).emit('game-set-number-can-be-selected', 1);
+            io.to(hunter.socketId).emit('hunter-choice-start', {duration: seconds});
+        }
+
+        r.lastActivity = new Date();
+        gameRooms.set(gameId, r);
+        io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(r));
+        io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+
+        if (r._hunterTimeout) {
+            clearTimeout(r._hunterTimeout);
+            delete r._hunterTimeout;
+        }
+        if (r._hunterInterval) {
+            clearInterval(r._hunterInterval);
+            delete r._hunterInterval;
+        }
+
+        r._hunterInterval = setInterval(() => {
+            const rr = getGameRoom(gameId);
+            if (!rr) {
+                if (r._hunterInterval) {
+                    clearInterval(r._hunterInterval);
+                    delete r._hunterInterval;
+                }
+                return;
+            }
+            rr._hunterRemainingSeconds = (typeof rr._hunterRemainingSeconds === 'number') ? rr._hunterRemainingSeconds - 1 : null;
+            if (rr._hunterRemainingSeconds < 0) rr._hunterRemainingSeconds = 0;
+
+            io.to(`game-${gameId}`).emit('hunter-choice-tick', { remaining: rr._hunterRemainingSeconds });
+
+            if (rr._hunterRemainingSeconds === 0) {
+                if (rr._hunterInterval) {
+                    clearInterval(rr._hunterInterval);
+                    delete rr._hunterInterval;
+                }
+            }
+        }, 1000);
+
+        r._hunterTimeout = setTimeout(async () => {
+            const rr = getGameRoom(gameId);
+            if (!rr) {
+                resolveCompletion();
+                return;
+            }
+
+            if (rr.config && rr.config.hunter && rr.config.hunter.target) {
+                const tid = rr.config.hunter.target;
+                try {
+                    await handleHunterShoot(io, gameId, hunter, 0, tid);
+                } catch (e) {
+                    console.error(e);
+                }
+                return;
+            }
+
+            if (rr.config && rr.config.hunter) {
+                rr.config.hunter.pending = false;
+                rr.config.hunter.by = null;
+                rr.config.hunter.target = null;
+            }
+
+            addGameAction(gameId, {
+                type: ACTION_TYPES.GAME_EVENT,
+                playerName: "Système",
+                playerRole: "system",
+                message: `⌛ Le Chasseur (${hunter.nickname || hunter.botName}) n'a pas tiré à temps.`,
+                phase: rr.phase,
+                createdAt: new Date().toISOString()
+            });
+
+            await finalizeAndResolve(rr);
+            try { evaluateWinCondition(io, gameId); } catch (e) { console.error(e); }
+        }, seconds * 1000);
+
+        return completionPromise;
+
+    } catch (err) {
+        console.error("❌ Erreur handleHunterShoot:", err);
+    }
 };

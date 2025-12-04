@@ -191,7 +191,9 @@ export const defaultGameConfig = {
         applyThisNight: false,
     },
     hunter: {
-        targetOnDeath: null
+        pending: false,
+        by: null,
+        target: null
     },
     seer: {
         revealedPlayers: []

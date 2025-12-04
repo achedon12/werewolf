@@ -23,7 +23,7 @@ const GameHeader = ({game, players, configuration, creator}) => {
     const maxPlayers = Object.values(parsedConfiguration).reduce((a, b) => a + b, 0) || 0;
 
     const copyUrl = async () => {
-        const url = `${siteUrl}/game/${game.id}`;
+        const url = `${siteUrl}/game/${game.id}&refer_method=link_share`;
 
         try {
             if (navigator.clipboard?.writeText) {

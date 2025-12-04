@@ -49,6 +49,7 @@ const GamePage = ({params}) => {
     const chatContainerRef = useRef(null);
     const [roleCallRemaining, setRoleCallRemaining] = useState(null);
     const [votingRemaining, setVotingRemaining] = useState(null);
+    const [hunterChoiceRemaining, setHunterChoiceRemaining] = useState(null);
     const router = useRouter();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [revealedCards, setRevealedCards] = useState([]);
@@ -216,6 +217,16 @@ const GamePage = ({params}) => {
             setVotingRemaining(remaining);
         };
 
+        const handleHunterChoiceStart = (payload) => {
+            setHunterChoiceRemaining(payload?.duration || 20);
+        }
+
+        const handleHunterChoiceTick = (data) => {
+            if (!data) return;
+            const remaining = typeof data.remaining === 'number' ? data.remaining : (data.remaining ? parseInt(data.remaining, 10) : null);
+            setHunterChoiceRemaining(remaining);
+        }
+
         socket.on("game-update", handleGameUpdate);
         socket.on("game-history", handleGameHistory);
         socket.on("howl", handleHowl);
@@ -233,6 +244,8 @@ const GamePage = ({params}) => {
         socket.on("chat-error", handleChatError);
         socket.on("starting-soon", handleStartingSoon);
         socket.on('voting-start', handleVotingStart);
+        socket.on('hunter-choice-start', handleHunterChoiceStart);
+        socket.on('hunter-choice-tick', handleHunterChoiceTick);
         socket.on('voting-tick', handleVotingTick);
         socket.on('role-call-start', handleRoleCallStart);
         socket.on('role-call-tick', handleRoleCallTick);
@@ -273,7 +286,9 @@ const GamePage = ({params}) => {
             socket.off('role-call-finished', handleRoleCallFinished);
             socket.off('voting-start', handleVotingStart);
             socket.off('voting-tick', handleVotingTick);
-
+            socket.off('game-set-number-can-be-selected', (number) => setNumberCanBeSelected(number));
+            socket.off('hunter-choice-start', handleHunterChoiceStart);
+            socket.off('hunter-choice-tick', handleHunterChoiceTick);
         };
     }, [id]);
 
@@ -591,6 +606,7 @@ const GamePage = ({params}) => {
                         setSelectedPlayers={setSelectedPlayers}
                         roleCallRemaining={roleCallRemaining}
                         votingRemaining={votingRemaining}
+                        hunterChoiceRemaining={hunterChoiceRemaining}
                         performAction={performAction}
                         revealedCards={revealedCards}
                     />

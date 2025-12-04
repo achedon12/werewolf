@@ -10,6 +10,7 @@ export const GAME_PHASES = {
     DAY: 'Jour',
     NIGHT: 'Nuit',
     VOTING: 'voting',
+    HUNTER_SHOT: 'hunter_shot',
     STARTING: 'Démarrage',
     FINISHED: 'Terminée'
 };

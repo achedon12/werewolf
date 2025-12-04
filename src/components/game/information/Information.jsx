@@ -45,7 +45,7 @@ const GameInformation = ({
         if (game.state === GAME_STATES.FINISHED) {
             const endedAt = new Date(game.endedAt);
 
-            setTimer(formatTimeDifference(startedAt, endedAt, ':'));
+            setTimer(formatTimeDifference(startedAt, endedAt, ' '));
             return;
         }
 

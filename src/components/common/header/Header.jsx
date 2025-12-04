@@ -154,6 +154,9 @@ export default function Header() {
                         className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full p-1 transition-colors"
                         aria-label="Ouvrir le menu utilisateur"
                     >
+                        <span className="hidden md:inline text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {auth.user.nickname}
+                        </span>
                         <div className="relative">
                             <Image
                                 src={auth.user.avatar || '/default-avatar.png'}
@@ -164,9 +167,6 @@ export default function Header() {
                             />
                             <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
                         </div>
-                        <span className="hidden md:inline text-sm font-medium text-gray-700 dark:text-gray-300">
-                          {auth.user.name?.split(' ')[0] || 'Profil'}
-                        </span>
                     </button>
 
                     {showUserMenu && (

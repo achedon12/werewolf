@@ -109,6 +109,7 @@ const GameChat = ({
                             <input
                                 type="text"
                                 value={chatMessage}
+                                disabled={!currentPlayer.isAlive}
                                 onChange={(e) => setChatMessage(e.target.value)}
                                 placeholder={`Écrivez votre message sur ${currentChannel}...`}
                                 className="input flex-1 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 p-3 pr-10 rounded-lg shadow-sm"

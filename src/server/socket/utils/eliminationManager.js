@@ -2,6 +2,7 @@ import {addGameAction, getGameHistory} from "./actionLogger.js";
 import {ACTION_TYPES, GAME_PHASES} from "../../config/constants.js";
 import {gameRooms, getGameRoom} from "./roomManager.js";
 import {getMostTargetByWolvesPlayerId} from "../utils/roleTurnManager.js";
+import {handleHunterShoot} from "../utils/gameManager.js";
 
 export const processNightEliminations = async (io, gameId) => {
     const room = getGameRoom(gameId);
@@ -25,7 +26,7 @@ export const processNightEliminations = async (io, gameId) => {
                     type: ACTION_TYPES.GAME_EVENT,
                     playerName: "Système",
                     playerRole: "system",
-                    message: `🐺 Les Loups-Garous ont tué ${targetPlayer.nickname}.({$targetPlayer.role}})`,
+                    message: `🐺 Les Loups-Garous ont tué ${targetPlayer.nickname}.(${targetPlayer.role})`,
                     phase: GAME_PHASES.DAY
                 });
             }
@@ -41,7 +42,7 @@ export const processNightEliminations = async (io, gameId) => {
                 type: ACTION_TYPES.GAME_EVENT,
                 playerName: "Système",
                 playerRole: "system",
-                message: `🐺 Le Loup Blanc a tué ${whiteTargetPlayer.nickname}.({$targetPlayer.role}})`,
+                message: `🐺 Le Loup Blanc a tué ${whiteTargetPlayer.nickname}.(${whiteTargetPlayer.role})`,
                 phase: GAME_PHASES.DAY
             });
         }
@@ -92,10 +93,6 @@ export const processNightEliminations = async (io, gameId) => {
         }
     }
 
-    const hunterConfig = config.hunter || {};
-    if (hunterConfig.targetOnDeath) {
-    }
-
     for (const p of markAdditional) {
         toEliminateMap.set(byId(p), p);
         addGameAction(gameId, {
@@ -107,12 +104,16 @@ export const processNightEliminations = async (io, gameId) => {
         });
     }
 
-
     // Apply eliminations
     for(const player of room.players) {
         if (toEliminateMap.has(byId(player))) {
             player.isAlive = false;
             player.eliminatedAt = new Date();
+
+            if (player.role === 'Chasseur') {
+                console.log(`Chasseur ${player.nickname || player.botName} eliminated, handling shoot...`);
+                await handleHunterShoot(io, gameId, player, 20);
+            }
         }
     }
     room.lastActivity = new Date();

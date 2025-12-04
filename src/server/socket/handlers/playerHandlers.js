@@ -1,6 +1,6 @@
 import {connectedPlayers, gameRooms, getGameRoom, removePlayerFromGame} from "../utils/roomManager.js";
 import {addGameAction, getGameHistory} from "../utils/actionLogger.js";
-import {updatedGameData} from "../utils/gameManager.js";
+import {handleHunterShoot, updatedGameData} from "../utils/gameManager.js";
 import {ACTION_TYPES, GAME_PHASES} from "../../config/constants.js";
 import {defaultGameConfig, playerIsWolf} from "../../../utils/Roles.js";
 import {sanitizeRoom} from "../utils/sanitizeRoom.js";
@@ -61,7 +61,9 @@ export const handlePlayerAction = async (socket, io, data) => {
                         }
                     }
                 } else {
-                    if (roomData && roomData.roleCallController && typeof roomData.roleCallController.next === 'function') {
+                    if (roomData.roleCallController && roomData.phase === GAME_PHASES.HUNTER_SHOT && playerInfo.role === 'Chasseur') {
+                        roomData.roleCallController.next();
+                    } else if (roomData && roomData.roleCallController && typeof roomData.roleCallController.next === 'function') {
                         roomData.roleCallController.next();
                     }
                 }
@@ -154,6 +156,34 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
             io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 
         }
+    }
+
+    if (roomData.phase === GAME_PHASES.HUNTER_SHOT && playerInfo.role === 'Chasseur') {
+        const hunterCfg = roomData.config && roomData.config.hunter ? roomData.config.hunter : null;
+        if (hunterCfg && hunterCfg.pending && String(hunterCfg.by) === String(playerInfo.id)) {
+            if (!selectedPlayers || selectedPlayers.length !== 1) {
+                socket.emit('game-set-number-can-be-selected', 1);
+                socket.emit('game-notify', 'Veuillez sélectionner exactement un joueur à éliminer.');
+                console.log("❌ Le Chasseur doit sélectionner exactement un joueur.");
+                return;
+            }
+
+            const target = findPlayerById(roomData, selectedPlayers[0]);
+            if (!target) {
+                socket.emit('game-notify', 'Cible invalide.');
+                return;
+            }
+
+            roomData.config.hunter.target = target.id;
+            roomData.lastActivity = new Date();
+            gameRooms.set(gameId, roomData);
+
+            await handleHunterShoot(io, gameId, playerInfo, 0, target.id);
+
+            socket.emit('game-set-number-can-be-selected', 0);
+            return;
+        }
+        return;
     }
 
     if (roomData.phase === GAME_PHASES.NIGHT) {

@@ -1,6 +1,13 @@
 - add voting chat
-- hunter shoot after death
 - ❌ Erreur leave-game: TypeError: roomData.players.has is not a function
       at removePlayerFromGame (src/server/socket/utils/roomManager.js:93:30)
       at handleLeaveGame (src/server/socket/handlers/gameHandlers.js:96:9)
       at Socket.<anonymous> (src/server/socket/index.js:31:13)
+- ❌ Erreur join-game: TypeError: roomData.players.get is not a function
+      at handleJoinGame (src/server/socket/handlers/gameHandlers.js:36:52)
+      at Socket.<anonymous> (src/server/socket/index.js:29:13)
+- refactor vote into voteManager.js
+- if bot couple, don't let him choose couple
+- report player
+- disable vote if player is dead
+- disable player action if is dead
