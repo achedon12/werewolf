@@ -298,39 +298,67 @@ export const startGameLogic = async (socket, io, gameId) => {
 
                         if (maxCount > 0) {
                             const topIds = Object.keys(counts).filter(k => counts[k] === maxCount);
-                            const selectedId = topIds.length === 1 ? topIds[0] : topIds[Math.floor(Math.random() * topIds.length)];
 
-                            const eliminated = findPlayerById(rr, selectedId);
-                            if (eliminated && eliminated.isAlive !== false) {
-                                eliminated.isAlive = false;
-                                eliminated.eliminatedByVote = true;
-                                eliminated.eliminatedAt = new Date().toISOString();
+                            if (topIds.length > 1) {
+                                const topTwo = topIds.slice(0, 2);
+                                const names = topTwo.map(id => {
+                                    const p = findPlayerById(rr, id);
+                                    return p ? p.nickname : String(id);
+                                }).filter(Boolean);
+
+                                const message = `${names.join(' et ')} ont le même nombre de vote, le village n'a pas su se décider, personne n'est éliminé.`;
 
                                 addGameAction(gameId, {
                                     type: ACTION_TYPES.GAME_EVENT,
                                     playerName: "Système",
                                     playerRole: "system",
-                                    message: `⚰️ ${eliminated.nickname}(${eliminated.role}) a été éliminé(e) par vote (${maxCount} vote${maxCount > 1 ? 's' : ''}).`,
-                                    details: `Votes: ${maxCount}`,
+                                    message,
                                     phase: GAME_PHASES.VOTING,
                                     createdAt: new Date().toISOString()
                                 });
 
-                                console.log(`⚰️ Élimination par vote dans la partie ${gameId} : ${eliminated.nickname} (${maxCount} votes)`);
-
                                 if (rr.config) rr.config.votes = {};
                                 rr.lastActivity = new Date();
                                 gameRooms.set(gameId, rr);
+
                                 io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(rr));
                                 io.to(`game-${gameId}`).emit("players-update", {players: room.players});
                                 io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 
-                                if (evaluateWinCondition(io, gameId, rr)) {
-                                    return;
-                                }
                             } else {
-                                if (rr.config) rr.config.votes = {};
-                                gameRooms.set(gameId, rr);
+                                const selectedId = topIds[0];
+                                const eliminated = findPlayerById(rr, selectedId);
+                                if (eliminated && eliminated.isAlive !== false) {
+                                    eliminated.isAlive = false;
+                                    eliminated.eliminatedByVote = true;
+                                    eliminated.eliminatedAt = new Date().toISOString();
+
+                                    addGameAction(gameId, {
+                                        type: ACTION_TYPES.GAME_EVENT,
+                                        playerName: "Système",
+                                        playerRole: "system",
+                                        message: `⚰️ ${eliminated.nickname}(${eliminated.role}) a été éliminé(e) par vote (${maxCount} vote${maxCount > 1 ? 's' : ''}).`,
+                                        details: `Votes: ${maxCount}`,
+                                        phase: GAME_PHASES.VOTING,
+                                        createdAt: new Date().toISOString()
+                                    });
+
+                                    console.log(`⚰️ Élimination par vote dans la partie ${gameId} : ${eliminated.nickname} (${maxCount} votes)`);
+
+                                    if (rr.config) rr.config.votes = {};
+                                    rr.lastActivity = new Date();
+                                    gameRooms.set(gameId, rr);
+                                    io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(rr));
+                                    io.to(`game-${gameId}`).emit("players-update", {players: room.players});
+                                    io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+
+                                    if (evaluateWinCondition(io, gameId, rr)) {
+                                        return;
+                                    }
+                                } else {
+                                    if (rr.config) rr.config.votes = {};
+                                    gameRooms.set(gameId, rr);
+                                }
                             }
                         } else {
                             if (rr.config) rr.config.votes = {};
@@ -463,11 +491,21 @@ const evaluateWinCondition = (io, gameId, room) => {
         persistWinners(gameId, winners).catch(e => console.error(e));
 
         if (r.roleCallController && typeof r.roleCallController.stop === 'function') {
-            try { r.roleCallController.stop(); } catch (e) { console.error(e); }
+            try {
+                r.roleCallController.stop();
+            } catch (e) {
+                console.error(e);
+            }
             delete r.roleCallController;
         }
-        if (r._votingInterval) { clearInterval(r._votingInterval); delete r._votingInterval; }
-        if (r._votingTimeout) { clearTimeout(r._votingTimeout); delete r._votingTimeout; }
+        if (r._votingInterval) {
+            clearInterval(r._votingInterval);
+            delete r._votingInterval;
+        }
+        if (r._votingTimeout) {
+            clearTimeout(r._votingTimeout);
+            delete r._votingTimeout;
+        }
         r.lastActivity = new Date();
         gameRooms.set(gameId, r);
         io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(r));
@@ -494,11 +532,21 @@ const evaluateWinCondition = (io, gameId, room) => {
         persistWinners(gameId, winners).catch(e => console.error(e));
 
         if (r.roleCallController && typeof r.roleCallController.stop === 'function') {
-            try { r.roleCallController.stop(); } catch (e) { console.error(e); }
+            try {
+                r.roleCallController.stop();
+            } catch (e) {
+                console.error(e);
+            }
             delete r.roleCallController;
         }
-        if (r._votingInterval) { clearInterval(r._votingInterval); delete r._votingInterval; }
-        if (r._votingTimeout) { clearTimeout(r._votingTimeout); delete r._votingTimeout; }
+        if (r._votingInterval) {
+            clearInterval(r._votingInterval);
+            delete r._votingInterval;
+        }
+        if (r._votingTimeout) {
+            clearTimeout(r._votingTimeout);
+            delete r._votingTimeout;
+        }
         r.lastActivity = new Date();
         gameRooms.set(gameId, r);
         io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(r));
@@ -529,11 +577,21 @@ const evaluateWinCondition = (io, gameId, room) => {
         persistWinners(gameId, winners).catch(e => console.error(e));
 
         if (r.roleCallController && typeof r.roleCallController.stop === 'function') {
-            try { r.roleCallController.stop(); } catch (e) { console.error(e); }
+            try {
+                r.roleCallController.stop();
+            } catch (e) {
+                console.error(e);
+            }
             delete r.roleCallController;
         }
-        if (r._votingInterval) { clearInterval(r._votingInterval); delete r._votingInterval; }
-        if (r._votingTimeout) { clearTimeout(r._votingTimeout); delete r._votingTimeout; }
+        if (r._votingInterval) {
+            clearInterval(r._votingInterval);
+            delete r._votingInterval;
+        }
+        if (r._votingTimeout) {
+            clearTimeout(r._votingTimeout);
+            delete r._votingTimeout;
+        }
         r.lastActivity = new Date();
         gameRooms.set(gameId, r);
         io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(r));
