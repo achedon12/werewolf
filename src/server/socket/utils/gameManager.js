@@ -345,6 +345,41 @@ export const startGameLogic = async (socket, io, gameId) => {
 
                                     console.log(`⚰️ Élimination par vote dans la partie ${gameId} : ${eliminated.nickname} (${maxCount} votes)`);
 
+                                    try {
+                                        const loversCfg = rr.config && rr.config.lovers ? rr.config.lovers : {};
+                                        const partnersToKill = [];
+
+                                        if (loversCfg.exists && Array.isArray(loversCfg.players)) {
+                                            for (const entry of loversCfg.players) {
+                                                if (Array.isArray(entry) && entry.includes(selectedId)) {
+                                                    const partnerId = entry.find(i => String(i) !== String(selectedId));
+                                                    if (partnerId) partnersToKill.push(partnerId);
+                                                } else if (String(entry) === String(selectedId)) {
+                                                    const others = loversCfg.players.filter(i => String(i) !== String(selectedId));
+                                                    for (const pid of others) partnersToKill.push(pid);
+                                                }
+                                            }
+                                        }
+
+                                        for (const pid of Array.from(new Set(partnersToKill))) {
+                                            const partner = findPlayerById(rr, pid);
+                                            if (partner && partner.isAlive !== false) {
+                                                partner.isAlive = false;
+                                                partner.eliminatedAt = new Date().toISOString();
+                                                addGameAction(gameId, {
+                                                    type: ACTION_TYPES.GAME_EVENT,
+                                                    playerName: "Système",
+                                                    playerRole: "system",
+                                                    message: `💔 À cause du lien d'amour, ${partner.nickname} meurt de chagrin.`,
+                                                    phase: GAME_PHASES.DAY,
+                                                    createdAt: new Date().toISOString()
+                                                });
+                                            }
+                                        }
+                                    } catch (err) {
+                                        console.error("❌ Erreur lors de la gestion des amoureux après vote:", err);
+                                    }
+
                                     if (rr.config) rr.config.votes = {};
                                     rr.lastActivity = new Date();
                                     gameRooms.set(gameId, rr);
