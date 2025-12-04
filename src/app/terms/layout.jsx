@@ -1,7 +1,4 @@
-export default function LeaderboardLayout({children}) {export const metadata = {
-    title: 'Centre de Support',
-    description: 'Obtenez de l\'aide pour vos problèmes techniques, questions de gameplay, et plus encore.'
-}
+export default function TermsPageLayout({children}) {
     return children;
 }
 

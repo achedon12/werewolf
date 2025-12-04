@@ -1,7 +1,6 @@
 'use client';
 
 import {useEffect, useState} from 'react';
-import {useParams} from 'next/navigation';
 import Link from 'next/link';
 import {
     ArrowLeft,
@@ -22,11 +21,10 @@ import {
     User,
     Users
 } from 'lucide-react';
-import Image from "next/image.d.ts";
+import Image from 'next/image';
 
-const GameDetailPage = () => {
-    const params = useParams();
-    const id = params?.id;
+const GameDetailPage = ({params}) => {
+    const {id} = params;
 
     const [game, setGame] = useState(null);
     const [logs, setLogs] = useState(null);
@@ -287,8 +285,8 @@ const GameDetailPage = () => {
                                                             <Timer className="h-5 w-5 text-gray-500"/>
                                                             <span
                                                                 className="text-lg font-medium text-gray-900 dark:text-white">
-                                                                {duration || 'Non commencée'}
-                                                            </span>
+                                                                    {duration || 'Non commencée'}
+                                                                </span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -302,8 +300,8 @@ const GameDetailPage = () => {
                                                             <Calendar className="h-5 w-5 text-gray-500"/>
                                                             <span
                                                                 className="text-lg font-medium text-gray-900 dark:text-white">
-                                                                {formatDateTime(game.createdAt)}
-                                                            </span>
+                                                                    {formatDateTime(game.createdAt)}
+                                                                </span>
                                                         </div>
                                                     </div>
                                                     <div>
@@ -655,8 +653,8 @@ const GameDetailPage = () => {
                                                         <div className="flex items-center gap-3 mb-2">
                                                             <Clock className="h-4 w-4 text-gray-500"/>
                                                             <span className="text-sm text-gray-600 dark:text-gray-400">
-                                                                {formatDateTime(log.createdAt)}
-                                                            </span>
+                                                                    {formatDateTime(log.createdAt)}
+                                                                </span>
                                                         </div>
                                                         <p className="text-gray-900 dark:text-white leading-relaxed">
                                                             {log.message}

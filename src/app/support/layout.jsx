@@ -1,4 +1,4 @@
-export default function LeaderboardLayout({children}) {
+export default function SupportPageLayout({children}) {
     return children;
 }
 
