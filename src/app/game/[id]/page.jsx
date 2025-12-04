@@ -252,7 +252,12 @@ const GamePage = ({params}) => {
         socket.on('role-call-end', handleRoleCallEnd);
         socket.on('role-call-stopped', handleRoleCallStopped);
         socket.on('role-call-finished', handleRoleCallFinished);
-        socket.on('game-set-number-can-be-selected', (number) => setNumberCanBeSelected(number));
+        socket.on('game-set-number-can-be-selected', (number) => {
+            if (!currentPlayer.isAlive) {
+                return;
+            }
+            setNumberCanBeSelected(number)
+        });
 
         socket.emit("join-game", id, userFromLocalStorage, "");
         socket.emit("join-channel", id, "general");
