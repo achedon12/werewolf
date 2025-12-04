@@ -111,7 +111,7 @@ const TabGame = ({
             return (
                 <div className="flex flex-col sm:flex-row gap-2 ml-auto">
                     <button
-                        disabled={String(selectedPlayers[0]) === currentPlayer.id}
+                        disabled={String(selectedPlayers[0]) === currentPlayer.id || game.config.witch.deathPotionUsed}
                         onClick={() => handleWitchPotion(ACTION_TYPES.WITCH_POISON)}
                         className="btn btn-error btn-sm flex-1"
                     >
@@ -119,7 +119,7 @@ const TabGame = ({
                         Tuer
                     </button>
                     <button
-                        disabled={String(selectedPlayers[0]) !== mostTargetByWolvesId}
+                        disabled={String(selectedPlayers[0]) !== mostTargetByWolvesId || game.config.witch.lifePotionUsed}
                         onClick={() => handleWitchPotion(ACTION_TYPES.WITCH_HEAL)}
                         className="btn btn-success btn-sm flex-1"
                     >
@@ -167,9 +167,44 @@ const TabGame = ({
                                     <h2 className={`text-xl md:text-2xl font-bold ${currentPhase.textColor}`}>
                                         {currentPhase.title}
                                     </h2>
-                                    <p className="text-gray-600 dark:text-gray-400">
-                                        {currentPhase.description}
-                                    </p>
+                                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                                        <div className="flex-1">
+                                            <div className="space-y-2">
+                                                {game.phase === GAME_PHASES.NIGHT && currentPlayer && (
+                                                    <p className="text-gray-700 dark:text-gray-300">
+                                                        {RoleActionDescriptions.hasOwnProperty(currentPlayer.role)
+                                                            ? RoleActionDescriptions[currentPlayer.role]
+                                                            : "Observez et tentez de déduire les rôles des autres joueurs."}
+                                                    </p>
+                                                )}
+
+                                                {numberCanBeSelected > 0 && (
+                                                    <p className="text-gray-700 dark:text-gray-300">
+                                                        Sélectionnez jusqu'à <span className="font-semibold text-blue-600 dark:text-blue-400">{numberCanBeSelected}</span> joueur
+                                                        {numberCanBeSelected > 1 ? "s" : ""}.
+                                                    </p>
+                                                )}
+
+                                                {game.phase === GAME_PHASES.NIGHT && isWitchTurn && currentPlayerIsWitch && (
+                                                    <p className="text-gray-700 dark:text-gray-300">
+                                                        Les Loups-Garous ont ciblé{" "}
+                                                        <span className="font-semibold text-red-600 dark:text-red-400">
+                                                        {playerTargetByWolves ? playerTargetByWolves.nickname : "un joueur inconnu"}
+                                                    </span>
+                                                        .
+                                                    </p>
+                                                )}
+
+                                                {game.phase === GAME_PHASES.DAY && (
+                                                    <p className="text-gray-700 dark:text-gray-300">
+                                                        Délibérez ensemble et votez pour éliminer un suspect.
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {getActionButtons()}
+                                    </div>
                                 </div>
                             </div>
 
@@ -193,55 +228,6 @@ const TabGame = ({
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 <div className={game.state === GAME_STATES.WAITING ? "xl:col-span-3 space-y-6" : "xl:col-span-2 space-y-6"}>
-                    {(game.state === GAME_STATES.IN_PROGRESS || game.state === GAME_STATES.FINISHED) && (
-                        <div className={`alert ${currentPhase.bgColor} ${currentPhase.borderColor}`}>
-                            <AlertTriangle className={currentPhase.textColor} />
-                            <div className="flex-1">
-                                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                                    <div className="flex-1">
-                                        <h3 className={`font-semibold ${currentPhase.textColor} mb-2`}>
-                                            {game.phase === GAME_PHASES.NIGHT ? "🌙 Phase Nocturne" : "☀️ Phase Diurne"}
-                                        </h3>
-                                        <div className="space-y-2">
-                                            {game.phase === GAME_PHASES.NIGHT && currentPlayer && (
-                                                <p className="text-gray-700 dark:text-gray-300">
-                                                    {RoleActionDescriptions.hasOwnProperty(currentPlayer.role)
-                                                        ? RoleActionDescriptions[currentPlayer.role]
-                                                        : "Observez et tentez de déduire les rôles des autres joueurs."}
-                                                </p>
-                                            )}
-
-                                            {numberCanBeSelected > 0 && (
-                                                <p className="text-gray-700 dark:text-gray-300">
-                                                    Sélectionnez jusqu'à <span className="font-semibold text-blue-600 dark:text-blue-400">{numberCanBeSelected}</span> joueur
-                                                    {numberCanBeSelected > 1 ? "s" : ""}.
-                                                </p>
-                                            )}
-
-                                            {game.phase === GAME_PHASES.NIGHT && isWitchTurn && currentPlayerIsWitch && (
-                                                <p className="text-gray-700 dark:text-gray-300">
-                                                    Les Loups-Garous ont ciblé{" "}
-                                                    <span className="font-semibold text-red-600 dark:text-red-400">
-                                                        {playerTargetByWolves ? playerTargetByWolves.nickname : "un joueur inconnu"}
-                                                    </span>
-                                                    .
-                                                </p>
-                                            )}
-
-                                            {game.phase === GAME_PHASES.DAY && (
-                                                <p className="text-gray-700 dark:text-gray-300">
-                                                    Délibérez ensemble et votez pour éliminer un suspect.
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {getActionButtons()}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
                     <GameBoard
                         players={players}
                         currentPlayer={currentPlayer}

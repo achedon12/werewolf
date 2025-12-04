@@ -303,7 +303,7 @@ export const startGameLogic = async (socket, io, gameId) => {
                                 const topTwo = topIds.slice(0, 2);
                                 const names = topTwo.map(id => {
                                     const p = findPlayerById(rr, id);
-                                    return p ? p.nickname : String(id);
+                                    return p.isBot ? p.nickname : p.BotName || String(id);
                                 }).filter(Boolean);
 
                                 const message = `${names.join(' et ')} ont le même nombre de vote, le village n'a pas su se décider, personne n'est éliminé.`;
@@ -717,7 +717,7 @@ const applyThiefExchange = (io, gameId, room) => {
         type: ACTION_TYPES.GAME_EVENT,
         playerName: "Système",
         playerRole: "system",
-        message: `🃏 Le Voleur a échangé les cartes de ${pA.nickname} et ${pB.nickname}.`,
+        message: `🃏 Le Voleur a échangé les cartes de 2 joueurs, faites attention à vos nouvelles identités !`,
         phase: GAME_PHASES.DAY,
         createdAt: new Date().toISOString()
     });
