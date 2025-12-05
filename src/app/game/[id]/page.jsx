@@ -132,7 +132,7 @@ const GamePage = ({params}) => {
         };
 
         const handlePlayersUpdate = (data) => {
-            const players = data.players || [];
+            const players = (data?.players ? data.players :  []) || [];
             setPlayers(players);
 
             const found = players.find(p =>

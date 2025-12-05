@@ -2,7 +2,7 @@ import {addPlayerToChannel, connectedPlayers, gameRooms, getGameRoom} from "./ro
 import {addGameAction, getGameHistory} from "./actionLogger.js";
 import {defaultGameConfig, getRoleById} from "../../../utils/Roles.js";
 import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "../../config/constants.js";
-import {handleUpdateAvailableChannels} from "../handlers/chatHandlers.js";
+import {giveVoteChannelAccess, handleUpdateAvailableChannels} from "../handlers/chatHandlers.js";
 import {countPlayersByCamp, simulateBotVoteAction, startRoleCallSequence} from "../utils/roleTurnManager.js";
 import {processNightEliminations} from "../utils/eliminationManager.js";
 import {findPlayerById} from "../utils/playerManager.js";
@@ -204,25 +204,9 @@ export const startGameLogic = async (socket, io, gameId) => {
                 const r = getGameRoom(gameId);
                 if (!r) return;
 
-                r.phase = GAME_PHASES.DAY;
-                r.lastActivity = new Date();
-                addGameAction(gameId, {
-                    type: ACTION_TYPES.GAME_EVENT,
-                    playerName: "Système",
-                    playerRole: "system",
-                    message: `🌞 La nuit est terminée. Place au jour !`,
-                    phase: GAME_PHASES.DAY
-                });
-                gameRooms.set(gameId, r);
-                io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(r));
-                io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
-
                 applyThiefExchange(io, gameId, r);
 
                 await processNightEliminations(io, gameId);
-                if (evaluateWinCondition(io, gameId)) {
-                    return;
-                }
 
                 // Start voting phase
                 r.phase = GAME_PHASES.VOTING;
@@ -303,6 +287,10 @@ export const startGameLogic = async (socket, io, gameId) => {
                                 const topTwo = topIds.slice(0, 2);
                                 const names = topTwo.map(id => {
                                     const p = findPlayerById(rr, id);
+                                    console.log("Vote tied player:", id, p);
+                                    if (!p) {
+                                        return String(id);
+                                    }
                                     return p.isBot ? p.nickname : p.botName || String(id);
                                 }).filter(Boolean);
 
@@ -322,7 +310,7 @@ export const startGameLogic = async (socket, io, gameId) => {
                                 gameRooms.set(gameId, rr);
 
                                 io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(rr));
-                                io.to(`game-${gameId}`).emit("players-update", {players: room.players});
+                                io.to(`game-${gameId}`).emit("players-update", {players: Array.from(rr.players.values())});
                                 io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 
                             } else {
@@ -394,7 +382,7 @@ export const startGameLogic = async (socket, io, gameId) => {
                                     rr.lastActivity = new Date();
                                     gameRooms.set(gameId, rr);
                                     io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(rr));
-                                    io.to(`game-${gameId}`).emit("players-update", {players: room.players});
+                                    io.to(`game-${gameId}`).emit("players-update", {players: Array.from(rr.players.values())});
                                     io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 
                                     if (evaluateWinCondition(io, gameId)) {
@@ -724,6 +712,30 @@ const applyThiefExchange = (io, gameId, room) => {
     const oldRoleA = pA.role;
     pA.role = pB.role;
     pB.role = oldRoleA;
+
+    const updateConnectedPlayerRole = (player) => {
+        if (!player) return;
+        if (player.socketId && connectedPlayers.has(player.socketId)) {
+            const cp = connectedPlayers.get(player.socketId);
+            connectedPlayers.set(player.socketId, {
+                ...cp,
+                role: player.role
+            });
+            return;
+        }
+        for (const [sid, cp] of connectedPlayers.entries()) {
+            if (cp && cp.id !== undefined && String(cp.id) === String(player.id)) {
+                connectedPlayers.set(sid, {
+                    ...cp,
+                    role: player.role
+                });
+                break;
+            }
+        }
+    };
+
+    updateConnectedPlayerRole(pA);
+    updateConnectedPlayerRole(pB);
 
     thiefCfg.applied = true;
     thiefCfg.swapped = true;

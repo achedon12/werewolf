@@ -1,4 +1,4 @@
-import {connectedPlayers, getGameRoom} from "../utils/roomManager.js";
+import {addPlayerToChannel, connectedPlayers, getGameRoom} from "../utils/roomManager.js";
 import {addGameAction, getGameHistory} from "../utils/actionLogger.js";
 import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "../../config/constants.js";
 
@@ -90,5 +90,37 @@ export const handleUpdateAvailableChannels = (socket, io, gameId) => {
         socket.emit("available-channels", availableChannels);
     } catch (error) {
         console.error("❌ Erreur lors de la mise à jour des canaux disponibles:", error);
+    }
+}
+
+export const giveVoteChannelAccess = (socket, io, gameId) => {
+    const r = getGameRoom(gameId);
+    if (!r) return;
+
+    try {
+        const playersArray = r.players instanceof Map
+            ? Array.from(r.players.values())
+            : Array.isArray(r.players)
+                ? r.players
+                : [];
+
+        for (const p of playersArray) {
+            if (!p || !p.online || p.isBot) continue;
+            if (!p.socketId) continue;
+            const sock = io.sockets.sockets.get(p.socketId);
+            if (!sock) continue;
+            try {
+                addPlayerToChannel(sock, io, gameId, 'vote');
+            } catch (err) {
+                console.error(`Erreur addPlayerToChannel pour ${p.socketId}:`, err);
+            }
+            try {
+                handleUpdateAvailableChannels(sock, io, gameId);
+            } catch (err) {
+                console.error(`Erreur handleUpdateAvailableChannels pour ${p.socketId}:`, err);
+            }
+        }
+    } catch (err) {
+        console.error("Erreur lors de l'ajout des joueurs au channel vote :", err);
     }
 }

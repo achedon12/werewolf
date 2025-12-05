@@ -111,8 +111,9 @@ export const addPlayerToGame = (socket, gameId, userData) => {
 
 export const addPlayerToChannel = (socket, io, gameId, channelType) => {
     const roomData = getGameRoom(gameId);
-    const channelRoom = `game-${gameId}-${channelType}`;
+    if (!roomData) return;
 
+    const channelRoom = `game-${gameId}-${channelType}`;
     socket.join(channelRoom);
     roomData.channels[channelType].add(socket.id);
     roomData.lastActivity = new Date();
