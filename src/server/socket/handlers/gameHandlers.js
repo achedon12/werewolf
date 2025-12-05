@@ -34,6 +34,7 @@ export const handleJoinGame = async (socket, io, gameId, userData, playerRole) =
             const [oldSid] = existingEntry;
             if (oldSid !== socket.id) {
                 const oldPlayer = roomData.players.get(oldSid);
+                console.log(`🔄 Reconnection detected for player ${userData.nickname} (oldSid: ${oldSid}, newSid: ${socket.id})`, oldPlayer);
                 if (oldPlayer) {
                     userData.role = oldPlayer.role || userData.role;
                     userData.isAdmin = oldPlayer.isAdmin || false;
@@ -91,9 +92,8 @@ export const handleLeaveGame = (socket, io, gameId, userData) => {
             nickname: userData?.nickname,
             role: userData?.role
         };
-        const roomId = playerInfo?.gameId || gameId;
 
-        removePlayerFromGame(socket, io, roomId, playerInfo, false);
+        removePlayerFromGame(socket, io, gameId, playerInfo, false);
     } catch (err) {
         console.error("❌ Erreur leave-game:", err);
     }

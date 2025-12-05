@@ -50,3 +50,21 @@ export const sanitizeRoom = (room, maxDepth = 6) => {
 
     return sanitize(room, 0);
 };
+
+export const normalizePlayers = (players) => {
+    if (!players) return new Map();
+    if (players instanceof Map) return players;
+    const map = new Map();
+    if (Array.isArray(players)) {
+        players.forEach(p => {
+            const key = p.socketId || p.id;
+            if (key) {
+                map.set(String(key), {...p});
+            }
+        });
+    } else if (typeof players === 'object') {
+        // cas où players est un objet indexé par socketId
+        Object.keys(players).forEach(k => map.set(String(k), players[k]));
+    }
+    return map;
+};

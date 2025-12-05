@@ -328,7 +328,7 @@ const GameCard = ({game, onJoin, playerCount, maxPlayers, getStatusBadge, connec
         }
     };
 
-    const canJoin = game.state === GAME_STATES.WAITING && playerCount < maxPlayers && user;
+    const canJoin = game.state === GAME_STATES.WAITING && playerCount < maxPlayers || (game.players && Object.values(game.players).some(p => p.id === user.id));
     const isFull = game.state === GAME_STATES.IN_PROGRESS && playerCount >= maxPlayers;
     const isInProgress = game.state === GAME_STATES.IN_PROGRESS;
     const isFinished = game.state === GAME_STATES.FINISHED;
@@ -436,9 +436,19 @@ const GameCard = ({game, onJoin, playerCount, maxPlayers, getStatusBadge, connec
                     </button>
                 </div>
 
-                {isFull && (
+                {isFull && game.state === GAME_STATES.WAITING && (
                     <p className="text-xs text-orange-600 mt-2 text-center">
                         Partie complète - En attente du lancement
+                    </p>
+                )}
+                {isFull && game.state === GAME_STATES.IN_PROGRESS && !canJoin && (
+                    <p className="text-xs text-red-600 mt-2 text-center">
+                        Partie complète - Vous ne pouvez pas rejoindre
+                    </p>
+                )}
+                {isFull && game.state === GAME_STATES.IN_PROGRESS && canJoin && (
+                    <p className="text-xs text-green-600 mt-2 text-center">
+                        Vous êtes dans une partie en cours - Rejoignez-la !
                     </p>
                 )}
                 {isFinished && (

@@ -462,15 +462,20 @@ export const evaluateWinCondition = (io, gameId) => {
     const villagers = counts.villagers || 0;
     const totalAlive = counts.totalAlive || 0;
     const loversCount = counts.lovers || 0;
+    const playersArray = r.players instanceof Map
+        ? Array.from(r.players.values())
+        : Array.isArray(r.players)
+            ? r.players
+            : [];
 
     const getAlivePlayers = (roomObj) => {
         if (!roomObj) return [];
-        const playersArray = roomObj.players instanceof Map
+        const playersArr = roomObj.players instanceof Map
             ? Array.from(roomObj.players.values())
             : Array.isArray(roomObj.players)
                 ? roomObj.players
                 : [];
-        return playersArray.filter(p => p && p.isAlive !== false);
+        return playersArr.filter(p => p && p.isAlive !== false);
     };
 
     const hasCrossAlignedLoversWithOthers = (roomObj) => {
@@ -570,8 +575,8 @@ export const evaluateWinCondition = (io, gameId) => {
             createdAt: new Date().toISOString()
         });
 
-        const winners = r.players
-            .filter(p => !/Loup-Garou/i.test(p.role))
+        const winners = playersArray
+            .filter(p => p && !/Loup-Garou/i.test(p.role))
             .map(p => p.id)
             .filter(Boolean);
         persistWinners(gameId, winners).catch(e => console.error(e));
@@ -615,8 +620,8 @@ export const evaluateWinCondition = (io, gameId) => {
             createdAt: new Date().toISOString()
         });
 
-        const winners = r.players
-            .filter(p => /Loup-Garou/i.test(p.role))
+        const winners = playersArray
+            .filter(p => p && /Loup-Garou/i.test(p.role))
             .map(p => p.id)
             .filter(Boolean);
         persistWinners(gameId, winners).catch(e => console.error(e));

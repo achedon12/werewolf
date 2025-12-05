@@ -33,7 +33,6 @@ const GamePage = ({params}) => {
     const [players, setPlayers] = useState([]);
     const [currentPlayer, setCurrentPlayer] = useState(null);
     const [history, setHistory] = useState([]);
-    const [hasJoin, setHasJoin] = useState(false);
     const [ambientThemeEnabled, setAmbientThemeEnabled] = useState(false);
     const [loverAmbientEnabled, setLoverAmbientEnabled] = useState(false);
     const [loverAmbientData, setLoverAmbientData] = useState(null);
@@ -54,6 +53,7 @@ const GamePage = ({params}) => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [revealedCards, setRevealedCards] = useState([]);
     const mobileMenuRef = useRef(null);
+    const hasJoinedRef = useRef(false);
 
     useEffect(() => {
         if (!id || !socket) return;
@@ -64,8 +64,6 @@ const GamePage = ({params}) => {
         const savedSounds = userFromLocalStorage.ambientSoundsEnabled;
         setAmbientThemeEnabled(savedTheme);
         setAmbientSoundsEnabled(savedSounds);
-
-        if (hasJoin) return;
 
         setLoading(true);
 
@@ -254,13 +252,6 @@ const GamePage = ({params}) => {
         socket.on('role-call-finished', handleRoleCallFinished);
         socket.on('game-set-number-can-be-selected', (number) => setNumberCanBeSelected(number));
 
-        socket.emit("join-game", id, userFromLocalStorage, "");
-        socket.emit("join-channel", id, "general");
-        socket.emit("request-history", id);
-
-        setHasJoin(true);
-        setTimeout(() => setLoading(false), 1000);
-
         return () => {
             socket.off("game-update", handleGameUpdate);
             socket.off("game-history", handleGameHistory);
@@ -289,6 +280,28 @@ const GamePage = ({params}) => {
             socket.off('game-set-number-can-be-selected', (number) => setNumberCanBeSelected(number));
             socket.off('hunter-choice-start', handleHunterChoiceStart);
             socket.off('hunter-choice-tick', handleHunterChoiceTick);
+        };
+    }, [id]);
+
+    useEffect(() => {
+        const doJoin = () => {
+            const userFromLocalStorage = JSON.parse(localStorage.getItem('user'));
+
+            if (hasJoinedRef.current) return;
+            hasJoinedRef.current = true;
+            console.log('[client] emitting join-game', socket.id, userFromLocalStorage?.id);
+            socket.emit("join-game", id, userFromLocalStorage, "");
+            socket.emit("join-channel", id, "general");
+            socket.emit("request-history", id);
+            setTimeout(() => setLoading(false), 1000);
+        };
+
+        if (socket.connected) doJoin();
+
+        socket.on('connect', doJoin);
+
+        return () => {
+            socket.off('connect', doJoin);
         };
     }, [id]);
 
