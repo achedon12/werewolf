@@ -10,6 +10,7 @@ import {addGameAction, getGameHistory} from "../utils/actionLogger.js";
 import {updatedGameData} from "../utils/gameManager.js";
 import {ACTION_TYPES, CHANNEL_TYPES} from "../../config/constants.js";
 import {handleUpdateAvailableChannels} from "../handlers/chatHandlers.js";
+import {sanitizeRoom} from "../../socket/utils/sanitizeRoom.js";
 
 export const handleJoinGame = async (socket, io, gameId, userData, playerRole) => {
     try {
@@ -162,7 +163,7 @@ const notifyGameUpdate = async (socket, io, gameId, userData) => {
 
     handleUpdateAvailableChannels(socket, io, gameId);
 
-    io.to(mainRoom).emit("game-update", roomData);
+    io.to(mainRoom).emit("game-update", sanitizeRoom(roomData));
 
     io.to(generalChannel).emit("chat-message", {
         type: ACTION_TYPES.SYSTEM,

@@ -1,19 +1,6 @@
 import GameBoard from "@/components/game/Board";
 import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "@/server/config/constants";
-import {
-    Axe,
-    Clock,
-    Droplets,
-    GitPullRequest,
-    Heart,
-    History,
-    Moon,
-    Shield,
-    Skull,
-    Sun,
-    Target,
-    Users
-} from "lucide-react";
+import {Axe, Clock, Droplets, Heart, History, Moon, Shield, Skull, Sun, Target, Users} from "lucide-react";
 import {gameRoleCallOrder, getRoleByName, RoleActionDescriptions} from "@/utils/Roles";
 import {getMostTargetByWolvesPlayerId} from "@/server/socket/utils/roleTurnManager.js";
 
@@ -101,14 +88,6 @@ const TabGame = ({
     const currentPhase = phaseInfo[game.phase] || phaseInfo[GAME_PHASES.STARTING];
     const mostTargetByWolvesId = getMostTargetByWolvesPlayerId(game);
     const playerTargetByWolves = players.find(p => String(p.id) === mostTargetByWolvesId);
-
-    const roleColor = (roleName) => {
-        const role = getRoleByName(roleName);
-        const team = role?.team || "";
-        if (team.includes("Loup")) return "red";
-        if (team.includes("Village")) return "green";
-        return "purple";
-    };
 
     const handleWitchPotion = (type) => {
         performAction(type)
@@ -263,124 +242,155 @@ const TabGame = ({
             )}
 
             {game.phase === GAME_PHASES.NIGHT && (
-                <div className="mt-6 pt-6 border-t border-gray-300 dark:border-gray-700">
-                    <div className="space-y-3">
-                        <div className="flex flex-wrap items-center justify-center gap-2">
-                            {gameRoleCallOrder.map((roleName, index) => {
-                                const role = getRoleByName(roleName);
-                                if (!role || !parsedConfiguration[role.id] || parsedConfiguration[role.id] <= 0) {
-                                    return null;
-                                }
-
-                                const isCurrent = game.turn === index;
-                                const isCompleted = game.turn > index;
-                                const isFuture = game.turn < index;
-
-                                const getArrowStyles = () => {
-                                    if (isCurrent) {
-                                        return {
-                                            bg: 'bg-white dark:bg-gray-800',
-                                            border: 'border-2 border-blue-500 dark:border-blue-400',
-                                            text: 'text-blue-700 dark:text-blue-300',
-                                            count: 'text-blue-600 dark:text-blue-400',
-                                            shadow: 'shadow-lg shadow-blue-500/20',
-                                            arrow: 'bg-blue-500 dark:bg-blue-400',
-                                            pulse: 'animate-pulse'
-                                        };
+                <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div className="space-y-6">
+                        <div className="relative pb-4">
+                            <div className="flex items-center justify-center min-w-max px-4">
+                                {gameRoleCallOrder.map((roleName, index) => {
+                                    const role = getRoleByName(roleName);
+                                    if (!role || !parsedConfiguration[role.id] || parsedConfiguration[role.id] <= 0) {
+                                        return null;
                                     }
-                                    if (isCompleted) {
-                                        return {
-                                            bg: 'bg-gray-100 dark:bg-gray-800',
-                                            border: 'border border-gray-300 dark:border-gray-600',
-                                            text: 'text-gray-700 dark:text-gray-300',
-                                            count: 'text-gray-500 dark:text-gray-400',
-                                            shadow: '',
-                                            arrow: 'bg-gray-400 dark:bg-gray-500',
-                                            pulse: ''
-                                        };
-                                    }
-                                    return {
-                                        bg: 'bg-gray-50 dark:bg-gray-900',
-                                        border: 'border border-gray-200 dark:border-gray-700',
-                                        text: 'text-gray-600 dark:text-gray-400',
-                                        count: 'text-gray-400 dark:text-gray-500',
-                                        shadow: '',
-                                        arrow: 'bg-gray-300 dark:bg-gray-600',
-                                        pulse: ''
-                                    };
-                                };
 
-                                const styles = getArrowStyles();
+                                    const isCurrent = game.turn === index;
+                                    const isCompleted = game.turn > index;
+                                    const isFuture = game.turn < index;
 
-                                return (
-                                    <div key={roleName + index} className="flex items-center">
-                                        <div className={`relative min-w-[120px] ${styles.pulse}`}>
-                                            <div
-                                                className={`flex items-center ${styles.shadow} rounded-l-lg overflow-hidden`}>
+                                    return (
+                                        <div key={roleName + index} className="flex items-center">
+                                            <div className="relative group">
                                                 <div className={`
-                                                    h-10 px-3 flex items-center justify-between ${styles.bg} ${styles.border}
-                                                    flex-1 min-w-[100px]
+                                                    relative flex items-center h-12
+                                                    ${isCurrent ? 'scale-105 transform transition-transform duration-200' : ''}
                                                 `}>
-                                                    <div className="flex items-center gap-2">
-                                                        {isCurrent && (
-                                                            <div
-                                                                className="w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400"></div>
-                                                        )}
-                                                        {isCompleted && (
-                                                            <div
-                                                                className="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400"></div>
-                                                        )}
-                                                        <span
-                                                            className={`font-medium text-sm truncate max-w-[60px] ${styles.text}`}>
-                                                            {roleName}
-                                                        </span>
+                                                    <div className={`
+                                                        flex items-center justify-between h-full
+                                                        ${isCurrent
+                                                                    ? 'bg-gradient-to-r from-blue-500 to-blue-400 shadow-lg shadow-blue-500/30'
+                                                                    : isCompleted
+                                                                        ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
+                                                                        : 'bg-gradient-to-r from-gray-300 to-gray-200 dark:from-gray-600 dark:to-gray-700'
+                                                                }
+                                                        rounded-l-lg
+                                                    `}>
+                                                        <div className="flex items-center px-4 py-2">
+                                                            <div className="flex items-center space-x-3">
+                                                                <div className={`
+                                                                    w-6 h-6 rounded-full flex items-center justify-center
+                                                                    ${isCurrent
+                                                                                ? 'bg-white text-blue-600'
+                                                                                : isCompleted
+                                                                                    ? 'bg-white text-emerald-600'
+                                                                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                                                                            }
+                                                                `}>
+                                                                    {isCompleted ? (
+                                                                        <svg className="w-3 h-3" fill="currentColor"
+                                                                             viewBox="0 0 20 20">
+                                                                            <path fillRule="evenodd"
+                                                                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                                                  clipRule="evenodd"/>
+                                                                        </svg>
+                                                                    ) : (
+                                                                        <span className="text-xs font-bold">
+                                                                            {index + 1}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+
+                                                                <span className={`
+                                                                    font-medium text-sm whitespace-nowrap
+                                                                    ${isCurrent
+                                                                                ? 'text-white'
+                                                                                : isCompleted
+                                                                                    ? 'text-white'
+                                                                                    : 'text-gray-700 dark:text-gray-300'
+                                                                            }
+                                                                `}>
+                                                        {roleName}
+                                                    </span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className={`
+                                                                mx-3 px-2 py-1 rounded-md text-xs font-bold
+                                                                ${isCurrent
+                                                            ? 'bg-white text-blue-600'
+                                                            : isCompleted
+                                                                ? 'bg-white text-emerald-600'
+                                                                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                                                        }
+                                                            `}>
+                                                            {parsedConfiguration[role.id]}
+                                                        </div>
                                                     </div>
 
-                                                    <div className={`text-xs font-semibold ${styles.count}`}>
-                                                        {parsedConfiguration[role.id]}
-                                                    </div>
+                                                    <div className={`
+                                                        w-0 h-0 
+                                                        border-t-[24px] border-t-transparent
+                                                        border-b-[24px] border-b-transparent
+                                                        border-l-[16px]
+                                                        ${isCurrent
+                                                        ? 'border-l-blue-400'
+                                                        : isCompleted
+                                                            ? 'border-l-emerald-400'
+                                                            : 'border-l-gray-200 dark:border-l-gray-700'
+                                                    }
+                                                    `}></div>
                                                 </div>
 
-                                                <div className={`
-                                                    w-0 h-0 
-                                                    border-t-[20px] border-t-transparent
-                                                    border-b-[20px] border-b-transparent
-                                                    border-l-[12px]
-                                                    ${styles.arrow}
-                                                    border-l-${styles.arrow.includes('blue') ? 'blue' : 'gray'}-500
-                                                    dark:border-l-${styles.arrow.includes('blue') ? 'blue' : 'gray'}-400
-                                                `}></div>
+                                                {isCurrent && (
+                                                    <div
+                                                        className="absolute -bottom-6 left-1/2 transform -translate-x-1/2">
+                                                        <div className="flex items-center space-x-1 animate-pulse">
+                                                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                                            <span
+                                                                className="text-xs font-semibold text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                                                    En action
+                                                </span>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <div
+                                                    className="absolute -top-10 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                                    <div
+                                                        className="bg-gray-900 dark:bg-gray-700 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                                                        {isCurrent
+                                                            ? 'Action en cours'
+                                                            : isCompleted
+                                                                ? 'Action terminée'
+                                                                : 'En attente'
+                                                        }
+                                                    </div>
+                                                    <div
+                                                        className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 dark:bg-gray-700 rotate-45"></div>
+                                                </div>
                                             </div>
 
-                                            {isCurrent && (
-                                                <div
-                                                    className="absolute -top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                                                    <div
-                                                        className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 px-2 py-1 rounded-full border border-blue-200 dark:border-blue-700 shadow-sm">
-                                                        En cours
-                                                    </div>
+                                            {index < gameRoleCallOrder.length - 1 && (
+                                                <div className={`
+                                        w-8 h-0.5 mx-1
+                                        ${isCompleted
+                                                    ? 'bg-gradient-to-r from-emerald-400 to-emerald-300'
+                                                    : 'bg-gradient-to-r from-gray-300 to-gray-200 dark:from-gray-600 dark:to-gray-700'
+                                                }
+                                        relative
+                                    `}>
+                                                    <div className={`
+                                            absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2
+                                            w-1.5 h-1.5 rounded-full
+                                            ${isCompleted
+                                                        ? 'bg-emerald-500'
+                                                        : 'bg-gray-400 dark:bg-gray-500'
+                                                    }
+                                        `}></div>
                                                 </div>
                                             )}
                                         </div>
-
-                                        {index < gameRoleCallOrder.length - 1 && (
-                                            <div className={`
-                                                w-3 h-0.5 mx-1
-                                                ${isCompleted ? 'bg-gray-400 dark:bg-gray-500' : 'bg-gray-300 dark:bg-gray-600'}
-                                                rounded-full
-                                            `}>
-                                                <div className={`
-                                                    absolute w-0 h-0
-                                                    border-t-[4px] border-t-transparent
-                                                    border-b-[4px] border-b-transparent
-                                                    border-l-[6px]
-                                                    ${isCompleted ? 'border-l-gray-400 dark:border-l-gray-500' : 'border-l-gray-300 dark:border-l-gray-600'}
-                                                `}></div>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 </div>
