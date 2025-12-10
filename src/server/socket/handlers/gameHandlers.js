@@ -2,17 +2,18 @@ import {
     addPlayerToChannel,
     addPlayerToGame,
     connectedPlayers,
-    createGameRoom, gameRooms,
+    createGameRoom,
+    gameRooms,
     getGameRoom,
     removePlayerFromGame
 } from "../utils/roomManager.js";
-import {addGameAction, getGameHistory} from "../utils/actionLogger.js";
-import {updatedGameData} from "../utils/gameManager.js";
-import {ACTION_TYPES, CHANNEL_TYPES} from "../../config/constants.js";
-import {handleUpdateAvailableChannels} from "../handlers/chatHandlers.js";
-import {sanitizeRoom} from "../../socket/utils/sanitizeRoom.js";
+import { addGameAction, getGameHistory } from "../utils/actionLogger.js";
+import { updatedGameData } from "../utils/gameManager.js";
+import { ACTION_TYPES, CHANNEL_TYPES } from "../../config/constants.js";
+import { handleUpdateAvailableChannels } from "../handlers/chatHandlers.js";
+import { sanitizeRoom } from "../../socket/utils/sanitizeRoom.js";
 
-export const handleJoinGame = async (socket, io, gameId, userData, playerRole) => {
+export const handleJoinGame = async(socket, io, gameId, userData, playerRole) => {
     try {
         userData = {
             ...userData,
@@ -21,6 +22,15 @@ export const handleJoinGame = async (socket, io, gameId, userData, playerRole) =
             online: true,
             joinedAt: new Date()
         };
+
+        const existingGame = await updatedGameData(gameId);
+
+        if (existingGame.error) {
+            socket.emit("game-error", existingGame.error);
+            return;
+        }
+
+        console.log('existingGame', existingGame);
 
         let roomData = getGameRoom(gameId);
         if (!roomData) {
@@ -56,9 +66,8 @@ export const handleJoinGame = async (socket, io, gameId, userData, playerRole) =
                     oldSocket.leave(`game-${gameId}`);
                     CHANNEL_TYPES.forEach(ch => oldSocket.leave(`game-${gameId}-${ch}`));
                     try {
-                        oldSocket.emit("force-disconnect", {reason: "duplicate_session"});
-                    } catch (e) {
-                    }
+                        oldSocket.emit("force-disconnect", { reason: "duplicate_session" });
+                    } catch (e) {}
                 }
             }
         }
@@ -90,8 +99,8 @@ export const handleLeaveGame = (socket, io, gameId, userData) => {
     try {
         const playerInfo = connectedPlayers.get(socket.id) || {
             gameId,
-            nickname: userData?.nickname,
-            role: userData?.role
+            nickname: userData.nickname,
+            role: userData.role
         };
 
         removePlayerFromGame(socket, io, gameId, playerInfo, false);
@@ -151,7 +160,7 @@ export const handleGetAvailableGames = (socket, io) => {
     }
 }
 
-const notifyGameUpdate = async (socket, io, gameId, userData) => {
+const notifyGameUpdate = async(socket, io, gameId, userData) => {
     const mainRoom = `game-${gameId}`;
     const roomData = getGameRoom(gameId);
     const generalChannel = `game-${gameId}-general`;

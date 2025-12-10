@@ -232,7 +232,18 @@ export const startGameLogic = async (socket, io, gameId) => {
                 io.in(`game-${gameId}`).emit('voting-start', votingSeconds);
                 io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(r));
                 io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
-                io.to(`game-${gameId}`).emit('game-set-number-can-be-selected', 1);
+
+                const playersArray = r.players instanceof Map
+                    ? Array.from(r.players.values())
+                    : Array.isArray(r.players)
+                        ? r.players
+                        : [];
+                for (const p of playersArray) {
+                    if (p && !p.isBot && p.isAlive && p.socketId) {
+                        io.to(p.socketId).emit('game-set-number-can-be-selected', 1);
+                    }
+                }
+                await giveVoteChannelAccess(io, gameId);
 
                 // Simulate bot votes
                 simulateBotVoteAction(io, gameId, votingSeconds);
@@ -305,6 +316,7 @@ export const startGameLogic = async (socket, io, gameId) => {
                                     createdAt: new Date().toISOString()
                                 });
 
+                                await giveVoteChannelAccess(io, gameId);
                                 if (rr.config) rr.config.votes = {};
                                 rr.lastActivity = new Date();
                                 gameRooms.set(gameId, rr);
@@ -769,7 +781,14 @@ export const handleHunterShoot = async (io, gameId, hunter, seconds = 20, forced
 
         let resolved = false;
         let resolveCompletion;
-        const completionPromise = new Promise((res) => { resolveCompletion = () => { if (!resolved) { resolved = true; res(); } }; });
+        const completionPromise = new Promise((res) => {
+            resolveCompletion = () => {
+                if (!resolved) {
+                    resolved = true;
+                    res();
+                }
+            };
+        });
 
         const clearHunterTimers = (room) => {
             if (!room) return;
@@ -832,7 +851,11 @@ export const handleHunterShoot = async (io, gameId, hunter, seconds = 20, forced
             });
 
             await finalizeAndResolve(r);
-            try { evaluateWinCondition(io, gameId); } catch (e) { console.error(e); }
+            try {
+                evaluateWinCondition(io, gameId);
+            } catch (e) {
+                console.error(e);
+            }
             return completionPromise;
         }
 
@@ -860,7 +883,11 @@ export const handleHunterShoot = async (io, gameId, hunter, seconds = 20, forced
             });
 
             await finalizeAndResolve(r);
-            try { evaluateWinCondition(io, gameId); } catch (e) { console.error(e); }
+            try {
+                evaluateWinCondition(io, gameId);
+            } catch (e) {
+                console.error(e);
+            }
             return completionPromise;
         }
 
@@ -913,7 +940,7 @@ export const handleHunterShoot = async (io, gameId, hunter, seconds = 20, forced
             rr._hunterRemainingSeconds = (typeof rr._hunterRemainingSeconds === 'number') ? rr._hunterRemainingSeconds - 1 : null;
             if (rr._hunterRemainingSeconds < 0) rr._hunterRemainingSeconds = 0;
 
-            io.to(`game-${gameId}`).emit('hunter-choice-tick', { remaining: rr._hunterRemainingSeconds });
+            io.to(`game-${gameId}`).emit('hunter-choice-tick', {remaining: rr._hunterRemainingSeconds});
 
             if (rr._hunterRemainingSeconds === 0) {
                 if (rr._hunterInterval) {
@@ -956,7 +983,11 @@ export const handleHunterShoot = async (io, gameId, hunter, seconds = 20, forced
             });
 
             await finalizeAndResolve(rr);
-            try { evaluateWinCondition(io, gameId); } catch (e) { console.error(e); }
+            try {
+                evaluateWinCondition(io, gameId);
+            } catch (e) {
+                console.error(e);
+            }
         }, seconds * 1000);
 
         return completionPromise;

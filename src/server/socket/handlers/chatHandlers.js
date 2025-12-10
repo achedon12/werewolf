@@ -93,7 +93,7 @@ export const handleUpdateAvailableChannels = (socket, io, gameId) => {
     }
 }
 
-export const giveVoteChannelAccess = (socket, io, gameId) => {
+export const giveVoteChannelAccess = async (socket, io, gameId) => {
     const r = getGameRoom(gameId);
     if (!r) return;
 

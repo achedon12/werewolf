@@ -51,6 +51,21 @@ export const getGameRoom = (gameId) => {
 export const addPlayerToGame = (socket, gameId, userData) => {
     const roomData = getGameRoom(gameId);
     if (!roomData) return;
+
+    try {
+        const existingGameId = findActiveGameForUser(userData?.id);
+        if (existingGameId && String(existingGameId) !== String(gameId)) {
+            try {
+                socket.emit("game-error", "Vous participez déjà à une partie en cours. Vous ne pouvez pas rejoindre une autre partie tant que celle-ci est active.");
+            } catch (e) {
+                console.error("Erreur lors de l'envoi de game-error au socket :", e);
+            }
+            return;
+        }
+    } catch (e) {
+        console.error("Erreur lors de la vérification de parties actives :", e);
+    }
+
     const mainRoom = `game-${gameId}`;
 
     socket.join(mainRoom);
@@ -199,4 +214,27 @@ export const cleanupInactiveRooms = (io) => {
             }
         }
     }
+}
+
+export const findActiveGameForUser = (userId) => {
+    if (!userId) return undefined;
+    for (const [gameId, room] of gameRooms.entries()) {
+        try {
+            if (room && room.state === GAME_STATES.IN_PROGRESS) {
+                const playersArr = room.players instanceof Map ? Array.from(room.players.values()) : (Array.isArray(room.players) ? room.players : []);
+                for (const p of playersArr) {
+                    if (!p) continue;
+                    if (p.id !== undefined && String(p.id) === String(userId)) {
+                        return gameId;
+                    }
+                    if (p.socketId && String(p.socketId) === String(userId)) {
+                        return gameId;
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Erreur lors de la recherche d'une partie active pour l'utilisateur :", e);
+        }
+    }
+    return undefined;
 }

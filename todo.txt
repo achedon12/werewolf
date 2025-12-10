@@ -1,5 +1,3 @@
 - add voting chat
 - if bot couple, don't let him choose couple
 - report player
-- disable vote if player is dead
-- disable player action if is dead

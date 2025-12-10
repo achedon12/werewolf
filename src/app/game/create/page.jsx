@@ -1,10 +1,12 @@
 "use client";
-import {useEffect, useState} from "react";
+import {useEffect, useState, useRef, useMemo} from "react";
 import {classicRoles, roles} from "@/utils/Roles";
 import Image from "next/image";
 import {useAuth} from "@/app/AuthProvider";
 import {useRouter} from "next/navigation";
 import {ChartColumn, Cog, Gamepad2, MinusCircle, PlusCircle, Puzzle, Sparkles, Users, Shield, Moon, Sun} from "lucide-react";
+import { GAME_STATES } from "@/server/config/constants";
+import {socket} from "@/socket";
 
 const CreateGamePage = () => {
     const defaultSelectedRoles = roles.reduce((acc, role) => {
@@ -19,7 +21,47 @@ const CreateGamePage = () => {
     const [isCreating, setIsCreating] = useState(false);
     const [error, setError] = useState(null);
     const {token, setGame, setPlayer} = useAuth();
+    const [hasActiveGame, setHasActiveGame] = useState(false);
+    const [checkingActiveGame, setCheckingActiveGame] = useState(true);
     const router = useRouter();
+
+    useEffect(() => {
+        setCheckingActiveGame(true);
+        if (!socket) {
+            setLoading(false);
+            return;
+        }
+        const userFromLocalStorage = JSON.parse(localStorage.getItem('user'));
+
+
+        const handleConnect = () => {
+            socket.emit('get-available-games');
+        };
+
+        const handleAvailableGames = (gamesData) => {
+            console.log('Available games data:', gamesData);
+            let activeGameFound = false;
+            for (const game of gamesData) {
+                const player = Object.values(game.players).find(p => p.id === userFromLocalStorage.id);
+                if (player && ![GAME_STATES.ENDED, GAME_STATES.ABORTED].includes(game.state)) {
+                    activeGameFound = true;
+                    break;
+                }
+            }
+            setHasActiveGame(activeGameFound);
+            setCheckingActiveGame(false);
+        };
+
+        socket.on('available-games', handleAvailableGames);
+    
+        if (socket.connected) {
+            handleConnect();
+        }
+
+        return () => {
+            socket.off('available-games', handleAvailableGames);
+        };
+    }, []);
 
     useEffect(() => {
         if (gameMode === "custom") {
@@ -70,6 +112,9 @@ const CreateGamePage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (hasActiveGame || checkingActiveGame) return;
+
         setIsCreating(true);
         setError(null);
 
@@ -102,6 +147,15 @@ const CreateGamePage = () => {
             setIsCreating(false);
         }
     }
+
+    const isDisabled = isCreating || hasActiveGame || checkingActiveGame;
+    const buttonLabel = hasActiveGame
+        ? "Vous êtes déjà dans une partie"
+        : checkingActiveGame
+            ? "Vérification…"
+            : isCreating
+                ? "Création..."
+                : "Créer la partie";
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 py-8 px-4">
@@ -357,22 +411,19 @@ const CreateGamePage = () => {
                             <div className="card-actions justify-center">
                                 <button
                                     type="submit"
-                                    disabled={isCreating || totalPlayers > maxPlayers || totalPlayers < 8 || selectedRoles[1] + selectedRoles[8] === 0}
+                                    disabled={isDisabled || totalPlayers > maxPlayers || totalPlayers < 8 || selectedRoles[1] + selectedRoles[8] === 0}
                                     className="btn btn-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 dark:from-blue-500 dark:to-purple-500 dark:hover:from-blue-600 dark:hover:to-purple-600 border-none text-white shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:transform-none disabled:hover:shadow-lg w-full max-w-md"
                                 >
-                                    {isCreating ? (
-                                        <>
-                                            <span className="loading loading-spinner"></span>
-                                            Création en cours...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Gamepad2 className="w-5 h-5" />
-                                            Créer la partie
-                                            <Sparkles className="w-5 h-5" />
-                                        </>
-                                    )}
+                                    <Gamepad2 className="w-5 h-5" />
+                                    {buttonLabel}
+                                    <Sparkles className="w-5 h-5" />
                                 </button>
+
+                                {hasActiveGame && (
+                                    <p className="text-red-600 dark:text-red-400 text-sm mt-2 text-center">
+                                        Quittez ou terminez votre partie actuelle avant d'en créer une nouvelle.
+                                    </p>
+                                )}
                             </div>
 
                             {isCreating && (

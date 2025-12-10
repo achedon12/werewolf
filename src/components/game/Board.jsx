@@ -120,31 +120,31 @@ const GameBoard = ({
 
     const getCardInfo = (player) => {
         if (!player?.role) {
-            return {src: "/cards/card.jpeg", alt: "Dos de carte"};
+            return {src: "/cards/card.jpg", alt: "Dos de carte"};
         }
 
         if (Array.isArray(revealedCards) && revealedCards.includes(String(player.id))) {
             const role = getRoleByName(player.role);
-            return {src: role?.image ?? "/cards/card.jpeg", alt: player.role ?? "Carte"};
+            return {src: role?.image ?? "/cards/card.jpg", alt: player.role ?? "Carte"};
         }
 
         if (currentPlayerIsWolf && (player.role === "Loup-Garou" || player.role === "Loup-Garou Blanc")) {
             // force reveal werewolves to each other (to not reveal white werewolf to normal werewolves)
             const role = getRoleByName("Loup-Garou");
-            return {src: role?.image ?? "/cards/card.jpeg", alt: player.role};
+            return {src: role?.image ?? "/cards/card.jpg", alt: player.role};
         }
 
         if (player.id === currentPlayer?.id) {
             const role = getRoleByName(player.role);
-            return {src: role?.image ?? "/cards/card.jpeg", alt: player.role};
+            return {src: role?.image ?? "/cards/card.jpg", alt: player.role};
         }
 
         if (!player.isAlive) {
             const role = getRoleByName(player.role);
-            return {src: role?.image ?? "/cards/card.jpeg", alt: player.role};
+            return {src: role?.image ?? "/cards/card.jpg", alt: player.role};
         }
 
-        return {src: "/cards/card.jpeg", alt: "Dos de carte"};
+        return {src: "/cards/card.jpg", alt: "Dos de carte"};
     }
 
     return (
