@@ -10,6 +10,7 @@ import {findPlayerById} from "../../socket/utils/playerManager.js";
 export const processNightEliminations = async (io, gameId) => {
     try {
         const r = getGameRoom(gameId);
+        console.log(`🔄 Processing night eliminations for game ${gameId}...`);
         if (!r) return;
 
         if (!r.config) r.config = Object.assign({}, defaultGameConfig);

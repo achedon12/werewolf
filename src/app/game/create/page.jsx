@@ -39,11 +39,11 @@ const CreateGamePage = () => {
         };
 
         const handleAvailableGames = (gamesData) => {
-            console.log('Available games data:', gamesData);
             let activeGameFound = false;
             for (const game of gamesData) {
                 const player = Object.values(game.players).find(p => p.id === userFromLocalStorage.id);
-                if (player && ![GAME_STATES.ENDED, GAME_STATES.ABORTED].includes(game.state)) {
+
+                if (player && game.state !== GAME_STATES.FINISHED) {
                     activeGameFound = true;
                     break;
                 }
