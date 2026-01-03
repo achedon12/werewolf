@@ -1,4 +1,5 @@
-export const roles = [{
+export const roles = [
+    {
         id: 1,
         name: "Loup-Garou",
         team: "Équipe des Loups",
@@ -14,7 +15,8 @@ export const roles = [{
         description: "Chaque nuit, vous pouvez découvrir si un joueur est un loup-garou ou non. Utilisez cette information avec sagesse pour guider le village.",
         image: "/cards/voyante.jpg",
         nightAction: "Désigne un joueur pour découvrir son affiliation",
-        strategy: "Ne révélez pas votre identité trop tôt. Vérifiez les joueurs suspects ou ceux qui parlent beaucoup."
+        strategy: "Ne révélez pas votre identité trop tôt. Vérifiez les joueurs suspects ou ceux qui parlent beaucoup.",
+        maxPerGame: 1,
     }, // voyante
     {
         id: 3,
@@ -32,7 +34,8 @@ export const roles = [{
         description: "Vous disposez d'une potion de vie pour sauver une victime et d'une potion de mort pour éliminer un joueur. Vous ne pouvez utiliser chaque potion qu'une seule fois.",
         image: "/cards/sorciere.jpg",
         nightAction: "Peut sauver ou empoisonner un joueur",
-        strategy: "Utilisez vos potions au moment optimal. Sauvez la Voyante ou éliminez un loup confirmé."
+        strategy: "Utilisez vos potions au moment optimal. Sauvez la Voyante ou éliminez un loup confirmé.",
+        maxPerGame: 1,
     }, // sorcière
     {
         id: 6,
@@ -41,7 +44,8 @@ export const roles = [{
         description: "Lorsque vous êtes éliminé, vous avez le pouvoir d'emporter un autre joueur avec vous dans la mort. Choisissez judicieusement !",
         image: "/cards/chasseur.jpg",
         nightAction: "Aucune action nocturne",
-        strategy: "Si vous êtes sur le point d'être éliminé, essayez de prendre un loup-garou avec vous."
+        strategy: "Si vous êtes sur le point d'être éliminé, essayez de prendre un loup-garou avec vous.",
+        maxPerGame: 1,
     }, // chasseur
     {
         id: 7,
@@ -50,7 +54,8 @@ export const roles = [{
         description: "La première nuit, vous créez un lien d'amour entre deux joueurs. Si l'un des deux meurt, l'autre meurt de chagrin.",
         image: "/cards/cupidon.jpg",
         nightAction: "Crée un lien entre deux joueurs (première nuit seulement)",
-        strategy: "Choisissez des joueurs qui ne se suspectent pas mutuellement pour créer des alliances intéressantes."
+        strategy: "Choisissez des joueurs qui ne se suspectent pas mutuellement pour créer des alliances intéressantes.",
+        maxPerGame: 1,
     }, // cupidon
     {
         id: 8,
@@ -59,7 +64,9 @@ export const roles = [{
         description: "Vous êtes un loup-garou solitaire avec le pouvoir de tuer un autre loup-garou une nuit sur deux. Votre objectif est de rester le dernier loup debout.",
         image: "/cards/loupGarouBlanc.jpg",
         nightAction: "Peut tuer un autre loup-garou chaque nuit",
-        strategy: "Restez discret et évitez d'attirer l'attention. Tuez les loups-garous les plus menaçants."
+        strategy: "Restez discret et évitez d'attirer l'attention. Tuez les loups-garous les plus menaçants.",
+        isDev: false,
+        maxPerGame: 1
     }, // loup-garou blanc
     {
         id: 9,
@@ -68,7 +75,9 @@ export const roles = [{
         description: "Peut voir un mot sur deux dans le chat des loups-garous pendant la nuit, mais si elle est découverte, elle est éliminée immédiatement.",
         image: "/cards/petiteFille.jpg",
         nightAction: "Peut espionner les loups-garous (risque d'élimination)",
-        strategy: "Soyez très discrète lorsque vous espionnez. Ne vous faites pas remarquer par les loups-garous."
+        strategy: "Soyez très discrète lorsque vous espionnez. Ne vous faites pas remarquer par les loups-garous.",
+        isDev: false,
+        maxPerGame: 1
     }, // petite fille
     {
         id: 10,
@@ -77,7 +86,9 @@ export const roles = [{
         description: "Vous êtes deux et vous connaissez l'identité de l'autre. Vous pouvez discuter constamment à l'aide d'un canal privé.",
         image: "/cards/soeur.jpg",
         nightAction: "Aucune action nocturne",
-        strategy: "Utilisez votre connaissance mutuelle pour guider les décisions du village."
+        strategy: "Utilisez votre connaissance mutuelle pour guider les décisions du village.",
+        maxPerGame: 2,
+        isDev: true
     }, // soeur
     {
         id: 11,
@@ -86,7 +97,9 @@ export const roles = [{
         description: "Au début du jeu, vous pouvez échanger une carte d'un joueur avec un autre, vous inclu. Choisissez judicieusement pour maximiser vos chances de gagner.",
         image: "/cards/voleur.jpg",
         nightAction: "Peut échanger sa carte avec un autre joueur au début du jeu",
-        strategy: "Observez les cartes non distribuées et choisissez celle qui vous donne le meilleur avantage."
+        strategy: "Observez les cartes non distribuées et choisissez celle qui vous donne le meilleur avantage.",
+        maxPerGame: 1,
+        isDev: true,
     }, // voleur
     {
         id: 12,
@@ -95,7 +108,9 @@ export const roles = [{
         description: "Vous pouvez protéger un joueur chaque nuit, le rendant immunisé contre les attaques des loups-garous. Vous ne pouvez pas protéger 2 fois d'affilé la même personne.",
         image: "/cards/salvateur.jpg",
         nightAction: "Peut protéger un joueur chaque nuit",
-        strategy: "Protégez les joueurs clés comme la Voyante ou le Docteur pour maximiser votre impact."
+        strategy: "Protégez les joueurs clés comme la Voyante ou le Docteur pour maximiser votre impact.",
+        isDev: false,
+        maxPerGame: 1
     }, // salvateur
     {
         id: 13,
@@ -104,7 +119,9 @@ export const roles = [{
         description: "Vous pouvez choisir de prendre récupérer la carte d'un autre joueur si celui-ci est éliminé. Vous devenez alors ce rôle.",
         image: "/cards/servanteDevouee.jpg",
         nightAction: "Peut prendre la carte d'un joueur éliminé",
-        strategy: "Choisissez judicieusement le joueur dont vous prenez la carte pour maximiser vos chances de gagner."
+        strategy: "Choisissez judicieusement le joueur dont vous prenez la carte pour maximiser vos chances de gagner.",
+        isDev: false,
+        maxPerGame: 1
     }, // servante dévouée
     {
         id: 14,
@@ -113,7 +130,9 @@ export const roles = [{
         description: "Vous débutez le jeu en en choisissant un modèle parmi les autres joueurs. Si ce joueur est éliminé, vous devenez un loup-garou.",
         image: "/cards/enfantSauvage.jpg",
         nightAction: "Aucune action nocturne",
-        strategy: "Choisissez un joueur qui a de bonnes chances de survie pour éviter de devenir un loup-garou trop tôt."
+        strategy: "Choisissez un joueur qui a de bonnes chances de survie pour éviter de devenir un loup-garou trop tôt.",
+        isDev: false,
+        maxPerGame: 1
     }, // enfant sauvage
     {
         id: 15,
@@ -122,7 +141,9 @@ export const roles = [{
         description: "Chaque nuit, vous pouvez choisir un joueur. Si ce joueur est un loup-garou, vous le découvrez. Si ce n'est pas un loup-garou, vous perdez votre capacité de détection pour la nuit suivante.",
         image: "/cards/renard.jpg",
         nightAction: "Peut détecter si un joueur est un loup-garou",
-        strategy: "Utilisez votre capacité avec prudence pour maximiser vos chances de découvrir les loups-garous."
+        strategy: "Utilisez votre capacité avec prudence pour maximiser vos chances de découvrir les loups-garous.",
+        isDev: false,
+        maxPerGame: 1
     }, // renard
     {
         id: 16,
@@ -131,7 +152,9 @@ export const roles = [{
         description: "A l'aube, si l'ours est en vie, il grogne si au moins un loup-garou se trouve autour de lui. Il ne sait pas qui sont les loups-garous, seulement s'il y en a à proximité.",
         image: "/cards/montreurOurs.jpg",
         nightAction: "Grognement si un loup-garou est proche à l'aube",
-        strategy: "Utilisez les informations de l'ours pour guider vos décisions, mais soyez prudent car il ne sait pas qui sont les loups-garous."
+        strategy: "Utilisez les informations de l'ours pour guider vos décisions, mais soyez prudent car il ne sait pas qui sont les loups-garous.",
+        isDev: false,
+        maxPerGame: 1
     } // montreur d'ours
 ];
 

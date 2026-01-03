@@ -27,7 +27,7 @@ const TabRules = () => {
                         <ul className="space-y-3 text-blue-800 dark:text-blue-200">
                             <li className="flex items-start gap-3">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                                <span><strong className="text-blue-900 dark:text-blue-100">Loups-Garous</strong> : Choisissent une victime à éliminer</span>
+                                <span><strong className="text-blue-900 dark:text-blue-100">Cupidon</strong> : Lie deux joueurs en tant qu'amoureux</span>
                             </li>
                             <li className="flex items-start gap-3">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
@@ -35,11 +35,31 @@ const TabRules = () => {
                             </li>
                             <li className="flex items-start gap-3">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                                <span><strong className="text-blue-900 dark:text-blue-100">Docteur</strong> : Peut soigner un joueur des griffes des loups</span>
+                                <span><strong className="text-blue-900 dark:text-blue-100">Salvateur</strong> : Peut soigner un joueur des griffes des loups</span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                <span><strong className="text-blue-900 dark:text-blue-100">Renard</strong> : Peut flairer deux joueurs pour détecter s'ils sont loups</span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                <span><strong className="text-blue-900 dark:text-blue-100">Enfant Sauvage</strong> : Doit choisir un modèle à imiter</span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                <span><strong className="text-blue-900 dark:text-blue-100">Loups-Garous</strong> : Choisissent une victime à éliminer</span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                <span><strong className="text-blue-900 dark:text-blue-100">Loup-Garou Blanc</strong> : Choisis une victime à éliminer</span>
                             </li>
                             <li className="flex items-start gap-3">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                                 <span><strong className="text-blue-900 dark:text-blue-100">Sorcière</strong> : Peut utiliser ses potions de vie ou de mort</span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                <span><strong className="text-blue-900 dark:text-blue-100">Voleur</strong> : Peut échanger son rôle avec une carte non distribuée</span>
                             </li>
                         </ul>
                     </div>
@@ -108,6 +128,21 @@ const TabRules = () => {
                                 </div>
                                 <p className="text-red-700 dark:text-red-400 text-sm">
                                     Atteindre l'égalité numérique avec les Villageois
+                                </p>
+                            </div>
+
+                            <div
+                                className="bg-white dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600 col-span-1 md:col-span-2">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <div className="p-1 bg-pink-100 dark:bg-pink-800/30 rounded">
+                                        <Users className="w-4 h-4 text-pink-600 dark:text-pink-400"/>
+                                    </div>
+                                    <h4 className="font-bold text-pink-800 dark:text-pink-300 text-lg">
+                                        Amoureux
+                                    </h4>
+                                </div>
+                                <p className="text-pink-700 dark:text-pink-400 text-sm">
+                                    Vivre jusqu'à la fin de la partie, quel que soit le camp
                                 </p>
                             </div>
                         </div>

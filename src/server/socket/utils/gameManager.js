@@ -776,225 +776,104 @@ const applyThiefExchange = (io, gameId, room) => {
     io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 };
 
-export const handleHunterShoot = async (io, gameId, hunter, seconds = 20, forcedTargetId = null) => {
-    try {
-        const r = getGameRoom(gameId);
-        if (!r || !hunter) return;
+export const handleHunterShoot = async (io, gameId, hunter, delayMs = 0, targetId = null) => {
+    const r = getGameRoom(gameId);
+    if (!r) return;
 
-        let resolved = false;
-        let resolveCompletion;
-        const completionPromise = new Promise((res) => {
-            resolveCompletion = () => {
-                if (!resolved) {
-                    resolved = true;
-                    res();
-                }
-            };
-        });
+    if (!r.config) r.config = Object.assign({}, defaultGameConfig);
+    const cfg = r.config;
 
-        const clearHunterTimers = (room) => {
-            if (!room) return;
-            if (room._hunterTimeout) {
-                clearTimeout(room._hunterTimeout);
-                delete room._hunterTimeout;
-            }
-            if (room._hunterInterval) {
-                clearInterval(room._hunterInterval);
-                delete room._hunterInterval;
-            }
-            if (room._hunterRemainingSeconds !== undefined) {
-                delete room._hunterRemainingSeconds;
-            }
-        };
+    const executeShoot = async () => {
+        try {
+            let shootTarget = null;
 
-        const finalizeAndResolve = async (room) => {
-            if (!room) return;
-            clearHunterTimers(room);
-            if (room.config && room.config.hunter) {
-                room.config.hunter.pending = false;
-                room.config.hunter.target = null;
-                room.config.hunter.by = null;
-            }
-            room.lastActivity = new Date();
-            gameRooms.set(gameId, room);
-            io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(room));
-            io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
-
-            if (room.roleCallController && typeof room.roleCallController.next === 'function') {
-                try {
-                    room.roleCallController.next();
-                } catch (e) {
-                    console.error("❌ Erreur lors de l'appel à roleCallController.next():", e);
-                }
+            if (targetId) {
+                shootTarget = findPlayerById(r, targetId);
+            } else if (cfg.hunter && cfg.hunter.target) {
+                shootTarget = findPlayerById(r, cfg.hunter.target);
             }
 
-            resolveCompletion();
-        };
-
-        if (forcedTargetId) {
-            const target = findPlayerById(r, forcedTargetId);
-            if (!target || target.isAlive === false) {
-                resolveCompletion();
-                return completionPromise;
+            if (!shootTarget || shootTarget.isAlive === false) {
+                return;
             }
 
-            target.isAlive = false;
-            target.eliminatedByHunter = true;
-            target.eliminatedAt = new Date().toISOString();
+            shootTarget.isAlive = false;
+            shootTarget.eliminatedAt = new Date().toISOString();
 
-            addGameAction(gameId, {
-                type: ACTION_TYPES.GAME_EVENT,
-                playerName: hunter.nickname || hunter.botName,
-                playerRole: hunter.role || "Chasseur",
-                message: `🔫 ${hunter.nickname || hunter.botName} a tiré sur ${target.nickname || target.botName} (${target.role}).`,
-                details: `Tir du chasseur`,
-                phase: r.phase,
-                createdAt: new Date().toISOString()
-            });
-
-            await finalizeAndResolve(r);
-            try {
-                evaluateWinCondition(io, gameId);
-            } catch (e) {
-                console.error(e);
-            }
-            return completionPromise;
-        }
-
-        if (hunter.isBot) {
-            const playersArray = r.players instanceof Map ? Array.from(r.players.values()) : (Array.isArray(r.players) ? r.players : []);
-            const targets = playersArray.filter(p => p && p.isAlive !== false && String(p.id) !== String(hunter.id));
-            if (targets.length === 0) {
-                resolveCompletion();
-                return completionPromise;
-            }
-
-            const chosen = targets[Math.floor(Math.random() * targets.length)];
-            chosen.isAlive = false;
-            chosen.eliminatedByHunter = true;
-            chosen.eliminatedAt = new Date().toISOString();
+            const now = new Date().toISOString();
+            const eliminatedByHunter = [shootTarget];
 
             addGameAction(gameId, {
                 type: ACTION_TYPES.HUNTER_SHOT,
-                playerName: hunter.botName,
-                playerRole: hunter.role,
-                message: `🔫 ${hunter.botName} (bot) a tiré sur ${chosen.nickname || chosen.botName} (${chosen.role}).`,
-                details: `Tir automatique du bot`,
-                phase: r.phase,
-                createdAt: new Date().toISOString()
-            });
-
-            await finalizeAndResolve(r);
-            try {
-                evaluateWinCondition(io, gameId);
-            } catch (e) {
-                console.error(e);
-            }
-            return completionPromise;
-        }
-
-        r.phase = GAME_PHASES.HUNTER_SHOT;
-        if (!r.config) r.config = Object.assign({}, defaultGameConfig);
-        if (!r.config.hunter) r.config.hunter = {};
-        r.config.hunter.pending = true;
-        r.config.hunter.by = hunter.id;
-        r.config.hunter.target = null;
-        r._hunterRemainingSeconds = seconds;
-
-        addGameAction(gameId, {
-            type: ACTION_TYPES.GAME_EVENT,
-            playerName: "Système",
-            playerRole: "system",
-            message: `🔫 ${hunter.nickname || hunter.botName} (Chasseur) peut choisir une cible à abattre.`,
-            phase: r.phase,
-            createdAt: new Date().toISOString()
-        });
-
-        if (hunter.socketId) {
-            io.to(hunter.socketId).emit('game-notify', `Vous avez ${seconds} secondes pour tirer en tant que Chasseur.`);
-            io.to(hunter.socketId).emit('game-set-number-can-be-selected', 1);
-            io.to(hunter.socketId).emit('hunter-choice-start', {duration: seconds});
-        }
-
-        r.lastActivity = new Date();
-        gameRooms.set(gameId, r);
-        io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(r));
-        io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
-
-        if (r._hunterTimeout) {
-            clearTimeout(r._hunterTimeout);
-            delete r._hunterTimeout;
-        }
-        if (r._hunterInterval) {
-            clearInterval(r._hunterInterval);
-            delete r._hunterInterval;
-        }
-
-        r._hunterInterval = setInterval(() => {
-            const rr = getGameRoom(gameId);
-            if (!rr) {
-                if (r._hunterInterval) {
-                    clearInterval(r._hunterInterval);
-                    delete r._hunterInterval;
-                }
-                return;
-            }
-            rr._hunterRemainingSeconds = (typeof rr._hunterRemainingSeconds === 'number') ? rr._hunterRemainingSeconds - 1 : null;
-            if (rr._hunterRemainingSeconds < 0) rr._hunterRemainingSeconds = 0;
-
-            io.to(`game-${gameId}`).emit('hunter-choice-tick', {remaining: rr._hunterRemainingSeconds});
-
-            if (rr._hunterRemainingSeconds === 0) {
-                if (rr._hunterInterval) {
-                    clearInterval(rr._hunterInterval);
-                    delete rr._hunterInterval;
-                }
-            }
-        }, 1000);
-
-        r._hunterTimeout = setTimeout(async () => {
-            const rr = getGameRoom(gameId);
-            if (!rr) {
-                resolveCompletion();
-                return;
-            }
-
-            if (rr.config && rr.config.hunter && rr.config.hunter.target) {
-                const tid = rr.config.hunter.target;
-                try {
-                    await handleHunterShoot(io, gameId, hunter, 0, tid);
-                } catch (e) {
-                    console.error(e);
-                }
-                return;
-            }
-
-            if (rr.config && rr.config.hunter) {
-                rr.config.hunter.pending = false;
-                rr.config.hunter.by = null;
-                rr.config.hunter.target = null;
-            }
-
-            addGameAction(gameId, {
-                type: ACTION_TYPES.GAME_EVENT,
                 playerName: "Système",
                 playerRole: "system",
-                message: `⌛ Le Chasseur (${hunter.nickname || hunter.botName}) n'a pas tiré à temps.`,
-                phase: rr.phase,
-                createdAt: new Date().toISOString()
+                message: `🏹 Le Chasseur ${hunter.nickname || hunter.botName} a tué ${shootTarget.nickname || shootTarget.botName}.`,
+                details: `Cible: ${shootTarget.nickname || shootTarget.botName}`,
+                phase: r.phase,
+                createdAt: now
             });
 
-            await finalizeAndResolve(rr);
             try {
-                evaluateWinCondition(io, gameId);
-            } catch (e) {
-                console.error(e);
+                const loversCfg = cfg.lovers || {};
+                const partnersToKill = [];
+
+                if (loversCfg.exists && Array.isArray(loversCfg.players)) {
+                    for (const killed of eliminatedByHunter.slice()) {
+                        for (const entry of loversCfg.players) {
+                            if (Array.isArray(entry) && entry.includes(killed.id)) {
+                                const partnerId = entry.find(i => String(i) !== String(killed.id));
+                                if (partnerId) partnersToKill.push(partnerId);
+                            } else if (String(entry) === String(killed.id)) {
+                                const others = loversCfg.players.filter(i => String(i) !== String(killed.id));
+                                for (const pid of others) partnersToKill.push(pid);
+                            }
+                        }
+                    }
+                }
+
+                for (const pid of Array.from(new Set(partnersToKill))) {
+                    const partner = findPlayerById(r, pid);
+                    if (partner && partner.isAlive !== false) {
+                        partner.isAlive = false;
+                        partner.eliminatedAt = now;
+                        eliminatedByHunter.push(partner);
+
+                        addGameAction(gameId, {
+                            type: ACTION_TYPES.GAME_EVENT,
+                            playerName: "Système",
+                            playerRole: "system",
+                            message: `💔 À cause du lien d'amour, ${partner.nickname || partner.botName} meurt de chagrin.`,
+                            phase: r.phase,
+                            createdAt: now
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Erreur gestion amoureux (tir Chasseur):", err);
             }
-        }, seconds * 1000);
 
-        return completionPromise;
+            r.lastActivity = new Date();
+            gameRooms.set(gameId, r);
 
-    } catch (err) {
-        console.error("❌ Erreur handleHunterShoot:", err);
+            io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(r));
+            io.to(`game-${gameId}`).emit("players-update", {players: Array.from(r.players instanceof Map ? Array.from(r.players.values()) : (Array.isArray(r.players) ? r.players : []))});
+            io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
+
+            try {
+                if (evaluateWinCondition(io, gameId)) {
+                }
+            } catch (e) {
+                console.error("Erreur evaluateWinCondition après tir Chasseur:", e);
+            }
+
+        } catch (err) {
+            console.error("❌ Erreur handleHunterShoot:", err);
+        }
+    };
+
+    if (delayMs > 0) {
+        setTimeout(executeShoot, delayMs);
+    } else {
+        await executeShoot();
     }
 };
