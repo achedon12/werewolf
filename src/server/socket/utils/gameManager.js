@@ -304,7 +304,7 @@ export const startGameLogic = async (socket, io, gameId) => {
                                     if (!p) {
                                         return String(id);
                                     }
-                                    return p.isBot ? p.nickname : p.botName || String(id);
+                                    return p.isBot ? p.botName : p.nickname || String(id);
                                 }).filter(Boolean);
 
                                 const message = `${names.join(' et ')} ont le même nombre de vote, le village n'a pas su se décider, personne n'est éliminé.`;
