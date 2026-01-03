@@ -148,6 +148,8 @@ export const startGameLogic = async (socket, io, gameId) => {
     }
 
     roomData.config = Object.assign({}, defaultGameConfig);
+    roomData.config.lovers = {exists: false, players: []};
+    roomData.config.thief = {applied: false, swapped: false, choices: []};
     gameRooms.set(gameId, roomData);
 
     io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
