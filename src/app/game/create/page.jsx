@@ -1,12 +1,13 @@
 "use client";
 import {useEffect, useState, useRef, useMemo} from "react";
-import {classicRoles, roles} from "@/utils/Roles";
+import {classicRoles, getRoleById, roles} from "@/utils/Roles";
 import Image from "next/image";
 import {useAuth} from "@/app/AuthProvider";
 import {useRouter} from "next/navigation";
 import {ChartColumn, Cog, Gamepad2, MinusCircle, PlusCircle, Puzzle, Sparkles, Users, Shield, Moon, Sun} from "lucide-react";
 import { GAME_STATES } from "@/server/config/constants";
 import {socket} from "@/socket";
+import {toast} from "react-toastify";
 
 const CreateGamePage = () => {
     const defaultSelectedRoles = roles.reduce((acc, role) => {
@@ -28,11 +29,10 @@ const CreateGamePage = () => {
     useEffect(() => {
         setCheckingActiveGame(true);
         if (!socket) {
-            setLoading(false);
+            setCheckingActiveGame(false);
             return;
         }
         const userFromLocalStorage = JSON.parse(localStorage.getItem('user'));
-
 
         const handleConnect = () => {
             socket.emit('get-available-games');
@@ -53,7 +53,7 @@ const CreateGamePage = () => {
         };
 
         socket.on('available-games', handleAvailableGames);
-    
+
         if (socket.connected) {
             handleConnect();
         }
@@ -93,6 +93,15 @@ const CreateGamePage = () => {
     ];
 
     const updateRoleCount = (roleId, increment) => {
+        if (gameMode !== "custom") return;
+
+        const role = getRoleById(roleId);
+        if (!role) return;
+        if (!role.isDev) {
+            toast.warn('This role is not currently available.');
+            return;
+        }
+
         setSelectedRoles(prev => {
             const current = prev[roleId] ?? 0;
             const role = roles.find(r => r.id === roleId);
@@ -100,6 +109,12 @@ const CreateGamePage = () => {
 
             const newCount = increment ? current + 1 : current - 1;
             if (newCount < 0) return prev;
+
+            const maxAllowed = role.maxPerGame ?? Infinity;
+            if (increment && newCount > maxAllowed) {
+                toast.warn(`Maximum ${maxAllowed} ${role.name}(s) authorized.`);
+                return prev;
+            }
 
             const prevTotal = Object.values(prev).reduce((sum, c) => sum + c, 0);
             if (prevTotal + (increment ? 1 : -1) > maxPlayers) return prev;
@@ -340,7 +355,7 @@ const CreateGamePage = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => updateRoleCount(role.id, true)}
-                                                disabled={gameMode !== "custom" || totalPlayers >= maxPlayers}
+                                                disabled={gameMode !== "custom" || totalPlayers >= maxPlayers || (role.maxPerGame !== undefined && selectedRoles[role.id] >= role.maxPerGame)}
                                                 className={`btn btn-circle btn-sm w-10 h-10 flex items-center justify-center ${
                                                     gameMode !== "custom" || totalPlayers >= maxPlayers
                                                         ? "btn-disabled bg-gray-200 dark:bg-gray-600 text-gray-400 dark:text-gray-500"

@@ -84,8 +84,6 @@ export async function GET(req) {
         }
     });
 
-    console.log(`Found ${games.length} games for user ${payload.id} in range ${range} (${rangeStart} - ${rangeEnd})`);
-
     const winGames = games.filter(g => Array.isArray(g.winners) && g.winners.some(w => w.id === payload.id)).map(g => g.id);
 
     const gamesPlayed = games.length;

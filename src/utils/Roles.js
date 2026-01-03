@@ -6,7 +6,8 @@ export const roles = [
         description: "Chaque nuit, vous vous réveillez avec les autres loups pour choisir une victime à éliminer. Pendant le jour, vous devez mentir et vous faire passer pour un villageois.",
         image: "/cards/loup.jpg",
         nightAction: "Choisit une victime avec les autres loups-garous",
-        strategy: "Restez calme et mélangez-vous aux villageois. Ne soyez pas trop agressif dans vos accusations."
+        strategy: "Restez calme et mélangez-vous aux villageois. Ne soyez pas trop agressif dans vos accusations.",
+        isDev: true
     }, // loup-garou
     {
         id: 2,
@@ -17,6 +18,7 @@ export const roles = [
         nightAction: "Désigne un joueur pour découvrir son affiliation",
         strategy: "Ne révélez pas votre identité trop tôt. Vérifiez les joueurs suspects ou ceux qui parlent beaucoup.",
         maxPerGame: 1,
+        isDev: true
     }, // voyante
     {
         id: 3,
@@ -25,7 +27,8 @@ export const roles = [
         description: "Vous n'avez aucun pouvoir spécial. Utilisez votre sens de l'observation et de la déduction pour identifier les loups-garous pendant les débats.",
         image: "/cards/villageois.jpg",
         nightAction: "Aucune action nocturne",
-        strategy: "Soyez attentif aux contradictions et aux comportements suspects. Votez avec sagesse."
+        strategy: "Soyez attentif aux contradictions et aux comportements suspects. Votez avec sagesse.",
+        isDev: true
     }, // villageois
     {
         id: 5,
@@ -36,6 +39,7 @@ export const roles = [
         nightAction: "Peut sauver ou empoisonner un joueur",
         strategy: "Utilisez vos potions au moment optimal. Sauvez la Voyante ou éliminez un loup confirmé.",
         maxPerGame: 1,
+        isDev: true
     }, // sorcière
     {
         id: 6,
@@ -46,6 +50,7 @@ export const roles = [
         nightAction: "Aucune action nocturne",
         strategy: "Si vous êtes sur le point d'être éliminé, essayez de prendre un loup-garou avec vous.",
         maxPerGame: 1,
+        isDev: true
     }, // chasseur
     {
         id: 7,
@@ -56,6 +61,7 @@ export const roles = [
         nightAction: "Crée un lien entre deux joueurs (première nuit seulement)",
         strategy: "Choisissez des joueurs qui ne se suspectent pas mutuellement pour créer des alliances intéressantes.",
         maxPerGame: 1,
+        isDev: true
     }, // cupidon
     {
         id: 8,
