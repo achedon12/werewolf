@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import dotenv from 'dotenv';
 import path from "path";
-import {fromAddress} from "@/utils/publicEmail.js";
+import {fromAddress} from "../utils/publicEmail.js";
 
 dotenv.config({path: path.resolve(process.cwd(), '.env')});
 
