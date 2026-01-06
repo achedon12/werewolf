@@ -37,11 +37,16 @@ export function AuthProvider({children}) {
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
         const storedToken = localStorage.getItem("token");
+        const lastLogin = localStorage.getItem("lastLogin");
         if (storedUser && storedToken) {
             setUser(JSON.parse(storedUser));
             setToken(storedToken);
         }
         setLoading(false);
+        // Auto logout after 24 hours
+        if (!lastLogin || Date.now() - parseInt(lastLogin) > 24 * 60 * 60 * 1000) {
+            logout();
+        }
     }, []);
 
     useEffect(() => {
@@ -132,6 +137,7 @@ export function AuthProvider({children}) {
             setToken(data.token);
             localStorage.setItem("user", JSON.stringify(data.user));
             localStorage.setItem("token", data.token);
+            localStorage.setItem("lastLogin", Date.now().toString());
             return true;
         }
         return false;
