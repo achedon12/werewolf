@@ -300,11 +300,10 @@ export const startGameLogic = async (socket, io, gameId) => {
                                 const topTwo = topIds.slice(0, 2);
                                 const names = topTwo.map(id => {
                                     const p = findPlayerById(rr, id);
-                                    console.log("Vote tied player:", id, p);
                                     if (!p) {
                                         return String(id);
                                     }
-                                    return p.isBot ? p.botName : p.nickname || String(id);
+                                    return p.nickname || p.botName || String(id);
                                 }).filter(Boolean);
 
                                 const message = `${names.join(' et ')} ont le même nombre de vote, le village n'a pas su se décider, personne n'est éliminé.`;
