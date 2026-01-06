@@ -807,7 +807,7 @@ export const handleHunterShoot = async (io, gameId, hunter, delayMs = 0, targetI
                 type: ACTION_TYPES.HUNTER_SHOT,
                 playerName: "Système",
                 playerRole: "system",
-                message: `🏹 Le Chasseur ${hunter.nickname || hunter.botName} a tué ${shootTarget.nickname || shootTarget.botName}.`,
+                message: `🏹 Le Chasseur ${hunter.nickname || hunter.botName} a tué ${shootTarget.nickname || shootTarget.botName}(${shootTarget.role}).`,
                 details: `Cible: ${shootTarget.nickname || shootTarget.botName}`,
                 phase: r.phase,
                 createdAt: now
@@ -842,7 +842,7 @@ export const handleHunterShoot = async (io, gameId, hunter, delayMs = 0, targetI
                             type: ACTION_TYPES.GAME_EVENT,
                             playerName: "Système",
                             playerRole: "system",
-                            message: `💔 À cause du lien d'amour, ${partner.nickname || partner.botName} meurt de chagrin.`,
+                            message: `💔 À cause du lien d'amour, ${partner.nickname || partner.botName}(${partner.role}) meurt de chagrin.`,
                             phase: r.phase,
                             createdAt: now
                         });

@@ -73,7 +73,7 @@ export const processNightEliminations = async (io, gameId) => {
                         type: ACTION_TYPES.GAME_EVENT,
                         playerName: "Système",
                         playerRole: "system",
-                        message: `☠️ ${wolfTarget.nickname || wolfTarget.botName} a été tué(e) par les Loups-Garous.`,
+                        message: `☠️ ${wolfTarget.nickname || wolfTarget.botName}(${wolfTarget.role}) a été tué(e) par les Loups-Garous.`,
                         details: `Cible: ${wolfTarget.nickname || wolfTarget.botName}`,
                         phase: r.phase,
                         createdAt: now
@@ -95,7 +95,7 @@ export const processNightEliminations = async (io, gameId) => {
                     type: ACTION_TYPES.GAME_EVENT,
                     playerName: "Système",
                     playerRole: "system",
-                    message: `☠️ ${poisoned.nickname || poisoned.botName} a été empoisonné(e) par la Sorcière.`,
+                    message: `☠️ ${poisoned.nickname || poisoned.botName}(${poisoned.role}) a été empoisonné(e) par la Sorcière.`,
                     details: `Cible empoisonnée: ${poisoned.nickname || poisoned.botName}`,
                     phase: r.phase,
                     createdAt: now
@@ -132,7 +132,7 @@ export const processNightEliminations = async (io, gameId) => {
                         type: ACTION_TYPES.GAME_EVENT,
                         playerName: "Système",
                         playerRole: "system",
-                        message: `💔 À cause du lien d'amour, ${partner.nickname || partner.botName} meurt de chagrin.`,
+                        message: `💔 À cause du lien d'amour, ${partner.nickname || partner.botName}(${partner.role}) meurt de chagrin.`,
                         phase: GAME_PHASES.DAY,
                         createdAt: now
                     });
