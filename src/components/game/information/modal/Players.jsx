@@ -217,7 +217,7 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
                                                 : 'border-gray-300 dark:border-gray-600'
                                         }`}>
                                             <Image
-                                                src={player.isBot ? '/bot-avatar.png' : player.avatar ? process.env.NEXT_PUBLIC_APP_URL + player.avatar : "/default-avatar.png"}
+                                                src={player.isBot ? '/bot-avatar.png' : player.avatar ? player.avatar : "/default-avatar.png"}
                                                 alt={player.nickname}
                                                 width={48}
                                                 height={48}
@@ -374,7 +374,7 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
                             <div className="relative">
                                 <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-red-500">
                                     <Image
-                                        src={selectedPlayer.isBot ? '/bot-avatar.png' : selectedPlayer.avatar ? process.env.NEXT_PUBLIC_APP_URL + selectedPlayer.avatar : "/default-avatar.png"}
+                                        src={selectedPlayer.isBot ? '/bot-avatar.png' : selectedPlayer.avatar ? selectedPlayer.avatar : "/default-avatar.png"}
                                         alt={selectedPlayer.nickname}
                                         width={40}
                                         height={40}

@@ -37,7 +37,7 @@ const TabPlayers = ({game, players, currentPlayer}) => {
                                                 : "ring-1 ring-gray-300 dark:ring-gray-600"
                                         }`}>
                                             <Image
-                                                src={player.isBot ? '/bot-avatar.png' : player.avatar ? process.env.NEXT_PUBLIC_APP_URL + player.avatar : "/default-avatar.png"}
+                                                src={player.isBot ? '/bot-avatar.png' : player.avatar ? player.avatar : "/default-avatar.png"}
                                                 alt={player.nickname}
                                                 width={48}
                                                 height={48}

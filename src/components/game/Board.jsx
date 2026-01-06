@@ -230,7 +230,7 @@ const GameBoard = ({
                                     className={`w-16 h-16 md:w-20 md:h-20 rounded-full border-4 transition-all duration-300 ${player.isAlive ? "border-green-600" : "border-red-600"} p-1 ${selected ? "ring-4 ring-purple-400 scale-105" : ""} ${notSelectable ? "opacity-70" : ""}`}
                                 >
                                     <Image
-                                        src={player.isBot ? "/bot-avatar.png" : player.avatar ? process.env.NEXT_PUBLIC_APP_URL + player.avatar : "/default-avatar.png"}
+                                        src={player.isBot ? "/bot-avatar.png" : player.avatar ? player.avatar : "/default-avatar.png"}
                                         alt={player.nickname}
                                         width={80}
                                         height={80}
