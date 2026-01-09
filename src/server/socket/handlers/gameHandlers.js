@@ -49,6 +49,7 @@ export const handleJoinGame = async(socket, io, gameId, userData, playerRole) =>
                 if (oldPlayer) {
                     userData.role = oldPlayer.role || userData.role;
                     userData.isAdmin = oldPlayer.isAdmin || false;
+                    userData.isAlive = oldPlayer.isAlive;
                 }
                 roomData.players.delete(oldSid);
                 roomData.players.set(socket.id, userData);
