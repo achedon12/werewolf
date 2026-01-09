@@ -1,3 +1,8 @@
 - add voting chat
 - if bot couple, don't let him choose couple
 - report player
+- systeme de niveau
+- systeme d'amis
+- systeme de badge
+- quand on se deconnecte, on revient en vie si on est mort
+- patch notes
