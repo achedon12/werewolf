@@ -25,8 +25,8 @@ const GameChat = ({
     if (chatChannels.length === 0) return null;
 
     return (
-        <div className="card bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700 mt-6">
-            <div className="card-body flex flex-col p-4 md:p-6">
+        <div className="card bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700">
+            <div className="card-body flex flex-col p-2 md:p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-6 gap-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
@@ -88,7 +88,7 @@ const GameChat = ({
                             </button>
                         </div>
 
-                        <div className="flex-1 mb-2 md:mb-4 min-h-0">
+                        <div className="flex-1 mb-2 md:mb-4 max-h-96 overflow-y-auto">
                             {chatSubTab === 'messages' && (
                                 <TabMessages
                                     chatMessages={chatMessages}

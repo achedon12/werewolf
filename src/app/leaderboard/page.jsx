@@ -258,7 +258,7 @@ const PodiumPage = () => {
                                     } ${position.positionClass} ${position.animation}`}
                                 >
                                     <div
-                                        className={`w-full bg-gradient-to-b ${position.gradient} rounded-lg md:rounded-2xl p-3 md:p-6 text-white shadow-lg md:shadow-2xl relative overflow-hidden border-2 ${position.border} transition-all duration-300`}
+                                        className={`w-full bg-gradient-to-b ${position.gradient} rounded-lg md:rounded-2xl p-2 md:p-4 text-white shadow-lg md:shadow-2xl relative overflow-hidden border-2 ${position.border} transition-all duration-300`}
                                     >
                                         {index === 1 && !isMobile && (
                                             <>
@@ -343,7 +343,7 @@ const PodiumPage = () => {
 
                 <div className="max-w-4xl mx-auto mb-8 md:mb-12">
                     <div className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl shadow-lg md:shadow-xl border border-gray-200 dark:border-gray-700">
-                        <div className="p-4 md:p-6">
+                        <div className="p-2 md:p-4">
                             <h2 className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white mb-4 md:mb-6 flex items-center gap-2 md:gap-3">
                                 <div className="p-1 md:p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                                     <TrendingUp className="h-4 w-4 md:h-6 md:w-6 text-green-600 dark:text-green-400" />
@@ -433,7 +433,7 @@ const PodiumPage = () => {
                 {leaderboard.length > 0 && (
                     <div className="max-w-4xl mx-auto">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
-                            <div className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl p-3 md:p-6 text-center border border-gray-200 dark:border-gray-700 shadow-lg transition-shadow hover:shadow-xl">
+                            <div className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl p-2 md:p-4 text-center border border-gray-200 dark:border-gray-700 shadow-lg transition-shadow hover:shadow-xl">
                                 <div className="p-2 md:p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl md:rounded-2xl w-10 h-10 md:w-12 md:h-12 mx-auto mb-2 md:mb-4 flex items-center justify-center">
                                     <Award className="h-4 w-4 md:h-6 md:w-6 text-yellow-600 dark:text-yellow-400" />
                                 </div>
@@ -448,7 +448,7 @@ const PodiumPage = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl p-3 md:p-6 text-center border border-gray-200 dark:border-gray-700 shadow-lg transition-shadow hover:shadow-xl">
+                            <div className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl p-2 md:p-4 text-center border border-gray-200 dark:border-gray-700 shadow-lg transition-shadow hover:shadow-xl">
                                 <div className="p-2 md:p-3 bg-green-100 dark:bg-green-900/30 rounded-xl md:rounded-2xl w-10 h-10 md:w-12 md:h-12 mx-auto mb-2 md:mb-4 flex items-center justify-center">
                                     <TrendingUp className="h-4 w-4 md:h-6 md:w-6 text-green-600 dark:text-green-400" />
                                 </div>
@@ -463,7 +463,7 @@ const PodiumPage = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl p-3 md:p-6 text-center border border-gray-200 dark:border-gray-700 shadow-lg transition-shadow hover:shadow-xl">
+                            <div className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl p-2 md:p-4 text-center border border-gray-200 dark:border-gray-700 shadow-lg transition-shadow hover:shadow-xl">
                                 <div className="p-2 md:p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl md:rounded-2xl w-10 h-10 md:w-12 md:h-12 mx-auto mb-2 md:mb-4 flex items-center justify-center">
                                     <Users className="h-4 w-4 md:h-6 md:w-6 text-blue-600 dark:text-blue-400" />
                                 </div>

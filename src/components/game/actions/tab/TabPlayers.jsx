@@ -61,11 +61,6 @@ const TabPlayers = ({game, players, currentPlayer}) => {
                                                     : "text-gray-700 dark:text-gray-300"
                                         }`}>
                                             {player.nickname}
-                                            {player.id === currentPlayer?.id && (
-                                                <span className="ml-2 text-blue-600 dark:text-blue-400 text-sm font-normal">
-                                                    (Vous)
-                                                </span>
-                                            )}
                                         </h3>
                                         <div className="flex flex-col gap-1 mt-1">
                                             <div className="flex items-center gap-2">

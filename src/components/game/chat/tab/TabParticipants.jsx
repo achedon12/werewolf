@@ -22,7 +22,7 @@ const TabParticipants = ({participantsForChannel, currentChannel, currentPlayer}
                         </div>
                         <div>
                             <div className="font-semibold text-white">
-                                {currentPlayer?.id === p.id ? `(Vous)` : p.isBot ? `(Bot) ` : ''}{p.nickname || p.botName}
+                                {p.nickname || p.botName}
                             </div>
                             <div
                                 className={`text-sm text-gray-400 ${p.isBot ? "italic" : p.online ? "text-green-400" : "text-gray-400"}`}

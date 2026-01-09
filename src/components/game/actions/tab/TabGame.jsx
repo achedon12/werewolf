@@ -170,7 +170,7 @@ const TabGame = ({
         <div className="space-y-6">
             {(game.state === GAME_STATES.IN_PROGRESS || game.state === GAME_STATES.FINISHED) && (
                 <div className={`card ${currentPhase.bgColor} ${currentPhase.borderColor} shadow-lg`}>
-                    <div className="card-body p-4 md:p-6">
+                    <div className="card-body p-2 md:p-4">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
                                 <div className={`p-3 rounded-xl ${currentPhase.iconBg}`}>

@@ -84,7 +84,7 @@ const AdminNewsletterPage = () => {
     };
 
     return (
-        <div className="p-4 md:p-6 space-y-6 bg-white dark:bg-gray-900 min-h-screen">
+        <div className="p-2 md:p-4 space-y-6 bg-white dark:bg-gray-900 min-h-screen">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">

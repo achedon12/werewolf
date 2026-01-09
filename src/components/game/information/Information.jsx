@@ -60,7 +60,7 @@ const GameInformation = ({
 
     return (
         <div className="card bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700">
-            <div className="card-body p-4 md:p-6">
+            <div className="card-body p-2 md:p-4">
                 <div className="flex items-center gap-3 mb-4 md:mb-6">
                     <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                         <Info className="h-5 w-5 md:h-6 md:w-6 text-blue-600 dark:text-blue-400"/>

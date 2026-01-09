@@ -652,7 +652,7 @@ const GamePage = ({params}) => {
 
                         {(game.state === GAME_STATES.IN_PROGRESS || game.state === GAME_STATES.FINISHED) && (
                             <div className="card bg-white dark:bg-gray-800 shadow-2xl border border-gray-200 dark:border-gray-700 mt-6">
-                                <div className="card-body p-4 md:p-6">
+                                <div className="card-body p-2 md:p-4">
                                     <h3 className="card-title text-gray-900 dark:text-white text-lg mb-4">
                                         <History className="inline mr-2" size={20}/>
                                         Derniers Événements

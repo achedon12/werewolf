@@ -106,7 +106,7 @@ const PlayersConfigurationModal = ({ game, currentPlayer, players, show, close =
                     </div>
                 </div>
 
-                <div className="p-4 md:p-6 max-w-7xl mx-auto h-[calc(100vh-140px)] overflow-y-auto">
+                <div className="p-2 md:p-4 max-w-7xl mx-auto h-[calc(100vh-140px)] overflow-y-auto">
 
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-6">
                         <div className="card bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">

@@ -7,7 +7,7 @@ const TabMessages = ({chatMessages, currentChannel, chatContainerRef}) => {
     return (
         <div
             ref={chatContainerRef}
-            className="flex-1 space-y-4 max-h-96 overflow-y-auto p-1"
+            className="flex-1 space-y-4 p-1"
         >
             {isEmpty ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
