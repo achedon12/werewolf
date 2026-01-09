@@ -5,4 +5,3 @@
 - systeme d'amis
 - systeme de badge
 - quand on se deconnecte, on revient en vie si on est mort
-- patch notes

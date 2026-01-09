@@ -3,9 +3,9 @@ import {getLatestPatchNote} from "@/utils/PatchNotes.js";
 
 export const metadata = {
     title: 'Patch Notes - Historique des Mises à Jour',
-    description: 'Consultez l\'historique complet des mises à jour de Buckshot Roulette. Nouvelles fonctionnalités, corrections de bugs, et améliorations du jeu.',
+    description: 'Consultez l\'historique complet des mises à jour de werewolf, y compris les nouvelles fonctionnalités, les améliorations et les corrections de bugs.',
     openGraph: {
-        title: 'Patch Notes - Buckshot Roulette',
+        title: 'Patch Notes - Historique des Mises à Jour',
         description: 'Historique des mises à jour et nouvelles fonctionnalités du jeu',
         type: 'website',
     },
