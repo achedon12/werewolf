@@ -1,8 +1,9 @@
 import TabGame from "@/components/game/actions/tab/TabGame";
 import TabPlayers from "@/components/game/actions/tab/TabPlayers";
 import TabRules from "@/components/game/actions/tab/TabRules";
-import {Gamepad2, NotebookText, UsersRound} from "lucide-react";
+import {Gamepad2, NotebookText, UsersRound, MessageSquare} from "lucide-react";
 import {GAME_PHASES, GAME_STATES} from "@/server/config/constants.js";
+import TabChat from "@/components/game/actions/tab/TabChat.jsx";
 
 const GameActions = ({
                          players,
@@ -17,7 +18,16 @@ const GameActions = ({
                          votingRemaining,
                          hunterChoiceRemaining,
                          performAction,
-                         revealedCards
+                         revealedCards,
+                         chatChannels,
+                         chatMessages,
+                         chatMessage,
+                         participantsForChannel,
+                         currentChannel,
+                         chatContainerRef,
+                         switchChannel,
+                         setChatMessage,
+                         sendChatMessage,
                      }) => {
 
     return (
@@ -35,6 +45,17 @@ const GameActions = ({
                     >
                         <Gamepad2 className="h-4 w-4"/>
                         Jeu
+                    </button>
+                    <button
+                        className={`tab flex items-center gap-2 transition-all duration-200 ${
+                            activeTab === "chat"
+                                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm border border-gray-200 dark:border-gray-600"
+                                : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-white/50 dark:hover:bg-gray-700/50"
+                        } rounded-md px-4 py-2 font-medium`}
+                        onClick={() => setActiveTab("chat")}
+                    >
+                        <MessageSquare className="h-4 w-4"/>
+                        Chat
                     </button>
                     <button
                         className={`tab flex items-center gap-2 transition-all duration-200 ${
@@ -81,6 +102,21 @@ const GameActions = ({
                 <TabPlayers
                     game={game}
                     players={players}
+                    currentPlayer={currentPlayer}
+                />
+            )}
+
+            {activeTab === "chat" && (
+                <TabChat
+                    chatChannels={chatChannels}
+                    chatMessages={chatMessages}
+                    chatMessage={chatMessage}
+                    participantsForChannel={participantsForChannel}
+                    currentChannel={currentChannel}
+                    chatContainerRef={chatContainerRef}
+                    switchChannel={switchChannel}
+                    setChatMessage={setChatMessage}
+                    sendChatMessage={sendChatMessage}
                     currentPlayer={currentPlayer}
                 />
             )}

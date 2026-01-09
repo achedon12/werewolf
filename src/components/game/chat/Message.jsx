@@ -18,7 +18,7 @@ const Message = ({msg, index, isLast}) => {
             className={`
                 relative transition-all duration-200 transform
                 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
-                hover:scale-[1.02] hover:shadow-lg
+                hover:shadow-lg
                 ${isLast ? 'mb-2' : ''}
             `}
             onMouseEnter={() => setIsHovered(true)}

@@ -622,6 +622,15 @@ const GamePage = ({params}) => {
                         hunterChoiceRemaining={hunterChoiceRemaining}
                         performAction={performAction}
                         revealedCards={revealedCards}
+                        chatChannels={chatChannels}
+                        chatMessages={chatMessages}
+                        chatMessage={chatMessage}
+                        participantsForChannel={participantsForChannel}
+                        currentChannel={currentChannel}
+                        chatContainerRef={chatContainerRef}
+                        switchChannel={switchChannel}
+                        setChatMessage={setChatMessage}
+                        sendChatMessage={sendChatMessage}
                     />
 
                     <div className="lg:col-span-1">
@@ -636,19 +645,20 @@ const GamePage = ({params}) => {
                             playersConfiguration={() => setShowPlayersConfigurationModal(true)}
                         />
 
-                        <GameChat
-                            chatChannels={chatChannels}
-                            switchChannel={switchChannel}
-                            chatMessages={chatMessages}
-                            chatMessage={chatMessage}
-                            participantsForChannel={participantsForChannel}
-                            currentChannel={currentChannel}
-                            chatSubTab={chatSubTab}
-                            chatContainerRef={chatContainerRef}
-                            setChatSubTab={setChatSubTab}
-                            setChatMessage={setChatMessage}
-                            sendChatMessage={sendChatMessage}
-                            currentPlayer={currentPlayer}/>
+                        {/*<GameChat*/}
+                        {/*    chatChannels={chatChannels}*/}
+                        {/*    switchChannel={switchChannel}*/}
+                        {/*    chatMessages={chatMessages}*/}
+                        {/*    chatMessage={chatMessage}*/}
+                        {/*    participantsForChannel={participantsForChannel}*/}
+                        {/*    currentChannel={currentChannel}*/}
+                        {/*    chatSubTab={chatSubTab}*/}
+                        {/*    chatContainerRef={chatContainerRef}*/}
+                        {/*    setChatSubTab={setChatSubTab}*/}
+                        {/*    setChatMessage={setChatMessage}*/}
+                        {/*    sendChatMessage={sendChatMessage}*/}
+                        {/*    currentPlayer={currentPlayer}*/}
+                        {/*/>*/}
 
                         {(game.state === GAME_STATES.IN_PROGRESS || game.state === GAME_STATES.FINISHED) && (
                             <div className="card bg-white dark:bg-gray-800 shadow-2xl border border-gray-200 dark:border-gray-700 mt-6">
