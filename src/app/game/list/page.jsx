@@ -1,11 +1,9 @@
 "use client";
 import {useEffect, useState} from 'react';
 import {useRouter} from 'next/navigation';
-import Head from 'next/head';
 import {socket} from "@/socket";
 import {formatDate} from "@/utils/Date";
-import {Calendar, Clock8, Cog, Target, UserRound} from "lucide-react";
-import {useAuth} from "@/app/AuthProvider.jsx";
+import {AlertCircle, Calendar, Clock, Filter, Gamepad2, Loader2, LogIn, RefreshCw, Users} from "lucide-react";
 import {GAME_STATES} from "@/server/config/constants.js";
 
 const GameListPage = () => {
@@ -45,7 +43,6 @@ const GameListPage = () => {
         socket.on('available-games', handleAvailableGames);
         socket.on('connection-error', handleConnectionError);
 
-        // Si déjà connecté au moment du montage, demander les parties
         if (socket.connected) {
             handleConnect();
         }
@@ -72,7 +69,7 @@ const GameListPage = () => {
             return;
         }
 
-        if (game.state === 'terminée') {
+        if (game.state === GAME_STATES.FINISHED) {
             setError('Cette partie est terminée');
             return;
         }
@@ -82,39 +79,35 @@ const GameListPage = () => {
 
     const refreshGames = () => {
         if (socket && connected) {
+            setLoading(true);
             socket.emit('get-available-games');
         }
     };
 
     const filteredGames = games.filter(game => {
         switch (filter) {
-            case 'En attente':
-                return game.state === 'En attente';
-            case 'En cours':
-                return game.state === 'En cours';
-            case 'Terminée':
-                return game.state === 'terminée';
+            case GAME_STATES.WAITING:
+                return game.state === GAME_STATES.WAITING;
+            case GAME_STATES.IN_PROGRESS:
+                return game.state === GAME_STATES.IN_PROGRESS;
+            case GAME_STATES.FINISHED:
+                return game.state === GAME_STATES.FINISHED;
             default:
                 return true;
         }
     });
 
-    const getStatusBadge = (state) => {
-        const statusConfig = {
-            'En attente': {label: 'En attente', color: 'bg-yellow-100 text-yellow-800 border-yellow-200'},
-            'En cours': {label: 'En cours', color: 'bg-green-100 text-green-800 border-green-200'},
-            'terminée': {label: 'Terminée', color: 'bg-gray-100 text-gray-800 border-gray-200'}
-        };
-
-        const config = statusConfig[state] || {label: state, color: 'bg-gray-100 text-gray-800 border-gray-200'};
-
-        return (
-            <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${config.color}`}
-            >
-                        {config.label}
-                    </span>
-        );
+    const getStatusConfig = (state) => {
+        switch (state) {
+            case GAME_STATES.WAITING:
+                return {badge: 'badge-warning', color: 'warning', label: 'En attente'};
+            case GAME_STATES.IN_PROGRESS:
+                return {badge: 'badge-success', color: 'success', label: 'En cours'};
+            case GAME_STATES.FINISHED:
+                return {badge: 'badge-neutral', color: 'neutral', label: 'Terminée'};
+            default:
+                return {badge: 'badge-neutral', color: 'neutral', label: state};
+        }
     };
 
     const getPlayerCount = (game) => {
@@ -133,192 +126,155 @@ const GameListPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600 text-lg">Connexion au serveur de jeu...</p>
-                    <p className="text-gray-500 text-sm mt-2">Chargement des parties disponibles</p>
+                    <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4"/>
+                    <p className="text-lg text-gray-900 dark:text-gray-50">Connexion au serveur...</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Chargement des parties</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <>
-            <Head>
-                <title>Liste des Parties - Loups Garous</title>
-                <meta name="description" content="Rejoignez ou créez une partie de Loups Garous en temps réel"/>
-            </Head>
-
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-8">
-                        <div className="flex justify-center items-center mb-4">
-                            <div
-                                className={`w-3 h-3 rounded-full mr-2 ${connected ? 'bg-green-400' : 'bg-red-400'} animate-pulse`}></div>
-                            <span className={`text-sm font-medium ${connected ? 'text-green-300' : 'text-red-300'}`}>
-                                        {connected ? 'Connecté au serveur' : 'Déconnecté'}
-                                      </span>
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+            <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shadow-sm">
+                <div className="container mx-auto px-4 py-8">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className={`w-3 h-3 rounded-full ${connected ? 'bg-success' : 'bg-error'}`}></div>
+                                <span className={`text-sm font-medium ${connected ? 'text-success' : 'text-error'}`}>
+                                        {connected ? 'Connecté' : 'Déconnecté'}
+                                    </span>
+                            </div>
+                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Parties de Loups
+                                Garous</h1>
+                            <p className="text-gray-600 dark:text-gray-400 mt-1">
+                                {games.length} partie{games.length !== 1 ? 's' : ''} disponible{games.length !== 1 ? 's' : ''}
+                            </p>
                         </div>
 
-                        <h1 className="text-4xl font-extrabold text-white mb-2">
-                            Parties de Loups Garous
-                        </h1>
-                        <p className="text-lg text-gray-300">
-                            Rejoignez une partie existante ou créez-en une nouvelle en temps réel
-                        </p>
-                        <p className="text-sm text-gray-400 mt-1">
-                            {games.length} partie(s) disponible(s)
-                        </p>
-                    </div>
-
-                    <div className="mb-8 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-                        <div className="flex flex-wrap gap-2">
-                            <button
-                                onClick={() => setFilter('all')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                    filter === 'all'
-                                        ? 'bg-blue-600 text-white shadow-md'
-                                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                                }`}
-                            >
-                                Toutes ({games.length})
-                            </button>
-                            <button
-                                onClick={() => setFilter('En attente')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                    filter === 'En attente'
-                                        ? 'bg-yellow-600 text-white shadow-md'
-                                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                                }`}
-                            >
-                                En attente ({games.filter(g => g.state === 'En attente').length})
-                            </button>
-                            <button
-                                onClick={() => setFilter('En cours')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                    filter === 'En cours'
-                                        ? 'bg-green-600 text-white shadow-md'
-                                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                                }`}
-                            >
-                                En cours ({games.filter(g => g.state === 'En cours').length})
-                            </button>
-                            <button
-                                onClick={() => setFilter('Terminée')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                    filter === 'Terminée'
-                                        ? 'bg-gray-600 text-white shadow-md'
-                                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                                }`}
-                            >
-                                Terminées ({games.filter(g => g.state === 'terminée').length})
-                            </button>
-                        </div>
-
-                        <div className="flex space-x-3">
+                        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
                             <button
                                 onClick={refreshGames}
-                                disabled={!connected}
-                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 disabled:opacity-50"
+                                disabled={!connected || loading}
+                                className="btn btn-outline gap-2"
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                                </svg>
-                                <span>Actualiser</span>
+                                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}/>
+                                Actualiser
+                            </button>
+                            <button
+                                onClick={() => router.push('/game/create')}
+                                className="btn btn-primary gap-2"
+                            >
+                                <Gamepad2 className="w-4 h-4"/>
+                                Créer une partie
                             </button>
                         </div>
                     </div>
-
-                    {error && (
-                        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                    <svg className="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor"
-                                         viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    <span className="text-red-800">{error}</span>
-                                </div>
-                                <button onClick={() => setError('')} className="text-red-500 hover:text-red-700">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                              d="M6 18L18 6M6 6l12 12"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {!user && (
-                        <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <div className="flex items-center">
-                                <svg className="w-5 h-5 text-yellow-400 mr-2" fill="none" stroke="currentColor"
-                                     viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <span className="text-yellow-800">
-                                    Vous n'êtes pas connecté. Veuillez vous connecter ou créer un compte pour rejoindre une partie.
-                                </span>
-                            </div>
-                        </div>
-                    )}
-
-                    {filteredGames.length === 0 ? (
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-                            <div className="w-24 h-24 mx-auto mb-6 text-gray-400">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
-                                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                                </svg>
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                                Aucune partie disponible
-                            </h3>
-                            <p className="text-gray-600 text-lg mb-6 max-w-md mx-auto">
-                                {filter !== 'all'
-                                    ? `Aucune partie dans la catégorie "${filter}" pour le moment.`
-                                    : "Il n'y a aucune partie active. Soyez le premier à créer une partie !"}
-                            </p>
-                            {filter !== 'all' && (
-                                <button
-                                    onClick={() => setFilter('all')}
-                                    className="text-blue-600 hover:text-blue-700 font-medium text-lg"
-                                >
-                                    Voir toutes les parties
-                                </button>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            {filteredGames.map((game) => (
-                                <GameCard
-                                    key={game.id}
-                                    game={game}
-                                    onJoin={joinGame}
-                                    playerCount={getPlayerCount(game)}
-                                    maxPlayers={getMaxPlayers(game)}
-                                    getStatusBadge={getStatusBadge}
-                                    connected={connected}
-                                    user={user}
-                                />
-                            ))}
-                        </div>
-                    )}
                 </div>
             </div>
-        </>
-    );
-}
 
-const GameCard = ({game, onJoin, playerCount, maxPlayers, getStatusBadge, connected, user}) => {
+            <div className="container mx-auto px-4 py-8">
+                <div className="mb-8">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Filter className="w-5 h-5 text-gray-700 dark:text-gray-300"/>
+                        <span className="font-medium text-gray-900 dark:text-white">Filtrer par statut :</span>
+                    </div>
+                    <div className="join">
+                        <button
+                            className={`join-item btn ${filter === 'all' ? 'btn-active' : ''}`}
+                            onClick={() => setFilter('all')}
+                        >
+                            Toutes ({games.length})
+                        </button>
+                        <button
+                            className={`join-item btn ${filter === GAME_STATES.WAITING ? 'btn-active btn-warning' : ''}`}
+                            onClick={() => setFilter(GAME_STATES.WAITING)}
+                        >
+                            En attente ({games.filter(g => g.state === GAME_STATES.WAITING).length})
+                        </button>
+                        <button
+                            className={`join-item btn ${filter === GAME_STATES.IN_PROGRESS ? 'btn-active btn-success' : ''}`}
+                            onClick={() => setFilter(GAME_STATES.IN_PROGRESS)}
+                        >
+                            En cours ({games.filter(g => g.state === GAME_STATES.IN_PROGRESS).length})
+                        </button>
+                    </div>
+                </div>
+
+                {error && (
+                    <div className="alert alert-error mb-6">
+                        <AlertCircle className="w-5 h-5"/>
+                        <span>{error}</span>
+                        <button className="btn btn-ghost btn-sm" onClick={() => setError('')}>×</button>
+                    </div>
+                )}
+
+                {!user && (
+                    <div className="alert alert-warning mb-6">
+                        <AlertCircle className="w-5 h-5"/>
+                        <span>Connectez-vous pour rejoindre une partie</span>
+                        <button
+                            className="btn btn-sm btn-outline"
+                            onClick={() => router.push('/login')}
+                        >
+                            <LogIn className="w-4 h-4"/>
+                            Se connecter
+                        </button>
+                    </div>
+                )}
+
+                {filteredGames.length === 0 ? (
+                    <div className="card bg-gray-100 dark:bg-slate-800">
+                        <div className="card-body items-center text-center py-12">
+                            <div className="text-6xl mb-4">🎮</div>
+                            <h2 className="card-title text-2xl mb-2 text-gray-900 dark:text-white">Aucune partie
+                                disponible</h2>
+                            <p className="text-gray-600 dark:text-gray-400 mb-6">
+                                {filter !== 'all'
+                                    ? `Aucune partie dans cette catégorie`
+                                    : "Créez la première partie !"}
+                            </p>
+                            <button
+                                onClick={() => router.push('/game/create')}
+                                className="btn btn-primary"
+                            >
+                                Créer une partie
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {filteredGames.map((game) => (
+                            <GameCard
+                                key={game.id}
+                                game={game}
+                                onJoin={joinGame}
+                                playerCount={getPlayerCount(game)}
+                                maxPlayers={getMaxPlayers(game)}
+                                getStatusConfig={getStatusConfig}
+                                connected={connected}
+                                user={user}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const GameCard = ({game, onJoin, playerCount, maxPlayers, getStatusConfig, connected, user}) => {
     const [joining, setJoining] = useState(false);
+    const status = getStatusConfig(game.state);
+    const isUserInGame = user && game.players && Object.values(game.players).some(p => p.id === user.id);
+    const canJoin = (game.state === GAME_STATES.WAITING && playerCount < maxPlayers) || isUserInGame;
+    const isFull = playerCount >= maxPlayers;
 
     const handleJoin = async () => {
-        if (!connected) return;
+        if (!connected || !canJoin) return;
 
         setJoining(true);
         try {
@@ -328,137 +284,107 @@ const GameCard = ({game, onJoin, playerCount, maxPlayers, getStatusBadge, connec
         }
     };
 
-    const canJoin = game.state === GAME_STATES.WAITING && playerCount < maxPlayers || (game.players && Object.values(game.players).some(p => p.id === user.id));
-    const isFull = game.state === GAME_STATES.IN_PROGRESS && playerCount >= maxPlayers;
-    const isInProgress = game.state === GAME_STATES.IN_PROGRESS;
-    const isFinished = game.state === GAME_STATES.FINISHED;
-
     return (
-        <div
-            className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-            <div className="p-6">
+        <div className="card bg-white dark:bg-slate-800 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+            <div className="card-body p-6">
                 <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-xl font-bold text-gray-900 truncate pr-2 flex-1">
-                        {game.name || `Partie ${game.id.slice(0, 8)}...`}
-                    </h3>
-                    {getStatusBadge(game.state)}
+                    <div className="flex-1 min-w-0">
+                        <h3 className="card-title text-lg truncate mb-1 text-gray-900 dark:text-white">
+                            {game.name || `Partie ${game.id.slice(0, 8)}`}
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <Calendar className="w-3 h-3"/>
+                            <span>Créée le {formatDate(game.createdAt)}</span>
+                        </div>
+                    </div>
+                    <div className={`badge ${status.badge} badge-lg`}>
+                        {status.label}
+                    </div>
                 </div>
 
-                <div className="mb-4">
-                    <div className="text-gray-600 mb-2 text-sm">
-                        {game.type === 'classic' ? <Target className="inline w-4 h-4 mr-1 text-gray-400"/> :
-                            <Cog className="inline w-4 h-4 mr-1 text-gray-400"/>}
-                        {game.type === 'classic' ? 'Partie Classique' : 'Partie Custom'}
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Users className="w-5 h-5 text-gray-600 dark:text-gray-400"/>
+                            <span className="font-medium text-gray-900 dark:text-white">Joueurs</span>
+                        </div>
+                        <div className="text-right">
+                            <div className={`text-lg font-bold ${isFull ? 'text-success' : 'text-primary'}`}>
+                                {playerCount}/{maxPlayers}
+                            </div>
+                            {game.state === GAME_STATES.WAITING && (
+                                <div className="text-xs text-gray-600 dark:text-gray-400">
+                                    {isFull ? 'Complet' : `${maxPlayers - playerCount} place${maxPlayers - playerCount > 1 ? 's' : ''} libre${maxPlayers - playerCount > 1 ? 's' : ''}`}
+                                </div>
+                            )}
+                        </div>
                     </div>
-                    {game.createdAt && (
-                        <div className="text-sm text-gray-500">
-                            <Calendar className="inline w-4 h-4 mr-1 text-gray-400"/>
-                            Créée le {formatDate(game.createdAt)}
+
+                    {game.state === GAME_STATES.WAITING && (
+                        <div className="space-y-1">
+                            <div className="flex justify-between text-xs text-gray-900 dark:text-gray-300">
+                                <span>Progression</span>
+                                <span>{Math.round((playerCount / maxPlayers) * 100)}%</span>
+                            </div>
+                            <progress
+                                className="progress progress-primary w-full"
+                                value={playerCount}
+                                max={maxPlayers}
+                            ></progress>
                         </div>
                     )}
-                </div>
-
-                <div className="space-y-3 mb-4">
-                    <div className="flex justify-between items-center text-sm">
-                        <div className="flex items-center space-x-2 text-gray-700">
-                            <UserRound className="w-4 h-4"/>
-                            <span>Joueurs connectés</span>
-                        </div>
-                        <span
-                            className={`font-semibold ${playerCount === maxPlayers ? 'text-green-600' : 'text-blue-600'}`}>
-                                  {playerCount}/{maxPlayers}
-                                </span>
-                    </div>
 
                     {game.phase && (
-                        <div className="flex justify-between items-center text-sm">
-                            <div className="flex items-center space-x-2 text-gray-700">
-                                <Clock8 className="w-4 h-4 text-gray-400"/>
-                                <span>Phase actuelle</span>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Clock className="w-5 h-5 text-gray-600 dark:text-gray-400"/>
+                                <span className="font-medium text-gray-900 dark:text-white">Phase</span>
                             </div>
-                            <span className="font-medium text-gray-900 capitalize">{game.phase}</span>
+                            <span className="badge badge-outline capitalize">{game.phase}</span>
                         </div>
                     )}
+
+                    <div className="flex items-center justify-between">
+                        <span className="font-medium text-gray-900 dark:text-white">Type</span>
+                        <span className="badge badge-outline">
+                                {game.type === 'classic' ? 'Classique' : 'Custom'}
+                            </span>
+                    </div>
                 </div>
 
-                {game.state === 'En attente' && (
-                    <div className="mb-4">
-                        <div className="flex justify-between text-xs text-gray-600 mb-1">
-                            <span>Remplissage de la partie</span>
-                            <span>{Math.round((playerCount / maxPlayers) * 100)}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                                className={`h-2 rounded-full transition-all duration-500 ${
-                                    playerCount === maxPlayers ? 'bg-green-500' : 'bg-blue-500'
-                                }`}
-                                style={{width: `${(playerCount / maxPlayers) * 100}%`}}
-                            ></div>
-                        </div>
-                    </div>
-                )}
-
-                <div className="flex space-x-2">
+                <div className="card-actions mt-6">
                     <button
                         onClick={handleJoin}
-                        disabled={!canJoin || joining}
-                        className={`flex-1 px-6 py-2 rounded-xl font-semibold transition-all duration-300 transform ${
-                            joining
-                                ? 'bg-blue-500 text-white shadow-lg cursor-wait scale-95'
-                                : canJoin
-                                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 cursor-pointer border-2 border-blue-500/20'
-                                    : isInProgress
-                                        ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 cursor-pointer border-2 border-green-500/20'
-                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed border-2 border-gray-200 dark:border-gray-600 shadow-sm'
-                        } disabled:transform-none disabled:hover:scale-100`}
+                        disabled={!canJoin || joining || !connected}
+                        className={`btn w-full ${joining ? 'btn-disabled' : isUserInGame ? 'btn-secondary' : canJoin ? 'btn-primary' : 'btn-disabled'}`}
                     >
                         {joining ? (
-                            <span className="flex items-center justify-center gap-2">
-                                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                                Connexion en cours...
-                            </span>
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin"/>
+                                Connexion...
+                            </>
+                        ) : isUserInGame ? (
+                            <>
+                                <Gamepad2 className="w-4 h-4"/>
+                                Reprendre la partie
+                            </>
                         ) : canJoin ? (
-                            <span className="flex items-center justify-center gap-2">
-                                <span className="text-lg">🎮</span>
-                                Rejoindre la partie
-                            </span>
-                        ) : isInProgress ? (
-                            <span className="flex items-center justify-center gap-2">
-                                <span className="text-lg">⚡</span>
-                                Partie en cours
-                            </span>
+                            <>
+                                <LogIn className="w-4 h-4"/>
+                                Rejoindre
+                            </>
+                        ) : game.state === GAME_STATES.FINISHED ? (
+                            'Partie terminée'
+                        ) : isFull ? (
+                            'Partie complète'
                         ) : (
-                            <span className="flex items-center justify-center gap-2">
-                                <span className="text-lg">🔒</span>
-                                Indisponible
-                            </span>
+                            'Indisponible'
                         )}
                     </button>
                 </div>
-
-                {isFull && game.state === GAME_STATES.WAITING && (
-                    <p className="text-xs text-orange-600 mt-2 text-center">
-                        Partie complète - En attente du lancement
-                    </p>
-                )}
-                {isFull && game.state === GAME_STATES.IN_PROGRESS && !canJoin && (
-                    <p className="text-xs text-red-600 mt-2 text-center">
-                        Partie complète - Vous ne pouvez pas rejoindre
-                    </p>
-                )}
-                {isFull && game.state === GAME_STATES.IN_PROGRESS && canJoin && (
-                    <p className="text-xs text-green-600 mt-2 text-center">
-                        Vous êtes dans une partie en cours - Rejoignez-la !
-                    </p>
-                )}
-                {isFinished && (
-                    <p className="text-xs text-gray-500 mt-2 text-center">
-                        Cette partie est terminée
-                    </p>
-                )}
             </div>
         </div>
     );
-}
+};
 
 export default GameListPage;
