@@ -149,15 +149,15 @@ export default function Header() {
 
         if (auth.user) {
             return (
-                <div className="flex items-center gap-2 user-menu">
+                <div className="flex items-center gap-2 user-menu relative">
                     <button
                         onClick={() => setShowUserMenu(!showUserMenu)}
                         className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full p-1 transition-colors"
                         aria-label="Ouvrir le menu utilisateur"
                     >
-                            <span className="hidden md:inline text-sm font-medium text-gray-700 dark:text-gray-300">
-                              {auth.user.nickname}
-                            </span>
+                        <span className="hidden md:inline text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {auth.user.nickname}
+                        </span>
                         <div className="relative">
                             <Image
                                 src={auth.user.avatar || '/default-avatar.png'}
@@ -173,7 +173,7 @@ export default function Header() {
 
                     {showUserMenu && (
                         <div
-                            className="absolute right-0 top-12 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+                            className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
                             <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
                                 <p className="font-semibold text-gray-900 dark:text-white">{auth.user.name}</p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">{auth.user.email}</p>
@@ -194,6 +194,16 @@ export default function Header() {
                                 <Settings className="w-4 h-4"/>
                                 Paramètres
                             </Link>
+                            {(auth.user && (auth.user.role === 'admin' || auth.user.role === 'moderator')) && (
+                                <Link
+                                    href="/admin/dashboard"
+                                    className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                    onClick={() => setShowUserMenu(false)}
+                                >
+                                    <Settings className="w-4 h-4"/>
+                                    Admin Panel
+                                </Link>
+                            )}
                             <div className="border-t border-gray-100 dark:border-gray-700 my-1"></div>
                             <button
                                 onClick={handleLogout}

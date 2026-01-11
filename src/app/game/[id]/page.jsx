@@ -2,21 +2,15 @@
 
 import {use, useEffect, useRef, useState} from "react";
 import {socket} from "@/socket";
-import GameInformation from "@/components/game/information/Information";
-import GameChat from "@/components/game/chat/Chat";
 import GameActions from "@/components/game/actions/Actions";
 import GameHeader from "@/components/game/Header";
 import AmbientForest from "@/components/game/ambient/AmbientForest.jsx";
-import PlayersConfigurationModal from "@/components/game/information/modal/Players";
 import {toast} from "react-toastify";
 import {useRouter} from "next/navigation";
-import ConfigurationOverviewModal from "@/components/game/information/modal/ConfigurationOverview";
-import AdminConfigurationModal from "@/components/game/information/modal/Configuration";
 import StartingCounter from "@/components/game/StartingCounter";
-import {ACTION_TYPES, GAME_STATES} from "@/server/config/constants";
-import {History} from "lucide-react";
 import LoverAmbient from "@/components/game/ambient/LoverAmbient.jsx";
-import {formatTimeDifference} from "@/utils/Date.js";
+import GameHistory from "@/components/game/History.jsx";
+import GameConfiguration from "@/components/game/configuration/Configuration.jsx";
 
 const GamePage = ({params}) => {
     const {id} = use(params);
@@ -27,7 +21,6 @@ const GamePage = ({params}) => {
     const [chatMessages, setChatMessages] = useState({});
     const [chatChannels, setChatChannels] = useState([]);
     const [currentChannel, setCurrentChannel] = useState("general");
-    const [chatSubTab, setChatSubTab] = useState("messages");
     const [creator, setCreator] = useState(null);
     const [configuration, setConfiguration] = useState(null);
     const [players, setPlayers] = useState([]);
@@ -38,9 +31,6 @@ const GamePage = ({params}) => {
     const [loverAmbientData, setLoverAmbientData] = useState(null);
     const [ambientSoundsEnabled, setAmbientSoundsEnabled] = useState(false);
     const [currentAmbientSound, setCurrentAmbientSound] = useState(null);
-    const [showConfigurationOverviewModal, setShowConfigurationOverviewModal] = useState(false);
-    const [showConfigurationModal, setShowConfigurationModal] = useState(false);
-    const [showPlayersConfigurationModal, setShowPlayersConfigurationModal] = useState(false);
     const [numberCanBeSelected, setNumberCanBeSelected] = useState(0);
     const [selectedPlayers, setSelectedPlayers] = useState([]);
     const [startingSoon, setStartingSoon] = useState(null);
@@ -132,7 +122,7 @@ const GamePage = ({params}) => {
         };
 
         const handlePlayersUpdate = (data) => {
-            const players = (data?.players ? data.players :  []) || [];
+            const players = (data?.players ? data.players : []) || [];
             setPlayers(players);
 
             const found = players.find(p =>
@@ -634,86 +624,21 @@ const GamePage = ({params}) => {
                     />
 
                     <div className="lg:col-span-1">
-                        <GameInformation
+                        <GameConfiguration
                             game={game}
                             configuration={configuration}
                             players={players}
                             currentPlayer={currentPlayer}
                             startGame={startGame}
-                            configurationGameOverview={setShowConfigurationOverviewModal}
-                            configurationGame={setShowConfigurationModal}
-                            playersConfiguration={() => setShowPlayersConfigurationModal(true)}
+                            handleExcludePlayer={handleExcludePlayer}
+                            handleAddBot={handleAddBot}
+                            handleUpdateGame={handleUpdateGame}
                         />
 
-                        {/*<GameChat*/}
-                        {/*    chatChannels={chatChannels}*/}
-                        {/*    switchChannel={switchChannel}*/}
-                        {/*    chatMessages={chatMessages}*/}
-                        {/*    chatMessage={chatMessage}*/}
-                        {/*    participantsForChannel={participantsForChannel}*/}
-                        {/*    currentChannel={currentChannel}*/}
-                        {/*    chatSubTab={chatSubTab}*/}
-                        {/*    chatContainerRef={chatContainerRef}*/}
-                        {/*    setChatSubTab={setChatSubTab}*/}
-                        {/*    setChatMessage={setChatMessage}*/}
-                        {/*    sendChatMessage={sendChatMessage}*/}
-                        {/*    currentPlayer={currentPlayer}*/}
-                        {/*/>*/}
-
-                        {(game.state === GAME_STATES.IN_PROGRESS || game.state === GAME_STATES.FINISHED) && (
-                            <div className="card bg-white dark:bg-gray-800 shadow-2xl border border-gray-200 dark:border-gray-700 mt-6">
-                                <div className="card-body p-2 md:p-4">
-                                    <h3 className="card-title text-gray-900 dark:text-white text-lg mb-4">
-                                        <History className="inline mr-2" size={20}/>
-                                        Derniers Événements
-                                    </h3>
-                                    <div className="space-y-3 max-h-64 overflow-y-auto">
-                                        {history
-                                            .filter(event => event.type === ACTION_TYPES.GAME_EVENT)
-                                            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                                            .map((event, index) => {
-                                                const startedAtMs = new Date(game.startedAt);
-                                                const eventAtMs = new Date(event.createdAt);
-                                                const elapsed = formatTimeDifference(startedAtMs, eventAtMs);
-
-                                                return (
-                                                    <div key={index}
-                                                         className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                                                        <span className="text-gray-500 dark:text-gray-400 text-xs mt-1">{elapsed}</span>
-                                                        <p className="text-gray-700 dark:text-gray-300 text-sm">{event.message}</p>
-                                                    </div>
-                                                );
-                                            })}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                        <GameHistory game={game} history={history}/>
                     </div>
                 </div>
             </div>
-
-            <ConfigurationOverviewModal
-                game={game}
-                show={showConfigurationOverviewModal}
-                close={() => setShowConfigurationOverviewModal(false)}
-            />
-
-            <PlayersConfigurationModal
-                currentPlayer={currentPlayer}
-                excludePlayer={handleExcludePlayer}
-                addBot={handleAddBot}
-                game={game}
-                players={players}
-                show={showPlayersConfigurationModal}
-                close={() => setShowPlayersConfigurationModal(false)}
-            />
-
-            <AdminConfigurationModal
-                game={game}
-                show={showConfigurationModal}
-                close={() => setShowConfigurationModal(false)}
-                save={handleUpdateGame}
-            />
 
             <StartingCounter
                 startingSoon={startingSoon}

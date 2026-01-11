@@ -18,7 +18,7 @@ const CreateGamePage = () => {
     const [gameName, setGameName] = useState("");
     const [maxPlayers, setMaxPlayers] = useState(8);
     const [selectedRoles, setSelectedRoles] = useState(defaultSelectedRoles);
-    const [gameMode, setGameMode] = useState("classic");
+    const [gameType, setgameType] = useState("classic");
     const [isCreating, setIsCreating] = useState(false);
     const [error, setError] = useState(null);
     const {token, setGame, setPlayer} = useAuth();
@@ -64,20 +64,20 @@ const CreateGamePage = () => {
     }, []);
 
     useEffect(() => {
-        if (gameMode === "custom") {
+        if (gameType === "custom") {
             setSelectedRoles({...defaultSelectedRoles});
         } else {
             setSelectedRoles(classicRoles[maxPlayers] || defaultSelectedRoles);
         }
-    }, [gameMode]);
+    }, [gameType]);
 
     useEffect(() => {
-        if (gameMode === "classic") {
+        if (gameType === "classic") {
             setSelectedRoles(classicRoles[maxPlayers] || defaultSelectedRoles);
         }
     }, [maxPlayers]);
 
-    const gameModes = [
+    const gameTypes = [
         {
             id: "classic",
             name: "Classique",
@@ -93,7 +93,7 @@ const CreateGamePage = () => {
     ];
 
     const updateRoleCount = (roleId, increment) => {
-        if (gameMode !== "custom") return;
+        if (gameType !== "custom") return;
 
         const role = getRoleById(roleId);
         if (!role) return;
@@ -143,7 +143,7 @@ const CreateGamePage = () => {
                 body: JSON.stringify({
                     name: gameName,
                     configuration: selectedRoles,
-                    type: gameMode,
+                    type: gameType,
                 }),
             });
 
@@ -241,40 +241,40 @@ const CreateGamePage = () => {
 
                             <div className="form-control mt-6">
                                 <label className="label">
-                                    <span className="label-text text-gray-700 dark:text-gray-300 font-medium">Mode de jeu</span>
+                                    <span className="label-text text-gray-700 dark:text-gray-300 font-medium">Type de jeu</span>
                                 </label>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {gameModes.map((mode) => (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-">
+                                    {gameTypes.map((type) => (
                                         <div
-                                            key={mode.id}
+                                            key={type.id}
                                             className={`card cursor-pointer transition-all duration-300 border-2 ${
-                                                gameMode === mode.id
+                                                gameType === type.id
                                                     ? "bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-500 dark:border-blue-400 shadow-lg"
                                                     : "bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
                                             }`}
-                                            onClick={() => setGameMode(mode.id)}
+                                            onClick={() => setgameType(type.id)}
                                         >
-                                            <div className="card-body p-4 text-center">
-                                                <div className={`flex items-center justify-center w-12 h-12 rounded-full mx-auto mb-3 ${
-                                                    gameMode === mode.id
+                                            <div className="card-body p-2 text-center">
+                                                <div className={`flex items-center justify-center w-12 h-12 rounded-full mx-auto ${
+                                                    gameType === type.id
                                                         ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                                                         : "bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400"
                                                 }`}>
-                                                    {mode.icon}
+                                                    {type.icon}
                                                 </div>
                                                 <h3 className={`card-title text-lg justify-center ${
-                                                    gameMode === mode.id
+                                                    gameType === type.id
                                                         ? "text-blue-700 dark:text-blue-300"
                                                         : "text-gray-800 dark:text-gray-200"
                                                 }`}>
-                                                    {mode.name}
+                                                    {type.name}
                                                 </h3>
                                                 <p className={`text-sm ${
-                                                    gameMode === mode.id
+                                                    gameType === type.id
                                                         ? "text-blue-600 dark:text-blue-400"
                                                         : "text-gray-600 dark:text-gray-400"
                                                 }`}>
-                                                    {mode.description}
+                                                    {type.description}
                                                 </p>
                                             </div>
                                         </div>
@@ -338,9 +338,9 @@ const CreateGamePage = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => updateRoleCount(role.id, false)}
-                                                disabled={gameMode !== "custom" || selectedRoles[role.id] === 0}
+                                                disabled={gameType !== "custom" || selectedRoles[role.id] === 0}
                                                 className={`btn btn-circle btn-sm w-10 h-10 flex items-center justify-center ${
-                                                    gameMode !== "custom" || selectedRoles[role.id] === 0
+                                                    gameType !== "custom" || selectedRoles[role.id] === 0
                                                         ? "btn-disabled bg-gray-200 dark:bg-gray-600 text-gray-400 dark:text-gray-500"
                                                         : "btn-ghost bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-800/50"
                                                 }`}
@@ -355,9 +355,9 @@ const CreateGamePage = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => updateRoleCount(role.id, true)}
-                                                disabled={gameMode !== "custom" || totalPlayers >= maxPlayers || (role.maxPerGame !== undefined && selectedRoles[role.id] >= role.maxPerGame)}
+                                                disabled={gameType !== "custom" || totalPlayers >= maxPlayers || (role.maxPerGame !== undefined && selectedRoles[role.id] >= role.maxPerGame)}
                                                 className={`btn btn-circle btn-sm w-10 h-10 flex items-center justify-center ${
-                                                    gameMode !== "custom" || totalPlayers >= maxPlayers
+                                                    gameType !== "custom" || totalPlayers >= maxPlayers
                                                         ? "btn-disabled bg-gray-200 dark:bg-gray-600 text-gray-400 dark:text-gray-500"
                                                         : "btn-ghost bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800/50"
                                                 }`}
@@ -402,9 +402,9 @@ const CreateGamePage = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                                 <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-center border border-blue-200 dark:border-blue-800">
-                                    <div className="text-blue-600 dark:text-blue-400 text-sm font-medium mb-1">Mode de jeu</div>
+                                    <div className="text-blue-600 dark:text-blue-400 text-sm font-medium mb-1">Type de jeu</div>
                                     <div className="text-blue-800 dark:text-blue-300 font-bold text-lg">
-                                        {gameModes.find(m => m.id === gameMode)?.name}
+                                        {gameTypes.find(m => m.id === gameType)?.name}
                                     </div>
                                 </div>
 

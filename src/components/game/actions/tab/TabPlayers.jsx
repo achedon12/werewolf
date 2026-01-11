@@ -99,7 +99,21 @@ const TabPlayers = ({game, players, currentPlayer}) => {
                                     </div>
                                 </div>
 
-                                {process.env.NODE_ENV === 'development' && (
+                                <div className="flex flex-col items-end gap-1">
+                                    {!player.isAlive && (
+                                        <div className="badge bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800">
+                                            {player.role}
+                                        </div>
+                                    )}
+
+                                    {!player.isAlive && lovers.includes(player.id) && (
+                                        <div className="badge bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-800">
+                                            💘 Amoureux
+                                        </div>
+                                    )}
+                                </div>
+
+                                {process.env.NODE_ENV === 'development' && player.isAlive && (
                                     <div className="flex flex-col items-end gap-1">
                                         <div className="badge bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800">
                                             {player.role}

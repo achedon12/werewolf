@@ -3,6 +3,8 @@ import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "@/server/config/constants"
 import {Axe, Clock, Droplets, Heart, History, Moon, Shield, Skull, Sun, Target, Users} from "lucide-react";
 import {gameRoleCallOrder, getRoleByName, RoleActionDescriptions} from "@/utils/Roles";
 import {getMostTargetByWolvesPlayerId} from "@/server/socket/utils/roleTurnManager.js";
+import {useEffect, useState} from "react";
+import {formatTimeDifference} from "@/utils/Date.js";
 
 const TabGame = ({
                      game,
@@ -17,6 +19,8 @@ const TabGame = ({
                      performAction,
                      revealedCards
                  }) => {
+
+    const [timer, setTimer] = useState('~');
     const parsedConfiguration = game.configuration ? JSON.parse(game.configuration) : {};
     const currentPlayerIsWitch = currentPlayer && currentPlayer.role === "Sorciere";
     const isWitchTurn = game.turn === 7 && game.phase === "Nuit";
@@ -88,6 +92,28 @@ const TabGame = ({
     const currentPhase = phaseInfo[game.phase] || phaseInfo[GAME_PHASES.STARTING];
     const mostTargetByWolvesId = getMostTargetByWolvesPlayerId(game);
     const playerTargetByWolves = players.find(p => String(p.id) === mostTargetByWolvesId);
+
+    useEffect(() => {
+        if (game.state === GAME_STATES.WAITING) {
+            setTimer('~');
+            return;
+        }
+        const startedAt = new Date(game.startedAt);
+        if (game.state === GAME_STATES.FINISHED) {
+            const endedAt = new Date(game.endedAt);
+
+            setTimer(formatTimeDifference(startedAt, endedAt, ' '));
+            return;
+        }
+
+        let interval = setInterval(() => {
+            const now = new Date();
+
+            setTimer(formatTimeDifference(startedAt, now, ' '));
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [game]);
 
     const handleWitchPotion = (type) => {
         performAction(type)
@@ -169,75 +195,104 @@ const TabGame = ({
     return (
         <div className="space-y-6">
             {(game.state === GAME_STATES.IN_PROGRESS || game.state === GAME_STATES.FINISHED) && (
-                <div className={`card ${currentPhase.bgColor} ${currentPhase.borderColor} shadow-lg`}>
-                    <div className="card-body p-2 md:p-4">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="flex items-center gap-4">
-                                <div className={`p-3 rounded-xl ${currentPhase.iconBg}`}>
-                                    <currentPhase.icon className="w-8 h-8"/>
-                                </div>
-                                <div>
-                                    <h2 className={`text-xl md:text-2xl font-bold ${currentPhase.textColor}`}>
-                                        {currentPhase.title}
-                                    </h2>
-                                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                                        <div className="flex-1">
-                                            <div className="space-y-2">
-                                                {game.phase === GAME_PHASES.NIGHT && currentPlayer && (
-                                                    <p className="text-gray-700 dark:text-gray-300">
-                                                        {RoleActionDescriptions.hasOwnProperty(currentPlayer.role)
-                                                            ? RoleActionDescriptions[currentPlayer.role]
-                                                            : "Observez et tentez de déduire les rôles des autres joueurs."}
-                                                    </p>
-                                                )}
-
-                                                {numberCanBeSelected > 0 && (
-                                                    <p className="text-gray-700 dark:text-gray-300">
-                                                        Sélectionnez jusqu'à <span
-                                                        className="font-semibold text-blue-600 dark:text-blue-400">{numberCanBeSelected}</span> joueur
-                                                        {numberCanBeSelected > 1 ? "s" : ""}.
-                                                    </p>
-                                                )}
-
-                                                {game.phase === GAME_PHASES.NIGHT && isWitchTurn && currentPlayerIsWitch && (
-                                                    <p className="text-gray-700 dark:text-gray-300">
-                                                        Les Loups-Garous ont ciblé{" "}
-                                                        <span className="font-semibold text-red-600 dark:text-red-400">
-                                                        {playerTargetByWolves ? playerTargetByWolves.nickname : "un joueur inconnu"}
-                                                    </span>
-                                                        .
-                                                    </p>
-                                                )}
-
-                                                {game.phase === GAME_PHASES.DAY && (
-                                                    <p className="text-gray-700 dark:text-gray-300">
-                                                        Délibérez ensemble et votez pour éliminer un suspect.
-                                                    </p>
-                                                )}
-                                            </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                    <div className={`card ${currentPhase.bgColor} ${currentPhase.borderColor} shadow-lg lg:col-span-2`}>
+                        <div className="card-body p-4">
+                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2.5 rounded-lg ${currentPhase.iconBg}`}>
+                                        <currentPhase.icon className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h2 className={`text-lg font-bold ${currentPhase.textColor}`}>
+                                            {currentPhase.title}
+                                        </h2>
+                                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                            <Clock className="w-3.5 h-3.5" />
+                                            <span>{currentTimer !== null ? `${currentTimer}s restants` : 'Phase active'}</span>
                                         </div>
+                                    </div>
+                                </div>
 
-                                        {getActionButtons()}
+                                <div className="w-full md:w-auto">
+                                    <div className="space-y-2 text-sm">
+                                        {game.phase === GAME_PHASES.NIGHT && currentPlayer && (
+                                            <p className="text-gray-700 dark:text-gray-300 leading-tight">
+                                                {RoleActionDescriptions.hasOwnProperty(currentPlayer.role)
+                                                    ? RoleActionDescriptions[currentPlayer.role]
+                                                    : "Observez et déduisez les rôles."}
+                                            </p>
+                                        )}
+
+                                        {numberCanBeSelected > 0 && (
+                                            <p className="text-gray-700 dark:text-gray-300 leading-tight">
+                                                Sélectionnez jusqu'à <span className="font-semibold text-blue-600 dark:text-blue-400">{numberCanBeSelected}</span> joueur{numberCanBeSelected > 1 ? "s" : ""}.
+                                            </p>
+                                        )}
+
+                                        {game.phase === GAME_PHASES.NIGHT && isWitchTurn && currentPlayerIsWitch && (
+                                            <p className="text-gray-700 dark:text-gray-300 leading-tight">
+                                                Cible des loups : <span className="font-semibold text-red-600 dark:text-red-400">
+                                        {playerTargetByWolves ? playerTargetByWolves.nickname : "inconnu"}
+                                    </span>
+                                            </p>
+                                        )}
+
+                                        {game.phase === GAME_PHASES.DAY && (
+                                            <p className="text-gray-700 dark:text-gray-300 leading-tight">
+                                                Délibérez et votez pour éliminer un suspect.
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-4">
-                                {currentTimer !== null && currentTimer !== undefined && (
-                                    <div className="text-center">
-                                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 mb-1">
-                                            <Clock className="w-4 h-4"/>
-                                            <span className="text-sm font-medium">Temps restant</span>
-                                        </div>
-                                        <div
-                                            className="font-mono font-bold text-2xl md:text-3xl text-gray-900 dark:text-white bg-white dark:bg-gray-800 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700">
-                                            {currentTimer}s
-                                        </div>
+                            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                    <div className="flex flex-wrap gap-2">
+                                        {getActionButtons()}
                                     </div>
-                                )}
+
+                                    {currentTimer !== null && currentTimer !== undefined && (
+                                        <div className="flex items-center gap-3 bg-white dark:bg-gray-800 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700">
+                                            <div className="flex flex-col">
+                                                <span className="text-xs text-gray-600 dark:text-gray-400">Temps restant</span>
+                                                <span className="font-mono font-bold text-xl text-gray-900 dark:text-white">
+                                                    {currentTimer}s
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    {game.startedAt && (
+                        <div className="card bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <div className="card-body p-3">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="p-1.5 bg-slate-200 dark:bg-slate-700 rounded-md">
+                                            <Clock className="w-4 h-4 text-slate-700 dark:text-slate-300" />
+                                        </div>
+                                        <span className="text-sm font-medium text-slate-900 dark:text-white">Durée totale</span>
+                                    </div>
+                                    <span className="text-xs px-2 py-1 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded">
+                                        En cours
+                                    </span>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-2xl md:text-3xl font-mono font-bold text-slate-900 dark:text-white">
+                                        {timer}
+                                    </div>
+                                    <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                                        depuis le début de la partie
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 

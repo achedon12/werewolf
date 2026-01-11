@@ -77,5 +77,42 @@ export const PatchNotes = [
                 ]
             }
         ],
+    },
+    {
+        version: '1.1.1',
+        title: 'Corrections de Bugs Mineurs et Améliorations des interfaces',
+        date: '2026-01-11',
+        type: PatchNoteTypes.FIX,
+        changes: [
+            {
+                type: PatchNoteTypes.FIX,
+                changes: [
+                    {
+                        title: 'Corrections de Bugs',
+                        description: 'Résolution de plusieurs bugs mineurs signalés par les utilisateurs.'
+                    },
+                    {
+                        title: 'Modifications pour la création de partie',
+                        description: 'Changement pour "mode de jeu" au lieu de "type de partie" lors de la création d\'une nouvelle partie.'
+                    },
+                    {
+                        title: 'Modification de l\'affichage du dernier patch note',
+                        description: 'Le dernier patch note est désormais bien affiché dans les patch notes.'
+                    },
+                    {
+                      title: 'Création d\'une API pour les Patch Notes',
+                      description: 'Mise en place d\'une API dédiée pour gérer les Patch Notes de manière plus efficace.'
+                    },
+                    {
+                        title: 'Améliorations des Interfaces Utilisateur',
+                        description: 'Ajustements et améliorations des interfaces pour une meilleure ergonomie durant la partie.'
+                    },
+                    {
+                        title: 'Optimisation du Code',
+                        description: 'Refactorisation du code pour améliorer la maintenabilité et la performance.'
+                    }
+                ]
+            }
+        ],
     }
 ];

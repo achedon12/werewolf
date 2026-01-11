@@ -4,4 +4,3 @@
 - systeme de niveau
 - systeme d'amis
 - systeme de badge
-- afficher le role de la personne quand elle est morte
