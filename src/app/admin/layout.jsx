@@ -2,7 +2,7 @@
 import {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {usePathname, useRouter} from 'next/navigation';
-import {BarChart3, Gamepad2, LayoutDashboard, LogOut, Menu, Settings, Shield, Users, X, Home} from 'lucide-react';
+import {BarChart3, Flag, Gamepad2, Home, LayoutDashboard, LogOut, Menu, Settings, Shield, Users, X} from 'lucide-react';
 import {useAuth} from "@/app/AuthProvider.jsx";
 
 const NavItem = ({href, icon: Icon, label, onClick, active, mobile = false}) => (
@@ -47,6 +47,7 @@ const AdminLayout = ({children}) => {
     const menuItems = [
         {href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard'},
         {href: '/admin/users', icon: Users, label: 'Utilisateurs'},
+        {href: '/admin/reports', icon: Flag, label: 'Signalements'},
         {href: '/admin/games', icon: Gamepad2, label: 'Parties'},
         {href: '/admin/analytics', icon: BarChart3, label: 'Analytics'},
         {href: '/admin/newsletter', icon: Shield, label: 'Newsletter'},
@@ -81,7 +82,8 @@ const AdminLayout = ({children}) => {
 
                     <div className="flex-shrink-0 p-4 border-t border-gray-200 dark:border-gray-700">
                         <div className="flex items-center gap-3 px-2 py-3 rounded-lg bg-gray-50 dark:bg-gray-700">
-                            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-400 rounded-full flex items-center justify-center overflow-hidden">
+                            <div
+                                className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-400 rounded-full flex items-center justify-center overflow-hidden">
                                 <img
                                     src={user?.avatar || '/default-avatar.png'}
                                     alt={user?.nickname || 'Utilisateur'}
@@ -110,11 +112,14 @@ const AdminLayout = ({children}) => {
                         className="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity"
                         onClick={() => setSidebarOpen(false)}
                     />
-                    <div className="fixed inset-y-0 left-0 z-50 w-80 max-w-full bg-white dark:bg-gray-800 shadow-xl transform transition-transform">
+                    <div
+                        className="fixed inset-y-0 left-0 z-50 w-80 max-w-full bg-white dark:bg-gray-800 shadow-xl transform transition-transform">
                         <div className="flex flex-col flex-1 h-full">
-                            <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                            <div
+                                className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                                 <div className="flex items-center gap-3">
-                                    <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg">
+                                    <div
+                                        className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg">
                                         <Shield className="h-6 w-6 text-white"/>
                                     </div>
                                     <div>
@@ -142,9 +147,12 @@ const AdminLayout = ({children}) => {
                                 ))}
                             </nav>
 
-                            <div className="flex-shrink-0 p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                                <div className="flex items-center gap-3 px-2 py-3 rounded-lg bg-gray-50 dark:bg-gray-700">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-400 rounded-full flex items-center justify-center overflow-hidden">
+                            <div
+                                className="flex-shrink-0 p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                                <div
+                                    className="flex items-center gap-3 px-2 py-3 rounded-lg bg-gray-50 dark:bg-gray-700">
+                                    <div
+                                        className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-400 rounded-full flex items-center justify-center overflow-hidden">
                                         <img
                                             src={user?.avatar || '/default-avatar.png'}
                                             alt={user?.nickname || 'Utilisateur'}
@@ -188,7 +196,8 @@ const AdminLayout = ({children}) => {
             )}
 
             <div className="lg:pl-64 flex flex-col min-h-screen">
-                <header className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+                <header
+                    className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
                     <div className="flex items-center justify-between px-4 py-3 sm:px-6">
                         <div className="flex items-center gap-3">
                             <button
@@ -227,7 +236,8 @@ const AdminLayout = ({children}) => {
                             </div>
 
                             <div className="flex items-center gap-2 sm:hidden">
-                                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-400 rounded-full flex items-center justify-center overflow-hidden">
+                                <div
+                                    className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-400 rounded-full flex items-center justify-center overflow-hidden">
                                     <img
                                         src={user?.avatar || '/default-avatar.png'}
                                         alt={user?.nickname || 'Utilisateur'}
@@ -250,7 +260,8 @@ const AdminLayout = ({children}) => {
             </div>
 
             {isMobile && (
-                <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg">
+                <div
+                    className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg">
                     <div className="flex justify-around items-center p-2">
                         {menuItems.slice(0, 4).map((item) => (
                             <Link

@@ -1,8 +1,11 @@
 import Image from 'next/image';
-import {Circle, CircleDot, Skull, UsersRound, Bot} from 'lucide-react';
+import {Circle, CircleDot, Skull, UsersRound, Bot, AlertTriangle, Flag} from 'lucide-react';
+import {useState} from "react";
+import ReportModal from "@/components/player/report/ReportModal.jsx";
 
-const TabPlayers = ({game, players, currentPlayer}) => {
+const TabPlayers = ({game, players, currentPlayer, handleReportPlayer = () => {}}) => {
     const lovers = game?.config?.lovers?.exists ? game.config.lovers.players : [];
+    const [reportModal, setReportModal] = useState(null);
 
     return (
         <div className="card bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700">
@@ -99,7 +102,7 @@ const TabPlayers = ({game, players, currentPlayer}) => {
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col items-end gap-1">
+                                <div className="flex flex-col items-end gap-2">
                                     {!player.isAlive && (
                                         <div className="badge bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800">
                                             {player.role}
@@ -111,13 +114,28 @@ const TabPlayers = ({game, players, currentPlayer}) => {
                                             💘 Amoureux
                                         </div>
                                     )}
+                                    {!player.isBot && player.id !== currentPlayer?.id && (
+                                        <button
+                                            onClick={() => {
+                                                setReportModal(player)
+                                            }}
+                                            className="group/btn relative flex items-center gap-2 px-3 py-1.5 text-sm text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-600 transition-all duration-200 overflow-hidden cursor-pointer"
+                                            title={player.id === currentPlayer?.id ? "Vous ne pouvez pas vous signaler vous-même" : "Signaler ce joueur"}
+                                        >
+                                            <div className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/0 to-red-500/0 group-hover/btn:from-red-500/5 group-hover/btn:via-red-500/10 group-hover/btn:to-red-500/5 transition-all duration-500"></div>
+                                            <Flag className="w-3.5 h-3.5 group-hover/btn:animate-pulse" />
+                                            <span className="relative z-10 font-medium">Signaler</span>
+                                        </button>
+                                    )}
                                 </div>
 
                                 {process.env.NODE_ENV === 'development' && player.isAlive && (
                                     <div className="flex flex-col items-end gap-1">
-                                        <div className="badge bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800">
-                                            {player.role}
-                                        </div>
+                                        {player.role && (
+                                            <div className="badge bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800">
+                                                {player.role}
+                                            </div>
+                                        )}
                                         {lovers.includes(player.id) && (
                                             <div className="badge bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-800">
                                                 💘 Amoureux
@@ -147,6 +165,8 @@ const TabPlayers = ({game, players, currentPlayer}) => {
                     </div>
                 </div>
             </div>
+
+            <ReportModal player={reportModal} onClose={() => setReportModal(null)} />
         </div>
     );
 }

@@ -35,6 +35,8 @@ model User {
   ambientSoundsEnabled Boolean  @default(true)
   ambientThemeEnabled  Boolean  @default(true)
   lastLogin         DateTime?   @default(now())
+  reportsMade      Report[]    @relation("Reporter")
+  reportsReceived  Report[]    @relation("Reported")
 }
 
 model Player {
@@ -74,5 +76,16 @@ model GameLog {
   gameId    String
   game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
   message   String
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  reporterId String
+  reporter  User     @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedId String
+  reported  User     @relation("Reported", fields: [reportedId], references: [id], onDelete: Cascade)
+  reason    String
+  details   String?
   createdAt DateTime @default(now())
 }

@@ -114,5 +114,22 @@ export const PatchNotes = [
                 ]
             }
         ],
+    },
+    {
+        version: '2.0.0',
+        title: 'Ajout du système de signalement',
+        date: '2026-01-11',
+        type: PatchNoteTypes.MAJOR,
+        changes: [
+            {
+                type: PatchNoteTypes.MAJOR,
+                changes: [
+                    {
+                        title: 'Système de Signalement',
+                        description: 'Ajout d\'un système permettant aux utilisateurs de signaler des comportements inappropriés ou des bugs.'
+                    }
+                ]
+            }
+        ],
     }
 ];
