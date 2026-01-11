@@ -110,6 +110,10 @@ export const PatchNotes = [
                     {
                         title: 'Optimisation du Code',
                         description: 'Refactorisation du code pour améliorer la maintenabilité et la performance.'
+                    },
+                    {
+                        title: 'Ajout des channels de chat',
+                        description: 'Implémentation de channels de chat spécifiques pour une meilleure communication entre les joueurs en fonction des périodes et des rôles.'
                     }
                 ]
             }

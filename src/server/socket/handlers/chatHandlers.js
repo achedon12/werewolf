@@ -79,12 +79,15 @@ export const handleUpdateAvailableChannels = (socket, io, gameId) => {
         const isVotePhase = roomData.phase === GAME_PHASES.VOTING;
         const isSister = playerInfo.role === "Sœur";
         const isGeneral = roomData.state === GAME_STATES.WAITING;
+        const lovers = roomData?.config?.lovers?.exists ? roomData.config.lovers.players : [];
+        const isLover = lovers.includes(playerInfo.id);
 
         const availableChannels = {
             general: isGeneral,
             werewolves: isWerewolf,
             vote: isVotePhase,
-            sisters: isSister
+            sisters: isSister,
+            lovers: isLover
         };
 
         socket.emit("available-channels", availableChannels);
@@ -93,7 +96,7 @@ export const handleUpdateAvailableChannels = (socket, io, gameId) => {
     }
 }
 
-export const giveVoteChannelAccess = async (socket, io, gameId) => {
+export const giveVoteChannelAccess = async (io, gameId) => {
     const r = getGameRoom(gameId);
     if (!r) return;
 
@@ -105,16 +108,12 @@ export const giveVoteChannelAccess = async (socket, io, gameId) => {
                 : [];
 
         for (const p of playersArray) {
-            if (!p || !p.online || p.isBot) continue;
+            if (!p && !p.online && p.isBot && !p.isAlive) continue;
             if (!p.socketId) continue;
             const sock = io.sockets.sockets.get(p.socketId);
             if (!sock) continue;
             try {
-                addPlayerToChannel(sock, io, gameId, 'vote');
-            } catch (err) {
-                console.error(`Erreur addPlayerToChannel pour ${p.socketId}:`, err);
-            }
-            try {
+                await addPlayerToChannel(sock, io, gameId, 'vote');
                 handleUpdateAvailableChannels(sock, io, gameId);
             } catch (err) {
                 console.error(`Erreur handleUpdateAvailableChannels pour ${p.socketId}:`, err);

@@ -27,6 +27,7 @@ export const createGameRoom = async (gameId) => {
             werewolves: new Set(),
             vote: new Set(),
             sisters: new Set(),
+            lovers: new Set()
         },
         players: playersMap,
         actionHistory: [],
@@ -124,7 +125,9 @@ export const addPlayerToGame = (socket, gameId, userData) => {
     gameRooms.set(gameId, roomData);
 };
 
-export const addPlayerToChannel = (socket, io, gameId, channelType) => {
+export const addPlayerToChannel = async (socket, io, gameId, channelType) => {
+    if (!socket || !gameId) return;
+
     const roomData = getGameRoom(gameId);
     if (!roomData) return;
 

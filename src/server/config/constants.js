@@ -1,4 +1,4 @@
-export const CHANNEL_TYPES = ['general', 'werewolves', 'vote'];
+export const CHANNEL_TYPES = ['general', 'werewolves', 'vote', 'sisters', 'lovers'];
 
 export const GAME_STATES = {
     WAITING: 'En attente',

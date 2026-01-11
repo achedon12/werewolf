@@ -1,8 +1,9 @@
 import {gameRoleCallOrder, RoleSelectionCount} from '../../../utils/Roles.js';
-import {gameRooms, getGameRoom} from '../../socket/utils/roomManager.js';
+import {addPlayerToChannel, gameRooms, getGameRoom} from '../../socket/utils/roomManager.js';
 import {addGameAction, getGameHistory} from './actionLogger.js';
 import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from '../../config/constants.js';
 import {sanitizeRoom} from '../../socket/utils/sanitizeRoom.js';
+import {handleUpdateAvailableChannels} from "../handlers/chatHandlers.js";
 
 const sanitizeRoleChannel = (roleName) =>
     roleName.toLowerCase().replace(/\s+/g, '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w-]/g, '');
@@ -99,7 +100,7 @@ export const simulateBotVoteAction = (io, gameId, votingSeconds = 60) => {
     gameRooms.set(gameId, room);
 };
 
-const simulateBotAction = (roleName, bot, io, gameId) => {
+const simulateBotAction = async (roleName, bot, io, gameId) => {
     const roomData = getGameRoom(gameId);
     const allPlayers = Array.from(roomData.players.values()).filter(p => p.isAlive !== false);
     const others = allPlayers.filter(p => p.id !== bot.id);
@@ -122,6 +123,8 @@ const simulateBotAction = (roleName, bot, io, gameId) => {
                 message = `${bot.nickname} (bot) n'a pas trouvé assez de joueurs à lier`;
             } else {
                 const first = pickRandom(pool);
+                // specific player where nickname equals to achedon12
+                // const first = pool.find(p => p.nickname.toLowerCase() === 'achedon12') || pickRandom(pool);
                 const secondPool = pool.filter(p => p.id !== first.id);
                 const second = pickRandom(secondPool.length ? secondPool : others.filter(p => p.id !== first.id));
 
@@ -142,6 +145,11 @@ const simulateBotAction = (roleName, bot, io, gameId) => {
                                     loverId: second.id,
                                     message: `💘 Vous êtes maintenant lié(e) à ${second.nickname} !`
                                 });
+                                const sock1 = io.sockets.sockets.get(p.socketId);
+                                if (sock1) {
+                                    await addPlayerToChannel(sock1, io, gameId, 'lovers');
+                                    handleUpdateAvailableChannels(sock1, io, gameId);
+                                }
                             }
                         }
                         if (p.id === second.id) {
@@ -153,6 +161,11 @@ const simulateBotAction = (roleName, bot, io, gameId) => {
                                     loverId: first.id,
                                     message: `💘 Vous êtes maintenant lié(e) à ${first.nickname} !`
                                 });
+                                const sock2 = io.sockets.sockets.get(p.socketId);
+                                if (sock2) {
+                                    await addPlayerToChannel(sock2, io, gameId, 'lovers');
+                                    handleUpdateAvailableChannels(sock2, io, gameId);
+                                }
                             }
                         }
                     }
@@ -365,10 +378,10 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
 
         for (const bot of bots) {
             const delaySec = randInt(1, maxDelay);
-            const t = setTimeout(() => {
+            const t = setTimeout(async () => {
                 const currentRole = gameRoleCallOrder[roleIdx];
                 if (!stopped && currentRole === roleName) {
-                    simulateBotAction(roleName, bot, io, gameId);
+                    await simulateBotAction(roleName, bot, io, gameId);
                     console.log(`🤖 Action simulée pour le bot ${bot.nickname} (${roleName}) après ${delaySec}s dans la partie ${gameId}`);
                 }
 

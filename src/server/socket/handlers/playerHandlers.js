@@ -1,10 +1,17 @@
-import {connectedPlayers, gameRooms, getGameRoom, removePlayerFromGame} from "../utils/roomManager.js";
+import {
+    addPlayerToChannel,
+    connectedPlayers,
+    gameRooms,
+    getGameRoom,
+    removePlayerFromGame
+} from "../utils/roomManager.js";
 import {addGameAction, getGameHistory} from "../utils/actionLogger.js";
 import {handleHunterShoot, updatedGameData} from "../utils/gameManager.js";
 import {ACTION_TYPES, GAME_PHASES} from "../../config/constants.js";
 import {defaultGameConfig, playerIsWolf} from "../../../utils/Roles.js";
 import {sanitizeRoom} from "../utils/sanitizeRoom.js";
 import {findPlayerById} from "../utils/playerManager.js";
+import {handleUpdateAvailableChannels} from "./chatHandlers.js";
 
 export const handlePlayerAction = async (socket, io, data) => {
     try {
@@ -191,7 +198,10 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
             case 'Voyante':
                 const targetPlayer = findPlayerById(roomData, selectedPlayers[0]);
 
-                socket.emit('seer-reveal-result', {message: `Le rôle de ${targetPlayer.nickname} est ${targetPlayer.role}.`, id: targetPlayer.id});
+                socket.emit('seer-reveal-result', {
+                    message: `Le rôle de ${targetPlayer.nickname} est ${targetPlayer.role}.`,
+                    id: targetPlayer.id
+                });
                 console.log(`🔮 Voyante ${playerInfo.nickname} a consulté le rôle de ${targetPlayer.nickname}: ${targetPlayer.role}`);
 
                 roomData.config.seer.revealedPlayers.push({
@@ -236,16 +246,31 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
                 roomData.config.lovers.players = [lover1.id, lover2.id];
 
                 io.in(`game-${gameId}`).emit('game-update', sanitizeRoom(roomData));
-                io.to(lover1.socketId).emit('start-lover-animation', {
-                    loverName: lover2.nickname,
-                    loverId: lover2.id,
-                    message: `💘 Vous êtes maintenant lié(e) à ${lover2.nickname} !`
-                });
-                io.to(lover2.socketId).emit('start-lover-animation', {
-                    loverName: lover1.nickname,
-                    loverId: lover1.id,
-                    message: `💘 Vous êtes maintenant lié(e) à ${lover1.nickname} !`
-                });
+                if (lover1.socketId) {
+                    io.to(lover1.socketId).emit('start-lover-animation', {
+                        loverName: lover2.nickname,
+                        loverId: lover2.id,
+                        message: `💘 Vous êtes maintenant lié(e) à ${lover2.nickname} !`
+                    });
+                    const sock1 = io.sockets.sockets.get(lover1.socketId);
+                    if (sock1) {
+                        await addPlayerToChannel(sock1, io, gameId, 'lovers');
+                        handleUpdateAvailableChannels(sock1, io, gameId);
+                    }
+
+                }
+                if (lover2.socketId) {
+                    io.to(lover2.socketId).emit('start-lover-animation', {
+                        loverName: lover1.nickname,
+                        loverId: lover1.id,
+                        message: `💘 Vous êtes maintenant lié(e) à ${lover1.nickname} !`
+                    });
+                    const sock2 = io.sockets.sockets.get(lover2.socketId);
+                    if (sock2) {
+                        await addPlayerToChannel(sock2, io, gameId, 'lovers');
+                        handleUpdateAvailableChannels(sock2, io, gameId);
+                    }
+                }
 
                 addGameAction(gameId, {
                     type: ACTION_TYPES.CUPIDON_MATCH,
@@ -279,7 +304,7 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
                 if (type === ACTION_TYPES.WITCH_HEAL && witchConfig.lifePotionUsed) {
                     console.log("La sorcière a déjà utilisé la potion de vie.");
                     needReset = true;
-                } else if(type === ACTION_TYPES.WITCH_POISON && witchConfig.poisonPotionUsed) {
+                } else if (type === ACTION_TYPES.WITCH_POISON && witchConfig.poisonPotionUsed) {
                     console.log("La sorcière a déjà utilisé la potion de poison.");
                     needReset = true;
                 }

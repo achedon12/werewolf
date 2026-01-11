@@ -506,6 +506,13 @@ const GamePage = ({params}) => {
         if (channel === "vote") {
             return players.filter(p => p.online);
         }
+        if (channel === 'sisters') {
+            return players.filter(p => p.role === "Sœur");
+        }
+        if (channel === 'lovers') {
+            const lovers = game?.config?.lovers?.exists ? game.config.lovers.players : [];
+            return players.filter(p => lovers.includes(p.id));
+        }
         return players;
     };
 
