@@ -12,7 +12,7 @@ export function getPatchNotesByType(type) {
 }
 
 export function getLatestPatchNote() {
-    return PatchNotes[0] || null;
+    return PatchNotes[PatchNotes.length - 1];
 }
 
 export function getPatchBadgeClass(type) {
