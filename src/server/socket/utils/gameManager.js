@@ -201,12 +201,12 @@ export const startGameLogic = async (socket, io, gameId) => {
         io.to(`game-${gameId}`).emit("game-update", sanitizeRoom(room));
         io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 
-        room.roleCallController = startRoleCallSequence(io, gameId, perRoleSeconds, {
+        room.roleCallController = startRoleCallSequence (io, gameId, perRoleSeconds, {
             onFinished: async () => {
                 const r = getGameRoom(gameId);
                 if (!r) return;
 
-                applyThiefExchange(io, gameId, r);
+                await applyThiefExchange(io, gameId, r);
 
                 await processNightEliminations(io, gameId);
 
@@ -707,7 +707,7 @@ const persistGameLogs = async (gameId) => {
     }
 }
 
-const applyThiefExchange = (io, gameId, room) => {
+const applyThiefExchange = async (io, gameId, room) => {
     if (!room || !room.config || !room.config.thief) return;
     const thiefCfg = room.config.thief;
 
@@ -767,6 +767,20 @@ const applyThiefExchange = (io, gameId, room) => {
     }
     if (pB.socketId) {
         io.to(pB.socketId).emit('game-notify', `Votre carte a été changée au lever du jour. Vous êtes maintenant ${pB.role}.`);
+    }
+
+    const playersToUpdate = [pA, pB].filter(p => p && p.socketId);
+    for (const player of playersToUpdate) {
+        if (player.role === 'Loup-Garou') {
+            await addPlayerToChannel(io.sockets.sockets.get(player.socketId), io, gameId, 'werewolves');
+        }
+        if (player.role === 'Sœur') {
+            await addPlayerToChannel(io.sockets.sockets.get(player.socketId), io, gameId, 'sisters');
+        }
+        const socket = io.sockets.sockets.get(player.socketId);
+        if (socket) {
+            handleUpdateAvailableChannels(socket, io, gameId);
+        }
     }
 
     room.lastActivity = new Date();

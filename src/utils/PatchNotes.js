@@ -114,6 +114,10 @@ export const PatchNotes = [
                     {
                         title: 'Ajout des channels de chat',
                         description: 'Implémentation de channels de chat spécifiques pour une meilleure communication entre les joueurs en fonction des périodes et des rôles.'
+                    },
+                    {
+                        title: 'Fix rôle voleur',
+                        description: 'Correction du bug où le rôle de voleur ne fonctionnait pas correctement (application du changement de chat si besoin).'
                     }
                 ]
             }

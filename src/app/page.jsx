@@ -138,7 +138,7 @@ const Home = () => {
         <div
             className="min-h-screen bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-gray-900 dark:text-white">
             <div className="relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('/api/placeholder/1920/600')] bg-cover bg-center opacity-20">
+                <div className="absolute inset-0 bg-cover bg-center opacity-20">
                     <div
                         className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 dark:via-gray-900/70 to-white dark:to-gray-900"></div>
                 </div>

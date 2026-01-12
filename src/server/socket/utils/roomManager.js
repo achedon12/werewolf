@@ -138,6 +138,20 @@ export const addPlayerToChannel = async (socket, io, gameId, channelType) => {
     gameRooms.set(gameId, roomData);
 }
 
+export const removePlayerFromChannel = (socket, io, gameId, channelType) => {
+    const roomData = getGameRoom(gameId);
+    if (!roomData) return;
+
+    const channelRoom = `game-${gameId}-${channelType}`;
+    try {
+        socket.leave(channelRoom);
+    } catch (e) {
+    }
+    roomData.channels[channelType].delete(socket.id);
+    roomData.lastActivity = new Date();
+    gameRooms.set(gameId, roomData);
+}
+
 export const removePlayerFromGame = (socket, io, gameId, playerInfo, isDisconnect = false) => {
     const roomData = getGameRoom(gameId);
     if (!roomData) return;

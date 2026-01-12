@@ -17,7 +17,6 @@ const NotFound = () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        // Étoiles
         const stars = [];
         const starCount = 200;
 
@@ -43,7 +42,6 @@ const NotFound = () => {
         const drawTrees = () => {
             ctx.fillStyle = '#1a1a2e';
 
-            // Arbres de gauche
             for (let i = 0; i < 8; i++) {
                 const x = i * 60;
                 const height = 200 + Math.random() * 100;
@@ -55,7 +53,6 @@ const NotFound = () => {
                 ctx.fill();
             }
 
-            // Arbres de droite
             for (let i = 0; i < 8; i++) {
                 const x = canvas.width - i * 60;
                 const height = 200 + Math.random() * 100;
@@ -72,7 +69,6 @@ const NotFound = () => {
             ctx.fillStyle = '#0f0f1f';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Dessiner les étoiles
             ctx.fillStyle = 'white';
             stars.forEach(star => {
                 ctx.globalAlpha = star.opacity;
@@ -102,7 +98,6 @@ const NotFound = () => {
         };
     }, []);
 
-    // Animation des yeux de loup
     useEffect(() => {
         const interval = setInterval(() => {
             eyesRef.current.forEach(eye => {
