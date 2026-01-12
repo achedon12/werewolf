@@ -75,7 +75,7 @@ export const handleUpdateAvailableChannels = (socket, io, gameId) => {
         const playerInfo = connectedPlayers.get(socket.id);
         if (!playerInfo) return;
 
-        const isWerewolf = playerInfo.role === "Loup-Garou" || playerInfo.role === "Loup-Garou Blanc" || (playerInfo.role === 'Enfant Sauvage' && roomData.config.wildChild.transformed);
+        const isWerewolf = playerInfo.role === "Loup-Garou" || playerInfo.role === "Loup-Garou Blanc" || (playerInfo.role === 'Enfant Sauvage' && roomData.config.wildChild.transformed) || (playerInfo.role === 'Petite Fille');
         const isVotePhase = roomData.phase === GAME_PHASES.VOTING;
         const isSister = playerInfo.role === "Sœur";
         const isGeneral = roomData.state === GAME_STATES.WAITING;

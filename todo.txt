@@ -1,5 +1,3 @@
-- if bot couple, don't let him choose couple
 - systeme de niveau
 - systeme d'amis
 - systeme de badge
-- reinitialiser les chats quand on se fait voler

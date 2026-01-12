@@ -122,6 +122,10 @@ export const PatchNotes = [
                     {
                         title: 'Ajout du rôle de l\'Enfant Sauvage',
                         description: 'Implémentation du rôle de l\'Enfant Sauvage avec ses fonctionnalités spécifiques.'
+                    },
+                    {
+                        title: 'Ajout du rôle de la Petite Fille',
+                        description: 'Implémentation du rôle de la Petite Fille avec ses fonctionnalités spécifiques.'
                     }
                 ]
             }

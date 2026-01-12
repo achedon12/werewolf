@@ -77,6 +77,7 @@ const TabChat = ({
                                 chatMessages={chatMessages}
                                 currentChannel={currentChannel}
                                 chatContainerRef={chatContainerRef}
+                                currentPlayer={currentPlayer}
                             />
                         )}
                         {chatSubTab === 'participants' && (

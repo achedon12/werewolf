@@ -82,7 +82,7 @@ export const roles = [
         image: "/cards/petiteFille.jpg",
         nightAction: "Peut espionner les loups-garous (risque d'élimination)",
         strategy: "Soyez très discrète lorsque vous espionnez. Ne vous faites pas remarquer par les loups-garous.",
-        isDev: false,
+        isDev: true,
         maxPerGame: 1
     }, // petite fille
     {

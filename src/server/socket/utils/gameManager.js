@@ -107,15 +107,15 @@ export const startGameLogic = async (socket, io, gameId) => {
 
     // give specific role to achedon12 if present
     const targetPlayerIndex = connectedPlayersList.findIndex(p => p.nickname === 'achedon12');
-    // if (targetPlayerIndex !== -1) {
-    //     const roleIndex = roles.findIndex(r => r.toLowerCase() === 'enfant sauvage');
-    //     if (roleIndex !== -1 && roleIndex !== targetPlayerIndex) {
-    //         const temp = roles[targetPlayerIndex];
-    //         roles[targetPlayerIndex] = roles[roleIndex];
-    //         roles[roleIndex] = temp;
-    //         console.log(`🔮 Le joueur achedon12 a reçu son rôle prédéfini`);
-    //     }
-    // }
+    if (targetPlayerIndex !== -1) {
+        const roleIndex = roles.findIndex(r => r.toLowerCase() === 'petite fille');
+        if (roleIndex !== -1 && roleIndex !== targetPlayerIndex) {
+            const temp = roles[targetPlayerIndex];
+            roles[targetPlayerIndex] = roles[roleIndex];
+            roles[roleIndex] = temp;
+            console.log(`🔮 Le joueur achedon12 a reçu son rôle prédéfini`);
+        }
+    }
 
     for (const player of connectedPlayersList) {
         const idx = connectedPlayersList.indexOf(player);
@@ -139,6 +139,10 @@ export const startGameLogic = async (socket, io, gameId) => {
 
             if (p.role === 'Sœur') {
                 await addPlayerToChannel(io.sockets.sockets.get(socketId), io, gameId, 'sisters');
+            }
+
+            if (p.role === 'Petite Fille') {
+                await addPlayerToChannel(io.sockets.sockets.get(socketId), io, gameId, 'werewolves');
             }
 
             if (!p.isBot) {

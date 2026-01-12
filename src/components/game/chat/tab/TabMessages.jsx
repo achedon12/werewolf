@@ -1,6 +1,6 @@
 import Message from "@/components/game/chat/Message";
 
-const TabMessages = ({chatMessages, currentChannel, chatContainerRef}) => {
+const TabMessages = ({chatMessages, currentChannel, chatContainerRef, currentPlayer}) => {
     const messages = chatMessages[currentChannel] || [];
     const isEmpty = messages.length === 0;
 
@@ -29,6 +29,7 @@ const TabMessages = ({chatMessages, currentChannel, chatContainerRef}) => {
                         msg={msg}
                         index={index}
                         isLast={index === messages.length - 1}
+                        currentPlayer={currentPlayer}
                     />
                 ))
             )}
