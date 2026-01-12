@@ -118,6 +118,10 @@ export const PatchNotes = [
                     {
                         title: 'Fix rôle voleur',
                         description: 'Correction du bug où le rôle de voleur ne fonctionnait pas correctement (application du changement de chat si besoin).'
+                    },
+                    {
+                        title: 'Ajout du rôle de l\'Enfant Sauvage',
+                        description: 'Implémentation du rôle de l\'Enfant Sauvage avec ses fonctionnalités spécifiques.'
                     }
                 ]
             }

@@ -1,11 +1,12 @@
 import {addGameAction, getGameHistory} from "./actionLogger.js";
 import {ACTION_TYPES, GAME_PHASES} from "../../config/constants.js";
-import {gameRooms, getGameRoom} from "./roomManager.js";
+import {addPlayerToChannel, gameRooms, getGameRoom} from "./roomManager.js";
 import {getMostTargetByWolvesPlayerId} from "../utils/roleTurnManager.js";
 import {evaluateWinCondition, handleHunterShoot} from "../utils/gameManager.js";
 import {sanitizeRoom} from "../../socket/utils/sanitizeRoom.js";
-import {defaultGameConfig} from "../../../utils/Roles.js";
+import {defaultGameConfig, getPlayerByRole} from "../../../utils/Roles.js";
 import {findPlayerById} from "../../socket/utils/playerManager.js";
+import {handleUpdateAvailableChannels} from "../../socket/handlers/chatHandlers.js";
 
 export const processNightEliminations = async (io, gameId) => {
     try {
@@ -151,6 +152,40 @@ export const processNightEliminations = async (io, gameId) => {
         }
 
         for (const p of eliminatedThisNight) {
+            if (r.config.wildChild.model && p.id === r.config.wildChild.model) {
+                r.config.wildChild.transformed = true;
+
+                addGameAction(gameId, {
+                    type: ACTION_TYPES.WILD_CHILD,
+                    playerName: "Système",
+                    playerRole: "system",
+                    message: `🌲 L'Enfant Sauvage (${p.nickname || p.botName}) se transforme suite à la mort de son modèle.`,
+                    phase: GAME_PHASES.DAY,
+                    createdAt: now
+                });
+
+                const players = Array.isArray(r.players) ? r.players : (r.players instanceof Map ? Array.from(r.players.values()) : []);
+                const wc = getPlayerByRole(players, 'Enfant Sauvage');
+
+                if (wc.socketId) {
+                    io.to(wc.socketId).emit('game-notify', `Votre modèle est mort. Vous vous transformez en loup-garou !`);
+
+                    const sock = io.sockets.sockets.get(wc.socketId);
+                    if (sock) {
+                        await addPlayerToChannel(sock, io, gameId, 'werewolves');
+                        handleUpdateAvailableChannels(sock, io, gameId);
+                    }
+
+                    io.to(`game-${gameId}-werewolves`).emit('chat-message', {
+                        type: ACTION_TYPES.SYSTEM,
+                        playerName: "Système",
+                        message: `🌲 L'Enfant Sauvage (${wc.nickname || wc.botName}) s'est transformé en Loup-Garou.`,
+                        createdAt: new Date().toISOString(),
+                        channel: "werewolves"
+                    });
+                }
+                console.log(`L'Enfant Sauvage (${wc.nickname || wc.botName}) se transforme en Loup-Garou.`);
+            }
             if (p && p.role === 'Chasseur') {
                 try {
                     await handleHunterShoot(io, gameId, p, 20);

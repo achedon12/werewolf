@@ -1,6 +1,6 @@
 import {addPlayerToChannel, connectedPlayers, gameRooms, getGameRoom} from "./roomManager.js";
 import {addGameAction, getGameHistory} from "./actionLogger.js";
-import {defaultGameConfig, getRoleById} from "../../../utils/Roles.js";
+import {defaultGameConfig, getPlayerByRole, getRoleById} from "../../../utils/Roles.js";
 import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from "../../config/constants.js";
 import {giveVoteChannelAccess, handleUpdateAvailableChannels} from "../handlers/chatHandlers.js";
 import {countPlayersByCamp, simulateBotVoteAction, startRoleCallSequence} from "../utils/roleTurnManager.js";
@@ -107,15 +107,15 @@ export const startGameLogic = async (socket, io, gameId) => {
 
     // give specific role to achedon12 if present
     const targetPlayerIndex = connectedPlayersList.findIndex(p => p.nickname === 'achedon12');
-    // if (targetPlayerIndex !== -1) {
-    //     const roleIndex = roles.findIndex(r => r.toLowerCase() === 'chasseur');
-    //     if (roleIndex !== -1 && roleIndex !== targetPlayerIndex) {
-    //         const temp = roles[targetPlayerIndex];
-    //         roles[targetPlayerIndex] = roles[roleIndex];
-    //         roles[roleIndex] = temp;
-    //         console.log(`🔮 Le joueur achedon12 a reçu son rôle prédéfini`);
-    //     }
-    // }
+    if (targetPlayerIndex !== -1) {
+        const roleIndex = roles.findIndex(r => r.toLowerCase() === 'enfant sauvage');
+        if (roleIndex !== -1 && roleIndex !== targetPlayerIndex) {
+            const temp = roles[targetPlayerIndex];
+            roles[targetPlayerIndex] = roles[roleIndex];
+            roles[roleIndex] = temp;
+            console.log(`🔮 Le joueur achedon12 a reçu son rôle prédéfini`);
+        }
+    }
 
     for (const player of connectedPlayersList) {
         const idx = connectedPlayersList.indexOf(player);
@@ -150,6 +150,7 @@ export const startGameLogic = async (socket, io, gameId) => {
     roomData.config = Object.assign({}, defaultGameConfig);
     roomData.config.lovers = {exists: false, players: []};
     roomData.config.thief = {applied: false, swapped: false, choices: []};
+    roomData.config.wildChild = {transformed: false, model: null};
     gameRooms.set(gameId, roomData);
 
     io.to(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
@@ -345,6 +346,44 @@ export const startGameLogic = async (socket, io, gameId) => {
                                     });
 
                                     console.log(`⚰️ Élimination par vote dans la partie ${gameId} : ${eliminated.nickname} (${maxCount} votes)`);
+
+                                    if (rr.config.wildChild.model && eliminated.id === rr.config.wildChild.model) {
+                                        rr.config.wildChild.transformed = true;
+
+                                        addGameAction(gameId, {
+                                            type: ACTION_TYPES.WILD_CHILD,
+                                            playerName: "Système",
+                                            playerRole: "system",
+                                            message: `🌲 L'Enfant Sauvage (${eliminated.nickname || eliminated.botName}) se transforme suite à la mort de son modèle.`,
+                                            phase: GAME_PHASES.DAY,
+                                            createdAt: new Date().toISOString()
+                                        });
+                                        const players = rr.players instanceof Map
+                                            ? Array.from(rr.players.values())
+                                            : Array.isArray(rr.players)
+                                                ? rr.players
+                                                : [];
+                                        const wc = getPlayerByRole(players, 'Enfant Sauvage');
+
+                                        if (wc.socketId) {
+                                            io.to(wc.socketId).emit('game-notify', `Votre modèle est mort. Vous vous transformez en loup-garou !`);
+
+                                            const sock = io.sockets.sockets.get(wc.socketId);
+                                            if (sock) {
+                                                await addPlayerToChannel(sock, io, gameId, 'werewolves');
+                                                handleUpdateAvailableChannels(sock, io, gameId);
+                                            }
+
+                                            io.to(`game-${gameId}-werewolves`).emit('chat-message', {
+                                                type: ACTION_TYPES.SYSTEM,
+                                                playerName: "Système",
+                                                message: `🌲 L'Enfant Sauvage (${wc.nickname || wc.botName}) s'est transformé en Loup-Garou.`,
+                                                createdAt: new Date().toISOString(),
+                                                channel: "werewolves"
+                                            });
+                                        }
+                                        console.log(`L'Enfant Sauvage (${wc.nickname || wc.botName}) se transforme en Loup-Garou.`);
+                                    }
 
                                     if (eliminated.role === 'Chasseur') {
                                         console.log(`Chasseur ${eliminated.nickname || eliminated.botName} eliminated by vote, handling shoot...`);

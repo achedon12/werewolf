@@ -137,7 +137,7 @@ export const roles = [
         image: "/cards/enfantSauvage.jpg",
         nightAction: "Aucune action nocturne",
         strategy: "Choisissez un joueur qui a de bonnes chances de survie pour éviter de devenir un loup-garou trop tôt.",
-        isDev: false,
+        isDev: true,
         maxPerGame: 1
     }, // enfant sauvage
     {
@@ -254,6 +254,9 @@ export const playerIsWolf = (role) => role === 'Loup-Garou' || role === 'Loup-Ga
 export const getRoleTeam = (role) => {
     const foundRole = getRoleByName(role);
     return foundRole ? foundRole.team : null;
+}
+export const getPlayerByRole = (players, roleName) => {
+    return players.find(player => player.role === roleName);
 }
 export const classicRoles = {
     8: {

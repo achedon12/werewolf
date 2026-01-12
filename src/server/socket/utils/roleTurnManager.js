@@ -5,8 +5,7 @@ import {ACTION_TYPES, GAME_PHASES, GAME_STATES} from '../../config/constants.js'
 import {sanitizeRoom} from '../../socket/utils/sanitizeRoom.js';
 import {handleUpdateAvailableChannels} from "../handlers/chatHandlers.js";
 
-const sanitizeRoleChannel = (roleName) =>
-    roleName.toLowerCase().replace(/\s+/g, '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w-]/g, '');
+const sanitizeRoleChannel = (roleName) => roleName.toLowerCase().replace(/\s+/g, '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w-]/g, '');
 
 const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -35,11 +34,7 @@ export const simulateBotVoteAction = (io, gameId, votingSeconds = 60) => {
     room._botVotingTimeouts = [];
 
     // Normalize players collection (support Map or Array)
-    const playersArray = room.players instanceof Map
-        ? Array.from(room.players.values())
-        : Array.isArray(room.players)
-            ? room.players
-            : [];
+    const playersArray = room.players instanceof Map ? Array.from(room.players.values()) : Array.isArray(room.players) ? room.players : [];
 
     const botPlayers = playersArray.filter(p => p && p.isBot && p.isAlive !== false);
     if (!botPlayers.length) {
@@ -60,11 +55,7 @@ export const simulateBotVoteAction = (io, gameId, votingSeconds = 60) => {
             const latest = getGameRoom(gameId);
             if (!latest || latest.phase !== GAME_PHASES.VOTING || latest.state !== GAME_STATES.IN_PROGRESS) return;
 
-            const latestPlayers = latest.players instanceof Map
-                ? Array.from(latest.players.values())
-                : Array.isArray(latest.players)
-                    ? latest.players
-                    : [];
+            const latestPlayers = latest.players instanceof Map ? Array.from(latest.players.values()) : Array.isArray(latest.players) ? latest.players : [];
 
             const aliveTargets = latestPlayers.filter(p => p && p.isAlive !== false && p.id !== bot.id);
             if (!aliveTargets.length) return;
@@ -250,6 +241,54 @@ const simulateBotAction = async (roleName, bot, io, gameId) => {
             roomData.config.thief.swapped = true;
             message = `${bot.nickname} (bot) effectue une action de voleur`;
             break;
+        case 'Enfant Sauvage':
+            if (roomData.config.wildChild.transformed) {
+                type = ACTION_TYPES.WEREWOLF_ATTACK;
+
+                const targetId = getMostTargetByWolvesPlayerId(roomData);
+                if (targetId) {
+                    target = others.find(p => p.id === targetId);
+                }
+                const players = others.filter(p => p.isAlive !== false && !/Loup-Garou/i.test(p.role));
+
+                const allBotsOnly = players.length > 0 && players.every(p => p.isBot);
+                if (allBotsOnly && !target) {
+                    const allAlive = Array.from(roomData.players.values()).filter(p => p.isAlive !== false);
+                    const possible = allAlive.filter(p => !/Loup-Garou/i.test(p.role));
+                    const pick = pickRandom(possible.length ? possible : allAlive);
+                    target = pick ? pick : null;
+                }
+                console.log(`🐺 Loup-Garou bot ${bot.nickname} vérification cible majoritaire => ${target ? target.nickname : 'aucune'}`);
+
+                if (!target) {
+                    const noWolves = others.filter(p => !/Loup-Garou/i.test(p.role));
+                    target = pickRandom(noWolves.length ? noWolves : others);
+                    console.log(`🐺 Loup-Garou bot ${bot.nickname} cible aléatoire choisie => ${target ? target.nickname : 'aucune'}`);
+                }
+
+                roomData.config.wolves.targets[bot.id] = target.id;
+
+                message = target ? `🐺 ${bot.nickname} (bot) attaque ${target.nickname}` : `${bot.nickname} (bot) n'a pas trouvé de cible`;
+                io.in(`game-${gameId}`).emit('game-update', sanitizeRoom(roomData));
+
+                return;
+            }
+            if (roomData.config.wildChild.model) {
+                break;
+            }
+            type = ACTION_TYPES.WILD_CHILD;
+
+            const wcCandidates = others.filter(p => p.isAlive !== false);
+            const wcTarget = pickRandom(wcCandidates);
+
+            if (!wcTarget) {
+                message = `${bot.botName} (bot) n'a pas trouvé de cible pour devenir un Enfant Sauvage`;
+            } else {
+                roomData.config.wildChild.model = wcTarget.id;
+                message = `🧒 ${bot.nickname} (bot) a choisi un modèle en tant qu'Enfant Sauvage: ${wcTarget.nickname || wcTarget.botName}`;
+            }
+
+            break;
         default:
             message = `${bot.nickname} (bot) n'a pas d'action nocturne`;
             break;
@@ -333,14 +372,33 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
             return;
         }
 
-        console.log(`🔔 Début du tour(${roomData.turn}) pour le rôle ${roleName} (${players.length} joueur(s)) dans la partie ${gameId}`);
+        // Sauter le tour de l'Enfant Sauvage si son rôle a déjà été défini
+        if (roleName === 'Enfant Sauvage' && roomData.config.wildChild.model && !roomData.config.wildChild.transformed) {
+            console.log(`🔕 Saut du tour ${roleName} car l'Enfant Sauvage a déjà agi dans la partie ${gameId}`);
+            emitEndForRole(roleName, roleIdx);
+            index += 1;
+            setImmediate(advance);
+            return;
+        }
+
+        // Ajouter les rôles spéciaux qui peuvent agir en même temps que les Loups-Garous
+        let playersForRole = [...players];
+        if (roleName === 'Loup-Garou') {
+            const whiteLoup = Array.from(roomData.players.values()).find(p => p.role === 'Loup-Garou Blanc' && p.isAlive !== false);
+            if (whiteLoup) playersForRole.push(whiteLoup);
+
+            const wildChild = Array.from(roomData.players.values()).find(p => p.role === 'Enfant Sauvage' && p.isAlive !== false);
+            if (wildChild && roomData.config.wildChild.transformed) playersForRole.push(wildChild);
+        }
+
+        console.log(`🔔 Début du tour(${roomData.turn}) pour le rôle ${roleName} (${playersForRole.length} joueur(s)) dans la partie ${gameId}`);
         roomData.turn = roleIdx;
         gameRooms.set(gameId, roomData);
         io.in(`game-${gameId}`).emit('game-update', sanitizeRoom(roomData));
 
         const payload = {
             role: roleName,
-            players: players.map(p => ({id: p.id, nickname: p.nickname, isBot: !!p.isBot})),
+            players: playersForRole.map(p => ({id: p.id, nickname: p.nickname, isBot: !!p.isBot})),
             duration: perRoleSeconds
         };
 
@@ -350,7 +408,7 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
 
         const alivePlayers = Array.from(roomData.players.values()).filter(p => p.isAlive !== false);
         const selectionCount = getSelectionCountForRole(roleName, alivePlayers);
-        for (const p of players) {
+        for (const p of playersForRole) {
             if (p && p.socketId) {
                 console.log(`--> Notifying player ${p.nickname} (${roleName}) they can select ${selectionCount} target(s)`);
                 io.to(p.socketId).emit('game-set-number-can-be-selected', selectionCount);
@@ -367,7 +425,7 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
 
         io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
 
-        const bots = players.filter(p => p.isBot);
+        const bots = playersForRole.filter(p => p.isBot);
         const timeouts = [];
         const now = Date.now();
         const startTs = now;
@@ -392,8 +450,7 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
                     io.in(`game-${gameId}`).emit('role-call-tick', {role: roleName, remaining: remainingSec});
                     const channel = sanitizeRoleChannel(roleName);
                     io.in(`game-${gameId}-${channel}`).emit && io.in(`game-${gameId}-${channel}`).emit('role-call-tick', {
-                        role: roleName,
-                        remaining: remainingSec
+                        role: roleName, remaining: remainingSec
                     });
 
                     const playersForThisRole = getPlayersForRole(roleName);
@@ -405,8 +462,7 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
                         }
                         io.in(`game-${gameId}`).emit('role-call-tick', {role: roleName, remaining: 0});
                         io.in(`game-${gameId}-${channel}`).emit && io.in(`game-${gameId}-${channel}`).emit('role-call-tick', {
-                            role: roleName,
-                            remaining: 0
+                            role: roleName, remaining: 0
                         });
                         emitEndForRole(roleName, roleIdx);
                         index += 1;
@@ -424,8 +480,7 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
         io.in(`game-${gameId}`).emit('role-call-tick', {role: roleName, remaining: sec});
         const channel = sanitizeRoleChannel(roleName);
         io.in(`game-${gameId}-${channel}`).emit && io.in(`game-${gameId}-${channel}`).emit('role-call-tick', {
-            role: roleName,
-            remaining: sec
+            role: roleName, remaining: sec
         });
     };
 
@@ -527,10 +582,7 @@ export const startRoleCallSequence = (io, gameId, perRoleSeconds = 30, options =
     };
 
     const getStatus = () => ({
-        currentIndex: index,
-        currentRole: gameRoleCallOrder[index] || null,
-        remaining,
-        running: !stopped && !!timer
+        currentIndex: index, currentRole: gameRoleCallOrder[index] || null, remaining, running: !stopped && !!timer
     });
 
     setImmediate(advance);
@@ -609,20 +661,11 @@ export const countPlayersByCamp = (gamId) => {
     const room = getGameRoom(gamId);
     if (!room) {
         return {
-            totalAlive: 0,
-            wolves: 0,
-            villagers: 0,
-            lovers: 0,
-            byRole: {},
-            alivePlayers: []
+            totalAlive: 0, wolves: 0, villagers: 0, lovers: 0, byRole: {}, alivePlayers: []
         };
     }
 
-    const playersArray = room.players instanceof Map
-        ? Array.from(room.players.values())
-        : Array.isArray(room.players)
-            ? room.players
-            : [];
+    const playersArray = room.players instanceof Map ? Array.from(room.players.values()) : Array.isArray(room.players) ? room.players : [];
 
     const alivePlayers = playersArray.filter(p => p && p.isAlive !== false);
 
@@ -645,11 +688,6 @@ export const countPlayersByCamp = (gamId) => {
     }
 
     return {
-        totalAlive: alivePlayers.length,
-        wolves,
-        villagers,
-        lovers,
-        byRole,
-        alivePlayers
+        totalAlive: alivePlayers.length, wolves, villagers, lovers, byRole, alivePlayers
     };
 };

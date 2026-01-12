@@ -395,6 +395,50 @@ const processAction = async (io, socket, playerInfo, data, roomData) => {
                 });
 
                 break;
+            case 'Enfant Sauvage':
+                if (roomData.config.wildChild.transformed) {
+                    const attackedPlayer = findPlayerById(roomData, selectedPlayers[0]);
+                    roomData.config.wolves.targets[playerInfo.id] = attackedPlayer.id;
+                    console.log(`🐺 Loup-Garou ${playerInfo.nickname} a choisi d'attaquer ${attackedPlayer.nickname}`);
+
+                    addGameAction(gameId, {
+                        type: ACTION_TYPES.WEREWOLF_ATTACK,
+                        playerName: playerInfo.nickname,
+                        playerRole: playerInfo.role,
+                        message: `${playerInfo.nickname} a choisi une cible en tant que Loup-Garou.`,
+                        details: `Cible: ${attackedPlayer.nickname}`,
+                        phase: roomData.phase
+                    });
+                    io.in(`game-${gameId}`).emit('game-update', sanitizeRoom(roomData));
+                    return;
+                }
+                if (roomData.config.wildChild.model) {
+                    socket.emit('game-notify', "Vous avez déjà choisi un joueur.");
+                    console.log("❌ Action de l'enfant sauvage invalide, réinitialisation de la sélection.");
+                    return;
+                }
+
+                if (selectedPlayers.length !== 1) {
+                    socket.emit('game-set-number-can-be-selected', 1);
+                    socket.emit('game-notify', 'Veuillez sélectionner exactement un joueur à imiter.');
+                    console.log("❌ Action de l'enfant sauvage invalide, réinitialisation de la sélection.");
+                    return;
+                }
+
+                const targetChild = findPlayerById(roomData, selectedPlayers[0]);
+                roomData.config.wildChild.model = targetChild.id;
+
+                addGameAction(gameId, {
+                    type: ACTION_TYPES.WILD_CHILD,
+                    playerName: playerInfo.nickname,
+                    playerRole: playerInfo.role,
+                    message: `${playerInfo.nickname} a choisi un modèle en tant qu'Enfant Sauvage.`,
+                    details: `Modèle: ${targetChild.nickname ||targetChild.botName}`,
+                    phase: roomData.phase
+                });
+
+                socket.emit('game-notify', `Vous avez choisi ${targetChild.nickname} comme modèle.`);
+                console.log(`🧒 Enfant Sauvage ${playerInfo.nickname} a choisi d'imiter ${targetChild.nickname}`);
             default:
                 break;
         }

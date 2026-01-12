@@ -30,6 +30,7 @@ export const ACTION_TYPES = {
     WITCH_POISON: 'witch_poison',
     WITCH_NO_ACTION: 'witch_no_action',
     WEREWOLF_ATTACK: 'werewolf_attack',
+    WILD_CHILD: 'wild_child',
     CUPIDON_MATCH: 'cupidon_match',
     FOX: 'fox_hunt',
     THIEF: 'thief',
