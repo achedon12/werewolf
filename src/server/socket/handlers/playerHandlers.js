@@ -44,15 +44,15 @@ export const handlePlayerAction = async (socket, io, data) => {
             if (roomData.phase === GAME_PHASES.NIGHT && type !== ACTION_TYPES.PLAYER_VOTE) {
                 io.in(`game-${gameId}`).emit('game-update', sanitizeRoom(roomData));
                 io.in(`game-${gameId}`).emit("game-history", getGameHistory(gameId));
-                if (playerIsWolf(playerInfo.role)) {
+                if (playerIsWolf(playerInfo.role, roomData.config)) {
                     if (!roomData.config) roomData.config = Object.assign({}, defaultGameConfig);
                     const targets = roomData.config.wolves.targets;
 
                     let wolves = [];
                     if (roomData.players && typeof roomData.players.get === 'function') {
-                        wolves = Array.from(roomData.players.values()).filter(p => p.isAlive && playerIsWolf(p.role));
+                        wolves = Array.from(roomData.players.values()).filter(p => p.isAlive && playerIsWolf(p.role, roomData.config));
                     } else if (Array.isArray(roomData.players)) {
-                        wolves = roomData.players.filter(p => p.isAlive && playerIsWolf(p.role));
+                        wolves = roomData.players.filter(p => p.isAlive && playerIsWolf(p.role, roomData.config));
                     }
 
                     const needed = wolves.length;

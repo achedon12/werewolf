@@ -83,7 +83,7 @@ const GameBoard = ({
     const alivePlayers = players.filter(p => p.isAlive);
     const deadPlayers = players.filter(p => !p.isAlive);
     const loverIds = game?.config?.lovers?.exists ? (game.config.lovers.players || []).map(String) : [];
-    const currentPlayerIsWolf = playerIsWolf(currentPlayer?.role)
+    const currentPlayerIsWolf = playerIsWolf(currentPlayer?.role, game.config)
     const currentPlayerIsCupidon = currentPlayer?.role === "Cupidon";
     const currentPlayerIsLover = currentPlayer && loverIds.includes(String(currentPlayer.id));
     const currentPlayerIsWitch = currentPlayer?.role === "Sorciere";
@@ -128,7 +128,7 @@ const GameBoard = ({
             return {src: role?.image ?? "/cards/card.jpg", alt: player.role ?? "Carte"};
         }
 
-        if (currentPlayerIsWolf && (player.role === "Loup-Garou" || player.role === "Loup-Garou Blanc")) {
+        if (currentPlayerIsWolf && (player.role === "Loup-Garou" || player.role === "Loup-Garou Blanc" || (player.role === 'Enfant Sauvage' && game.config.wildChild.transformed))) {
             // force reveal werewolves to each other (to not reveal white werewolf to normal werewolves)
             const role = getRoleByName("Loup-Garou");
             return {src: role?.image ?? "/cards/card.jpg", alt: player.role};

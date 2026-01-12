@@ -249,7 +249,7 @@ export const getRoleByName = (name) => {
     return roles.find(role => role.name === name);
 }
 
-export const playerIsWolf = (role) => role === 'Loup-Garou' || role === 'Loup-Garou Blanc';
+export const playerIsWolf = (role, config) => role === 'Loup-Garou' || role === 'Loup-Garou Blanc' || (role === 'Enfant Sauvage' && config.wildChild.transformed);
 
 export const getRoleTeam = (role) => {
     const foundRole = getRoleByName(role);

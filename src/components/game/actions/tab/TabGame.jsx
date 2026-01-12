@@ -20,8 +20,6 @@ const TabGame = ({
                      revealedCards
                  }) => {
 
-    console.log("Rendering TabGame", game);
-
     const [timer, setTimer] = useState('~');
     const parsedConfiguration = game.configuration ? JSON.parse(game.configuration) : {};
     const currentPlayerIsWitch = currentPlayer && currentPlayer.role === "Sorciere";

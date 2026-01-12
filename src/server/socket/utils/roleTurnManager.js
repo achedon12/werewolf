@@ -174,7 +174,11 @@ const simulateBotAction = async (roleName, bot, io, gameId) => {
             if (targetId) {
                 target = others.find(p => p.id === targetId);
             }
-            const players = others.filter(p => p.isAlive !== false && !/Loup-Garou/i.test(p.role));
+            const players = others.filter(p =>
+                p.isAlive !== false &&
+                !/Loup-Garou/i.test(p.role) &&
+                !(p.role === 'Enfant Sauvage' && roomData.config.wildChild.transformed)
+            );
 
             const allBotsOnly = players.length > 0 && players.every(p => p.isBot);
             if (allBotsOnly && !target) {
