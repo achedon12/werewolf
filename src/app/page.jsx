@@ -9,6 +9,7 @@ const Home = () => {
     const [gameCount, setGameCount] = useState(0);
     const [playersOnline, setPlayersOnline] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [particles, setParticles] = useState([]);
 
     const computePlayersOnline = (games) => {
         return (games || []).reduce((sum, g) => {
@@ -18,6 +19,16 @@ const Home = () => {
             return sum;
         }, 0);
     };
+
+    useEffect(() => {
+        const randomParticles = [...Array(20)].map((_, i) => ({
+            id: i,
+            left: Math.random() * 100,
+            top: Math.random() * 100,
+            delay: Math.random() * 3
+        }));
+        setParticles(randomParticles);
+    }, []);
 
     useEffect(() => {
         setLoading(true);
@@ -144,14 +155,14 @@ const Home = () => {
                 </div>
 
                 <div className="absolute inset-0">
-                    {[...Array(20)].map((_, i) => (
+                    {particles.map((particle) => (
                         <div
-                            key={i}
+                            key={particle.id}
                             className="absolute w-1 h-1 bg-gray-900 dark:bg-white rounded-full animate-pulse"
                             style={{
-                                left: `${Math.random() * 100}%`,
-                                top: `${Math.random() * 100}%`,
-                                animationDelay: `${Math.random() * 3}s`
+                                left: `${particle.left}%`,
+                                top: `${particle.top}%`,
+                                animationDelay: `${particle.delay}s`
                             }}
                         />
                     ))}
