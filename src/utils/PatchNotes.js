@@ -147,5 +147,26 @@ export const PatchNotes = [
                 ]
             }
         ],
+    },
+    {
+        version: '1.3.0',
+        title: 'Ajout du système de d\'amis et de demandes d\'amis',
+        date: '2026-01-13',
+        type: PatchNoteTypes.FEATURE,
+        changes: [
+            {
+                type: PatchNoteTypes.FEATURE,
+                changes: [
+                    {
+                        title: 'Système d\'Amis',
+                        description: 'Implémentation d\'un système complet de gestion des amis, y compris l\'ajout, la suppression et la visualisation des amis.'
+                    },
+                    {
+                        title: 'Demandes d\'Amis',
+                        description: 'Ajout de la fonctionnalité permettant aux utilisateurs d\'envoyer, d\'accepter ou de refuser des demandes d\'amis.'
+                    }
+                ]
+            }
+        ],
     }
 ];

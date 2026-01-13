@@ -37,7 +37,7 @@ const AdminUsersPage = () => {
                 params.set('pageSize', String(pageSize));
                 if (debouncedSearch) params.set('search', debouncedSearch);
 
-                const res = await fetch(`/api/admin/user/list?${params.toString()}`, {
+                const res = await fetch(`/api/user?${params.toString()}`, {
                     headers: {'Authorization': `Bearer ${token}`},
                 });
                 const data = await res.json();

@@ -1,22 +1,41 @@
 'use client';
 
 import Link from 'next/link';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {usePathname, useRouter} from 'next/navigation';
 import {useAuth} from "@/app/AuthProvider";
 import {toast} from 'react-toastify';
-import {ChevronDown, Joystick, Menu, NotebookText, PlusCircle, Search, Trophy, X} from "lucide-react";
+import {ChevronDown, Joystick, Menu, NotebookText, PlusCircle, Search, Trophy, Users, X} from "lucide-react";
 import GameJoinModal from "@/components/modal/gameJoinModal/GameJoinModal.jsx";
 import ProfileButton from "@/components/common/header/items/ProfileButton.jsx";
+import FriendsModal from "@/components/modal/friends/FriendsModal.jsx";
+import FriendsButton from "@/components/common/header/items/FriendsButton.jsx";
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isHydrated, setIsHydrated] = useState(false);
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [showInfosMenu, setShowInfosMenu] = useState(false);
+    const [showFriendsModal, setShowFriendsModal] = useState(false);
+    const [friendRequests, setFriendRequests] = useState([]);
+    const [onlineFriends, setOnlineFriends] = useState([
+        {id: 1, name: "Charlie", username: "@charlie_w", avatar: "🐱", status: "En jeu", gameId: "123"},
+        {id: 2, name: "Diana", username: "@diana_g", avatar: "🦉", status: "En ligne"},
+    ]);
 
     const auth = useAuth();
     const router = useRouter();
     const pathname = usePathname();
+
+    useEffect(() => {
+        setIsHydrated(true);
+    }, []);
+
+    useEffect(() => {
+        if (isHydrated && auth.user) {
+            fetchFriendRequests();
+        }
+    }, [isHydrated, auth.user]);
 
     if (pathname?.startsWith('/admin')) return null;
 
@@ -32,6 +51,85 @@ export default function Header() {
     const isActive = (path) => {
         return pathname === path ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300';
     };
+
+    const fetchFriendRequests = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            const response = await fetch('/api/friends/request', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                console.error('Erreur lors de la récupération des demandes d\'ami');
+                return;
+            }
+
+            const data = await response.json();
+            setFriendRequests(data.friendRequests || []);
+        } catch (error) {
+            console.error('Erreur:', error);
+        }
+    };
+
+    const handleAcceptRequest = async (requestId) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            const response = await fetch(`/api/friends/request/${requestId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                toast.error("Erreur lors de l'acceptation de la demande");
+                return;
+            }
+
+            toast.success("Demande d'ami acceptée !");
+            setFriendRequests(friendRequests.filter(req => req.id !== requestId));
+            fetchFriendRequests();
+        } catch (error) {
+            console.error('Erreur:', error);
+            toast.error("Erreur serveur");
+        }
+    };
+
+    const handleDeclineRequest = async (requestId) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            const response = await fetch(`/api/friends/request/${requestId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                toast.error("Erreur lors du refus de la demande");
+                return;
+            }
+
+            toast.info("Demande d'ami déclinée");
+            setFriendRequests(friendRequests.filter(req => req.id !== requestId));
+        } catch (error) {
+            console.error('Erreur:', error);
+            toast.error("Erreur serveur");
+        }
+    };
+
 
     return (
         <>
@@ -115,6 +213,15 @@ export default function Header() {
                         </nav>
 
                         <div className="flex items-center gap-3">
+                            <FriendsButton
+                                friendRequests={friendRequests}
+                                onlineFriends={onlineFriends}
+                                setShowFriendsModal={setShowFriendsModal}
+                                handleAcceptRequest={handleAcceptRequest}
+                                handleDeclineRequest={handleDeclineRequest}
+                                isHydrated={isHydrated}
+                            />
+
                             <button
                                 className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -166,6 +273,27 @@ export default function Header() {
                                     <Trophy className="w-5 h-5"/>
                                     <span className="font-medium">Classement</span>
                                 </Link>
+
+                                {isHydrated && auth.user && (
+                                    <>
+                                        <button
+                                            onClick={() => setShowFriendsModal(true)}
+                                            className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 text-left"
+                                        >
+                                            <Users className="w-5 h-5"/>
+                                            <div className="flex items-center justify-between flex-1">
+                                                <span className="font-medium">Amis</span>
+                                                {friendRequests.length > 0 && (
+                                                    <span
+                                                        className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                                                        {friendRequests.length}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </button>
+                                    </>
+                                )}
+
                                 <div className="px-4 py-3">
                                     <button
                                         onClick={() => setShowInfosMenu(!showInfosMenu)}
@@ -210,6 +338,13 @@ export default function Header() {
             </header>
 
             <GameJoinModal setShow={setShowJoinModal} show={showJoinModal}/>
+            <FriendsModal
+                show={showFriendsModal}
+                setShow={setShowFriendsModal}
+                friendRequests={friendRequests}
+                onAcceptRequest={handleAcceptRequest}
+                onDeclineRequest={handleDeclineRequest}
+            />
         </>
     );
 }

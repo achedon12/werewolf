@@ -1,3 +1,2 @@
 - systeme de niveau
-- systeme d'amis
 - systeme de badge

@@ -12,18 +12,23 @@ export async function GET(req) {
     }
 
     const token = authHeader.split(" ")[1];
-    let payload;
-    try {
-        payload = jwt.verify(token, JWT_SECRET);
-        if (!payload || !payload.id) {
+    if (!token) {
+        return NextResponse.json({error: "Non authentifié"}, {status: 401});
+    }
+    if (token !== process.env.NEXT_PUBLIC_API_KEY) {
+        let payload;
+        try {
+            payload = jwt.verify(token, JWT_SECRET);
+            if (!payload || !payload.id) {
+                return NextResponse.json({error: "Token invalide"}, {status: 401});
+            }
+        } catch {
             return NextResponse.json({error: "Token invalide"}, {status: 401});
         }
-    } catch {
-        return NextResponse.json({error: "Token invalide"}, {status: 401});
-    }
 
-    if (!payload.role || (payload.role !== "admin" && payload.role !== "moderator")) {
-        return NextResponse.json({error: "Accès admin requis"}, {status: 403});
+        if (!payload.role || (payload.role !== "admin" && payload.role !== "moderator")) {
+            return NextResponse.json({error: "Accès admin requis"}, {status: 403});
+        }
     }
 
     try {
