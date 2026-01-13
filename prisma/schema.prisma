@@ -15,28 +15,32 @@ datasource db {
 }
 
 model User {
-  id                String   @id @default(cuid())
-  email             String   @unique
-  password          String
-  name              String?
-  nickname          String?  @unique
-  avatar            String? // URL de l'avatar
-  bio               String?  @default("")
-  victories         Int      @default(0)
-  games             Game[]   @relation("UserGames")
-  wins              Game[]   @relation("GameWinners")
-  verificationToken String?
-  verified          Boolean  @default(false)
-  role              String?  @default("user") // "user" ou "admin"
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @default(now()) @updatedAt
-  players           Player[]
-  Game              Game[]
-  ambientSoundsEnabled Boolean  @default(true)
-  ambientThemeEnabled  Boolean  @default(true)
-  lastLogin         DateTime?   @default(now())
-  reportsMade      Report[]    @relation("Reporter")
-  reportsReceived  Report[]    @relation("Reported")
+  id                   String    @id @default(cuid())
+  email                String    @unique
+  password             String
+  name                 String?
+  nickname             String?   @unique
+  avatar               String? // URL de l'avatar
+  bio                  String?   @default("")
+  victories            Int       @default(0)
+  games                Game[]    @relation("UserGames")
+  wins                 Game[]    @relation("GameWinners")
+  verificationToken    String?
+  verified             Boolean   @default(false)
+  role                 String?   @default("user") // "user" ou "admin"
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @default(now()) @updatedAt
+  players              Player[]
+  Game                 Game[]
+  ambientSoundsEnabled Boolean   @default(true)
+  ambientThemeEnabled  Boolean   @default(true)
+  lastLogin            DateTime? @default(now())
+  reportsMade          Report[]  @relation("Reporter")
+  reportsReceived      Report[]  @relation("Reported")
+  friendshipsInitiated Friendship[] @relation("FriendshipInitiator")
+  friendshipsReceived  Friendship[] @relation("FriendshipReceiver")
+  blockedBy            BlockedUser[] @relation("BlockedBy")
+  blocks               BlockedUser[] @relation("Blocks")
 }
 
 model Player {
@@ -80,12 +84,38 @@ model GameLog {
 }
 
 model Report {
-  id        String   @id @default(cuid())
+  id         String   @id @default(cuid())
   reporterId String
-  reporter  User     @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reporter   User     @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
   reportedId String
-  reported  User     @relation("Reported", fields: [reportedId], references: [id], onDelete: Cascade)
-  reason    String
-  details   String?
+  reported   User     @relation("Reported", fields: [reportedId], references: [id], onDelete: Cascade)
+  reason     String
+  details    String?
+  createdAt  DateTime @default(now())
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("FriendshipInitiator", fields: [userId], references: [id], onDelete: Cascade)
+  friendId  String
+  friend    User     @relation("FriendshipReceiver", fields: [friendId], references: [id], onDelete: Cascade)
+  status    String   @default("pending") // "pending", "accepted", "blocked"
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, friendId])
+  @@index([friendId])
+}
+
+model BlockedUser {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("BlockedBy", fields: [userId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User     @relation("Blocks", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, blockedId])
+  @@index([blockedId])
 }
