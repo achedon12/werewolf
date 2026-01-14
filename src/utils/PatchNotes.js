@@ -150,7 +150,7 @@ export const PatchNotes = [
     },
     {
         version: '1.3.0',
-        title: 'Ajout du système de d\'amis et de demandes d\'amis',
+        title: 'Ajout du système d\'amis et de demandes d\'amis',
         date: '2026-01-13',
         type: PatchNoteTypes.FEATURE,
         changes: [

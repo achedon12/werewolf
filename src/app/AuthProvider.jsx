@@ -1,6 +1,7 @@
 "use client";
 import {createContext, useContext, useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
+import PatchNoteModal from "@/components/modal/patch-notes/PatchNoteModal.jsx";
 
 const authContext = createContext({
     user: null,
@@ -189,6 +190,8 @@ export function AuthProvider({children}) {
             setTheme
         }}>
             {children}
+            <PatchNoteModal
+            />
         </authContext.Provider>
     );
 }
