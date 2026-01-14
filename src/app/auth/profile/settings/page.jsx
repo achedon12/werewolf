@@ -29,6 +29,7 @@ const SettingsPage = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [soundEnabled, setSoundEnabled] = useState(true);
     const [themeEnabled, setThemeEnabled] = useState(true);
+    const [streamerModeEnabled, setStreamerModeEnabled] = useState(false);
     const [notifications, setNotifications] = useState(true);
     const {theme, setTheme, token, setUser} = useAuth();
 
@@ -57,6 +58,11 @@ const SettingsPage = () => {
                     },
                 });
                 const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.error || 'Erreur lors du chargement du profil');
+                }
+
                 setUserProfile(data);
                 setUser(data);
                 setFormData({
@@ -70,6 +76,7 @@ const SettingsPage = () => {
                 setNotifications(data.notificationsEnabled || true);
             } catch (error) {
                 console.error('Erreur lors du chargement du profil:', error);
+                toast.error(error.message || 'Erreur lors du chargement du profil');
             }
             setIsLoading(false);
         };
@@ -102,19 +109,19 @@ const SettingsPage = () => {
                 body: JSON.stringify(formData),
             });
 
+            const data = await res.json();
             if (res.ok) {
-                const updatedUser = await res.json();
-                setUserProfile(updatedUser);
-                setUser(updatedUser);
+                setUserProfile(data);
+                setUser(data);
                 setIsEditing(false);
 
                 toast.success('Profil mis à jour avec succès !');
             } else {
-                throw new Error('Erreur lors de la mise à jour');
+                throw new Error(data.error || 'Erreur lors de la mise à jour');
             }
         } catch (error) {
             console.error('Erreur lors de la mise à jour:', error);
-            toast.error('Erreur lors de la mise à jour');
+            toast.error(error.message || 'Erreur lors de la mise à jour');
         }
         setIsSaving(false);
     };
@@ -167,10 +174,10 @@ const SettingsPage = () => {
                 setSoundEnabled(!soundEnabled);
                 toast.success(`Effets sonores ${!soundEnabled ? 'activés' : 'désactivés'}`);
             } else {
-                throw new Error('Erreur lors de la mise à jour des sons');
+                throw new Error(data.error || 'Erreur lors de la mise à jour des sons');
             }
         } catch (error) {
-            toast.error("Erreur lors de la mise à jour des sons");
+            toast.error(error.message || "Erreur lors de la mise à jour des sons");
             console.error('Erreur lors de la mise à jour des sons:', error);
         }
     };
@@ -193,13 +200,39 @@ const SettingsPage = () => {
                 setThemeEnabled(!themeEnabled);
                 toast.success(`Thème ambiant ${!themeEnabled ? 'activé' : 'désactivé'}`);
             } else {
-                throw new Error('Erreur lors de la mise à jour du thème');
+                throw new Error(data.error || 'Erreur lors de la mise à jour du thème');
             }
         } catch (error) {
-            toast.error("Erreur lors de la mise à jour du thème");
+            toast.error(error.message || "Erreur lors de la mise à jour du thème");
             console.error('Erreur lors de la mise à jour des sons:', error);
         }
     };
+
+    const toggleStreamerMode = async () => {
+        try {
+            const response = await fetch('/api/auth/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({streamerModeEnabled: !streamerModeEnabled}),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                setUserProfile(data);
+                setUser(data);
+                setStreamerModeEnabled(!streamerModeEnabled);
+                toast.success(`Mode streamer ${!streamerModeEnabled ? 'activé' : 'désactivé'}`);
+            } else {
+                throw new Error(data.error || 'Erreur lors de la mise à jour du mode streamer');
+            }
+        } catch (error) {
+            toast.error(error.message || "Erreur lors de la mise à jour du mode streamer");
+            console.error('Erreur lors de la mise à jour du mode streamer:', error);
+        }
+    }
 
     const toggleNotifications = async () => {
         try {
@@ -219,10 +252,10 @@ const SettingsPage = () => {
                 setNotifications(!notifications);
                 toast.success(`Notifications ${!notifications ? 'activées' : 'désactivées'}`);
             } else {
-                throw new Error('Erreur lors de la mise à jour des notifications');
+                throw new Error(data.error || 'Erreur lors de la mise à jour des notifications');
             }
         } catch (error) {
-            toast.error("Erreur lors de la mise à jour des notifications");
+            toast.error(error.message || "Erreur lors de la mise à jour des notifications");
         }
     };
 
@@ -372,6 +405,21 @@ const SettingsPage = () => {
                                             <span
                                                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                                                     notifications ? 'translate-x-6' : 'translate-x-1'
+                                                }`}
+                                            />
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-700 dark:text-gray-300">Mode streamer</span>
+                                        <button
+                                            onClick={toggleStreamerMode}
+                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                                streamerModeEnabled ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-600'
+                                            }`}
+                                        >
+                                            <span
+                                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                                    streamerModeEnabled ? 'translate-x-6' : 'translate-x-1'
                                                 }`}
                                             />
                                         </button>

@@ -34,6 +34,7 @@ model User {
   Game                 Game[]
   ambientSoundsEnabled Boolean   @default(true)
   ambientThemeEnabled  Boolean   @default(true)
+  streamerModeEnabled   Boolean   @default(false)
   lastLogin            DateTime? @default(now())
   reportsMade          Report[]  @relation("Reporter")
   reportsReceived      Report[]  @relation("Reported")

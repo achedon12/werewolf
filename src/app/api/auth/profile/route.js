@@ -103,6 +103,7 @@ export async function PUT(req) {
                 avatar: avatarPath,
                 ambientSoundsEnabled: body.ambientSoundsEnabled ?? user.ambientSoundsEnabled,
                 ambientThemeEnabled: body.ambientThemeEnabled ?? user.ambientThemeEnabled,
+                streamerModeEnabled: body.streamerModeEnabled ?? user.streamerModeEnabled,
             },
         });
 

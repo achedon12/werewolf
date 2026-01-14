@@ -211,7 +211,7 @@ const FriendsModal = ({show, setShow, friendRequests, onAcceptRequest, onDecline
 
             <div
                 className="relative w-full max-w-lg bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800">
-                <div className="p-6">
+                <div className="p-3 md:p-6">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             <Users className="w-6 h-6"/>
