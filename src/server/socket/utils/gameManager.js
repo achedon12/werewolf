@@ -7,6 +7,7 @@ import {countPlayersByCamp, simulateBotVoteAction, startRoleCallSequence} from "
 import {processNightEliminations} from "../utils/eliminationManager.js";
 import {findPlayerById} from "../utils/playerManager.js";
 import {sanitizeRoom} from './sanitizeRoom.js';
+import {awardExperience} from "../utils/ExperienceManager.js";
 
 const hostname = "localhost";
 const port = 3000;
@@ -709,6 +710,18 @@ const persistWinners = async (gameId, winnerIds = []) => {
             : Array.isArray(r.players)
                 ? r.players
                 : [];
+
+        const allPlayerIds = playersArray
+            .filter(p => p && !p.isBot && p.id)
+            .map(p => p.id);
+
+        console.log(`💾 Persistance des gagnants pour la partie ${gameId}:`, uniqueUserIds);
+        console.log(`👥 Tous les joueurs (non-bots) de la partie ${gameId}:`, allPlayerIds);
+
+        if (allPlayerIds.length > 0) {
+            const xpResults = await awardExperience(gameId, uniqueUserIds, allPlayerIds);
+            console.log(`🎮 XP attribuée:`, xpResults);
+        }
 
         for (const p of playersArray) {
             if (p && p.id && uniqueUserIds.includes(p.id)) {

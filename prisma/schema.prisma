@@ -23,6 +23,8 @@ model User {
   avatar               String? // URL de l'avatar
   bio                  String?   @default("")
   victories            Int       @default(0)
+  experience          Int       @default(0)
+  level                Int       @default(0)
   games                Game[]    @relation("UserGames")
   wins                 Game[]    @relation("GameWinners")
   verificationToken    String?

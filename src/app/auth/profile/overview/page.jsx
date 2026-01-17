@@ -16,6 +16,7 @@ import {
     Title,
     Tooltip
 } from 'chart.js';
+import {calculateLevel, getXpForLevel, getXpProgress} from "@/utils/Experience";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -168,6 +169,37 @@ const OverviewPage = () => {
                                 <div className="stat-value text-primary text-2xl">{user?.victories || 0}</div>
                                 <div className="stat-desc">Parties gagnées</div>
                             </div>
+                        </div>
+
+                        <div className="w-full mt-6">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Niveau</span>
+                                <span className="text-lg font-bold text-primary">{user?.level || 1}</span>
+                            </div>
+                            {(() => {
+                                const level = user?.level || 1;
+                                const totalXp = user?.experience || 0;
+                                const progress = getXpProgress(totalXp);
+                                const percentage = Math.min((progress.currentLevelXp / progress.xpForNextLevel) * 100, 100);
+
+                                return (
+                                    <>
+                                        <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-4 overflow-hidden">
+                                            <div
+                                                className="bg-gradient-to-r from-primary to-secondary h-full rounded-full transition-all duration-500"
+                                                style={{ width: `${percentage}%` }}
+                                            ></div>
+                                        </div>
+                                        <div className="flex justify-between text-xs mt-1 text-gray-500 dark:text-gray-400">
+                                            <span>{progress.currentLevelXp} XP</span>
+                                            <span>{progress.xpForNextLevel} XP</span>
+                                        </div>
+                                        <div className="text-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            {progress.xpForNextLevel - progress.currentLevelXp} XP pour niveau {level + 1}
+                                        </div>
+                                    </>
+                                );
+                            })()}
                         </div>
 
                         <div className="w-full mt-4 space-y-2 text-sm">
