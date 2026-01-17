@@ -67,7 +67,7 @@ const FriendsButton = ({isHydrated, setShowFriendsModal, friendRequests, onlineF
                                                 className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
                                                 <Image
                                                     src={request.avatar || '/default-avatar.png'}
-                                                    alt={request.name}
+                                                    alt={request.nickname}
                                                     width={32}
                                                     height={32}
                                                     className="w-8 h-8 rounded-full object-cover"
@@ -75,9 +75,8 @@ const FriendsButton = ({isHydrated, setShowFriendsModal, friendRequests, onlineF
                                             </div>
                                             <div>
                                                 <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                                    {request.name}
+                                                    @{request.nickname}
                                                 </p>
-                                                <p className="text-xs text-gray-500">{request.username}</p>
                                             </div>
                                         </div>
                                         <div className="flex gap-1">

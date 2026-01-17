@@ -26,7 +26,7 @@ const FriendsOnline = ({onlineFriends}) => {
                                         className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"/>
                                 </div>
                                 <div>
-                                    <p className="font-medium text-gray-900 dark:text-white">{friend.nickname}</p>
+                                    <p className="font-medium text-gray-900 dark:text-white">@{friend.nickname}</p>
                                     <p className="text-sm text-gray-500">En ligne</p>
                                 </div>
                             </div>

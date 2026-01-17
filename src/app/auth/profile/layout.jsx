@@ -2,11 +2,12 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../AuthProvider";
 import { useRouter, usePathname } from "next/navigation";
-import {ChartColumnBig, Gamepad2, LayoutDashboard, Settings} from "lucide-react";
+import {ChartColumnBig, Gamepad2, LayoutDashboard, Settings, Users} from "lucide-react";
 
 const TABS = [
     { key: "overview", label: "Vue d'ensemble", icon: <LayoutDashboard /> },
     { key: "game", label: "Parties", icon: <Gamepad2 /> },
+    { key: "friends", label: "Amis", icon: <Users /> },
     { key: "settings", label: "Paramètres", icon: <Settings /> },
     { key: "stats", label: "Statistiques", icon: <ChartColumnBig /> }
 ];

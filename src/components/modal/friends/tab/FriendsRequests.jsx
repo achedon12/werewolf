@@ -23,7 +23,7 @@ const FriendsRequests = ({friendRequests, onAcceptRequest, onDeclineRequest}) =>
                                     />
                                 </div>
                                 <div>
-                                    <p className="font-medium text-gray-900 dark:text-white">{request.nickname}</p>
+                                    <p className="font-medium text-gray-900 dark:text-white">@{request.nickname}</p>
                                     <p className="text-sm text-gray-500">{request.bio}</p>
                                 </div>
                             </div>

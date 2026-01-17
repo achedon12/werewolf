@@ -23,7 +23,7 @@ const FriendsList = ({friends, handleRemoveFriend}) => {
                                     />
                                 </div>
                                 <div>
-                                    <p className="font-medium text-gray-900 dark:text-white">{friend.nickname}</p>
+                                    <p className="font-medium text-gray-900 dark:text-white">@{friend.nickname}</p>
                                     <p className="text-sm text-gray-500">{friend.bio}</p>
                                 </div>
                             </div>

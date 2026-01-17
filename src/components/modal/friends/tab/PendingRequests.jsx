@@ -21,7 +21,7 @@ const PendingRequests = ({pendingRequests, handleCancelRequest}) => {
                                     />
                                 </div>
                                 <div>
-                                    <p className="font-medium text-gray-900 dark:text-white">{request.nickname}</p>
+                                    <p className="font-medium text-gray-900 dark:text-white">@{request.nickname}</p>
                                     <p className="text-xs text-gray-500">En attente de réponse</p>
                                 </div>
                             </div>

@@ -24,12 +24,8 @@ export default function PatchNoteModal() {
 
     const handleClose = () => {
         setShow(false);
-        setTimeout(() => setShow(false), 300);
-    };
-
-    const handleMarkAsRead = () => {
         localStorage.setItem("lastPatchSeen", latestPatch.version);
-        handleClose();
+        setTimeout(() => setShow(false), 300);
     };
 
     if (!show) return null;
@@ -108,7 +104,7 @@ export default function PatchNoteModal() {
                         <div className="flex flex-col gap-3">
                             <Link
                                 href="/patch-notes"
-                                onClick={handleMarkAsRead}
+                                onClick={handleClose}
                                 className="group flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-lg"
                             >
                                 Voir les nouveautés
