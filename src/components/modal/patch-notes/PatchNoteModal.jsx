@@ -6,24 +6,21 @@ import {getLatestPatchNote, getPatchBadgeClass} from "@/utils/PatchNotes";
 
 export default function PatchNoteModal() {
     const [show, setShow] = useState(false);
-    const [lastLogin, setLastLogin] = useState(null);
-    const latestPatch = getLatestPatchNote();
+    const [latestPatch, setLatestPatch] = useState(null);
 
     useEffect(() => {
-        const storedLastLogin = localStorage.getItem("lastLogin");
-        setLastLogin(storedLastLogin);
+        setLatestPatch(getLatestPatchNote());
     }, []);
 
     useEffect(() => {
         if (!latestPatch) return;
 
-        const patchDate = new Date(latestPatch.date).getTime();
-        const lastLoginTime = lastLogin ? parseInt(lastLogin) : 0;
+        const lastPatchSeen = localStorage.getItem("lastPatchSeen");
 
-        if (patchDate > lastLoginTime) {
+        if (!lastPatchSeen || lastPatchSeen !== latestPatch.version) {
             setTimeout(() => setShow(true), 300);
         }
-    }, [lastLogin, latestPatch]);
+    }, [latestPatch]);
 
     const handleClose = () => {
         setShow(false);
