@@ -168,5 +168,26 @@ export const PatchNotes = [
                 ]
             }
         ],
+    },
+    {
+        version: '1.4.0',
+        title: 'Ajout du système d\'expérience et de niveaux',
+        date: '2026-01-18',
+        type: PatchNoteTypes.FEATURE,
+        changes: [
+            {
+                type: PatchNoteTypes.FEATURE,
+                changes: [
+                    {
+                        title: 'Système d\'Expérience',
+                        description: 'Mise en place d\'un système d\'expérience permettant aux utilisateurs de gagner des points d\'expérience en jouant.'
+                    },
+                    {
+                        title: 'Niveaux Utilisateur',
+                        description: 'Introduction d\'un système de niveaux basé sur les points d\'expérience accumulés.'
+                    }
+                ]
+            }
+        ],
     }
 ];
