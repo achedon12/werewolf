@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, UserPlus, Search, UserCheck, UserX, Clock, Inbox, Send, Trash2 } from 'lucide-react';
+import { Users, UserPlus, Search, Inbox, Send } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'react-toastify';
 import AuthFriendsSentTab from "@/app/auth/profile/friends/tab/Sent.jsx";
@@ -245,7 +245,7 @@ const FriendsPage = () => {
         <div className="max-w-4xl mx-auto p-4 space-y-6">
             <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center justify-center gap-3">
-                    <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
+                    <div className="p-3 bg-linear-to-br from-blue-500 to-purple-600 rounded-xl">
                         <Users className="w-8 h-8 text-white" />
                     </div>Mes Amis
                 </h1>
@@ -295,7 +295,7 @@ const FriendsPage = () => {
                                             </div>
                                             <button
                                                 onClick={() => handleAddFriend(user.id)}
-                                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
+                                                className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
                                             >
                                                 <UserPlus className="w-4 h-4" />
                                                 Ajouter

@@ -1,4 +1,4 @@
-import Image from "next/image.d.ts";
+import Image from "next/image";
 import {Trash2, Users} from "lucide-react";
 
 const AuthFriendsListTab = ({ friends, onRemoveFriend }) => {
@@ -24,7 +24,7 @@ const AuthFriendsListTab = ({ friends, onRemoveFriend }) => {
                             </div>
                         </div>
                         <button
-                            onClick={() => handleRemoveFriend(friend.id)}
+                            onClick={() => onRemoveFriend(friend.id)}
                             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                             title="Supprimer l'ami"
                         >

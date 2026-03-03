@@ -1,4 +1,4 @@
-import Image from "next/image.d.ts";
+import Image from "next/image";
 import {Inbox, UserCheck, UserX} from "lucide-react";
 
 const AuthFriendsReceivedTab = ({ friendRequests, onAcceptRequest, onDeclineRequest }) => {
@@ -7,7 +7,7 @@ const AuthFriendsReceivedTab = ({ friendRequests, onAcceptRequest, onDeclineRequ
         <div className="space-y-3">
             {friendRequests.length > 0 ? (
                 friendRequests.map(request => (
-                    <div key={request.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+                    <div key={request.id} className="flex items-center justify-between p-4 bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
                         <div className="flex items-center gap-4">
                             <Image
                                 src={request.avatar || '/default-avatar.png'}
@@ -22,14 +22,14 @@ const AuthFriendsReceivedTab = ({ friendRequests, onAcceptRequest, onDeclineRequ
                         </div>
                         <div className="flex gap-2">
                             <button
-                                onClick={() => handleAcceptRequest(request.id)}
+                                onClick={() => onAcceptRequest(request.id)}
                                 className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
                             >
                                 <UserCheck className="w-4 h-4" />
                                 <span className="hidden sm:inline">Accepter</span>
                             </button>
                             <button
-                                onClick={() => handleDeclineRequest(request.id)}
+                                onClick={() => onDeclineRequest(request.id)}
                                 className="flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
                             >
                                 <UserX className="w-4 h-4" />
