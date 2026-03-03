@@ -1,6 +1,6 @@
 "use client";
 import {createContext, useContext, useEffect, useState} from "react";
-import {useRouter} from "next/navigation";
+import {useRouter, usePathname} from "next/navigation";
 import PatchNoteModal from "@/components/modal/patch-notes/PatchNoteModal.jsx";
 
 const authContext = createContext({
@@ -33,6 +33,7 @@ export function AuthProvider({children}) {
     const [player, setPlayer] = useState(null);
     const [game, setGame] = useState(null);
     const router = useRouter();
+    const pathname = usePathname();
     const [theme, setTheme] = useState("light");
 
     useEffect(() => {
@@ -45,7 +46,7 @@ export function AuthProvider({children}) {
         }
         setLoading(false);
         // Auto logout after 24 hours
-        if (!lastLogin || Date.now() - parseInt(lastLogin) > 24 * 60 * 60 * 1000) {
+        if (storedUser && (!lastLogin || Date.now() - parseInt(lastLogin) > 24 * 60 * 60 * 1000)) {
             logout();
         }
     }, []);
@@ -78,9 +79,14 @@ export function AuthProvider({children}) {
 
     useEffect(() => {
         if (!loading && !user) {
-            router.push("/auth");
+            const publicPages = ['/', '/auth', '/rules', '/faq', '/patch-notes', '/privacy', '/terms', '/support'];
+
+            const isPublicPage = publicPages.some(page => pathname === page || pathname.startsWith(page + '/'));
+            if (!isPublicPage) {
+                router.push("/auth");
+            }
         }
-    }, [loading, user, router]);
+    }, [loading, user, pathname, router]);
 
     useEffect(() => {
         const storedTheme = localStorage.getItem("theme");

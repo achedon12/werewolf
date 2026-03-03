@@ -1,7 +1,6 @@
 'use client';
 import {useEffect, useState} from "react";
 import Link from "next/link";
-import PlayButton from "@/components/common/button/playButton/PlayButton";
 import {ArrowRight, Clock, Eye, Gamepad2, Heart, MessageSquare, Moon, Skull, Sword, Trophy, Users} from "lucide-react";
 import {socket} from "@/socket";
 
@@ -147,179 +146,213 @@ const Home = () => {
 
     return (
         <div
-            className="min-h-screen bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-gray-900 dark:text-white">
-            <div className="relative overflow-hidden">
-                <div className="absolute inset-0 bg-cover bg-center opacity-20">
-                    <div
-                        className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 dark:via-gray-900/70 to-white dark:to-gray-900"></div>
-                </div>
+            className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black text-white overflow-hidden">
+            {/* Background avec forêt mystérieuse */}
+            <div className="fixed inset-0 opacity-40 pointer-events-none">
+                <div className="absolute inset-0 bg-gradient-to-b from-purple-950/20 via-slate-950/40 to-black/80"></div>
+            </div>
 
-                <div className="absolute inset-0">
-                    {particles.map((particle) => (
-                        <div
-                            key={particle.id}
-                            className="absolute w-1 h-1 bg-gray-900 dark:bg-white rounded-full animate-pulse"
-                            style={{
-                                left: `${particle.left}%`,
-                                top: `${particle.top}%`,
-                                animationDelay: `${particle.delay}s`
-                            }}
-                        />
-                    ))}
-                </div>
-
-                <div
-                    className="absolute top-10 right-10 w-24 h-24 bg-gradient-to-br from-yellow-200 via-yellow-100 to-white rounded-full shadow-2xl shadow-yellow-500/50 animate-pulse-slow">
-                    <div
-                        className="absolute inset-4 bg-gradient-to-br from-gray-100 dark:from-gray-800 to-gray-200 dark:to-gray-900 rounded-full"></div>
-                </div>
-
-                <div className="container mx-auto px-4 py-20 md:py-32 text-center relative z-10">
-                    <div className="flex justify-center mb-8">
-                        <div className="relative">
-                            <div
-                                className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-600 rounded-full blur-xl opacity-50 animate-pulse"></div>
-                            <div
-                                className="relative w-32 h-32 rounded-full bg-gradient-to-br from-gray-100 via-gray-200 dark:from-gray-800 dark:via-gray-900 to-white dark:to-black border-4 border-red-600/30 flex items-center justify-center shadow-2xl">
-                                <div className="text-5xl">🐺</div>
-                            </div>
-                            <div className="absolute -bottom-2 -right-2">
-                                <div
-                                    className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-orange-600 flex items-center justify-center shadow-lg animate-bounce">
-                                    <Sword className="w-6 h-6 text-white"/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 bg-clip-text text-transparent">
-                        Loup-Garou
-                        <span className="block text-2xl md:text-4xl font-normal text-gray-600 dark:text-gray-300 mt-4">
-              La Nuit vous appelle...
-            </span>
-                    </h1>
-
-                    <p className="text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto mb-10 leading-relaxed">
-                        Un jeu de déduction psychologique où chaque nuit peut être votre dernière.
-                        <span className="block text-gray-600 dark:text-gray-400 text-lg mt-4">
-              Mensonges, alliances, trahisons... Qui survivra jusqu&apos;à l&apos;aube ?
-            </span>
-                    </p>
-
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-12">
-                        <PlayButton
-                            href="/game/create"
-                            label="Lancer une Partie"
-                            subtitle="La nuit tombe..."
-                            icon={Moon}
-                            primary
-                            className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 border-red-500/50"
-                        />
-                        <Link
-                            href="/game/list"
-                            className="group relative overflow-hidden flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-400 dark:border-gray-700 rounded-xl hover:border-red-500 hover:shadow-xl transition-all duration-300"
-                        >
-                            <div
-                                className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-orange-600/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <Eye className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-red-400"/>
-                            <div className="text-left relative z-10">
-                                <div
-                                    className="font-semibold text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-300">
-                                    Observer les parties
-                                </div>
-                                <div className="text-sm text-gray-700 dark:text-gray-400">
-                                    {loading ? "Chargement des ombres..." : `${gameCount} parties en attente`}
-                                </div>
-                            </div>
-                            <ArrowRight
-                                className="w-5 h-5 ml-4 text-gray-500 dark:text-gray-600 group-hover:text-red-600 dark:group-hover:text-red-400 group-hover:translate-x-1 transition-transform"/>
-                        </Link>
-                    </div>
+            {/* Lune sanglante */}
+            <div className="fixed top-10 right-10 z-0">
+                <div className="w-32 h-32 bg-gradient-to-br from-red-900 via-orange-800 to-red-950 rounded-full shadow-2xl shadow-red-800/50 animate-pulse-slow relative"
+                     style={{
+                         boxShadow: '0 0 60px rgba(139, 0, 0, 0.8), 0 0 100px rgba(220, 38, 38, 0.4)'
+                     }}>
+                    <div className="absolute inset-0 rounded-full opacity-30 animate-pulse"
+                         style={{
+                             background: 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), transparent 70%)'
+                         }}></div>
                 </div>
             </div>
 
+            {/* Particules de brouillard */}
+            <div className="fixed inset-0 pointer-events-none">
+                {particles.map((particle) => (
+                    <div
+                        key={particle.id}
+                        className="absolute rounded-full opacity-30"
+                        style={{
+                            left: `${particle.left}%`,
+                            top: `${particle.top}%`,
+                            width: Math.random() * 100 + 20 + 'px',
+                            height: Math.random() * 100 + 20 + 'px',
+                            background: `radial-gradient(circle, rgba(168, 85, 247, ${Math.random() * 0.3}) 0%, transparent 70%)`,
+                            animation: `float ${5 + Math.random() * 5}s infinite ease-in-out`,
+                            animationDelay: `${particle.delay}s`
+                        }}
+                    />
+                ))}
+            </div>
+
+            <div className="container mx-auto px-4 py-20 md:py-32 text-center relative z-10">
+                {/* Logo du loup-garou */}
+                <div className="flex justify-center mb-12">
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-gradient-to-r from-red-800 via-purple-800 to-red-800 rounded-full blur-3xl opacity-60 animate-pulse"
+                             style={{
+                                 boxShadow: '0 0 80px rgba(220, 38, 38, 0.6)'
+                             }}></div>
+                        <div className="relative w-40 h-40 rounded-full bg-gradient-to-br from-slate-800 via-slate-900 to-black border-4 border-red-700/50 flex items-center justify-center shadow-2xl"
+                             style={{
+                                 boxShadow: '0 0 40px rgba(220, 38, 38, 0.4)'
+                             }}>
+                            <div className="text-7xl animate-bounce" style={{animationDuration: '3s'}}>🐺</div>
+                        </div>
+                        <div className="absolute -bottom-4 -right-4 animate-pulse">
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-2xl"
+                                 style={{
+                                     boxShadow: '0 0 30px rgba(220, 38, 38, 0.8)'
+                                 }}>
+                                <Skull className="w-8 h-8 text-white"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h1 className="text-6xl md:text-8xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-600 to-orange-600 drop-shadow-2xl" style={{
+                    textShadow: '0 0 30px rgba(220, 38, 38, 0.8), 0 0 60px rgba(139, 0, 0, 0.6)',
+                    letterSpacing: '0.05em'
+                }}>
+                    LOUP-GAROU
+                    <span className="block text-2xl md:text-4xl font-bold text-red-400 mt-4 drop-shadow-lg">
+              La Nuit Éternelle vous attend...
+            </span>
+                </h1>
+
+                <p className="text-lg md:text-2xl text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed font-semibold">
+                    Transformez-vous. Tuez. Survivez.
+                    <span className="block text-gray-400 text-base md:text-lg mt-4 font-normal">
+              Dans l&apos;obscurité de la nuit, les mensonges sont les seules vérités.
+              <br/>
+              Seul le plus malin émergera de l&apos;ombre...
+            </span>
+                </p>
+
+                    <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mt-12">
+                        <Link
+                            href="/game/create"
+                            className="group relative overflow-hidden px-10 py-6 bg-gradient-to-r from-red-700 via-red-800 to-red-900 border-2 border-red-600/60 rounded-xl font-bold text-white text-lg hover:from-red-600 hover:via-red-700 hover:to-red-800 transition-all duration-300 shadow-2xl hover:shadow-red-900/50 hover:scale-105"
+                            style={{
+                                boxShadow: '0 0 30px rgba(220, 38, 38, 0.5)'
+                            }}
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-orange-600/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="relative z-10 flex items-center gap-3">
+                                <Moon className="w-6 h-6"/>
+                                <span>CHASSER CETTE NUIT</span>
+                            </div>
+                        </Link>
+                        <Link
+                            href="/game/list"
+                            className="group relative overflow-hidden flex items-center gap-3 px-10 py-6 bg-gradient-to-r from-slate-800 to-slate-900 border-2 border-purple-700/60 rounded-xl hover:border-red-600 hover:shadow-xl transition-all duration-300"
+                            style={{
+                                boxShadow: '0 0 20px rgba(147, 51, 234, 0.3)'
+                            }}
+                        >
+                            <div
+                                className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <Eye className="w-5 h-5 text-purple-400 group-hover:text-red-400 relative z-10"/>
+                            <div className="text-left relative z-10">
+                                <div
+                                    className="font-semibold text-white group-hover:text-red-300">
+                                    Sentir les proies
+                                </div>
+                                <div className="text-sm text-gray-400">
+                                    {loading ? "Repérage..." : `${gameCount} meutes active`}
+                                </div>
+                            </div>
+                            <ArrowRight
+                                className="w-5 h-5 ml-4 text-purple-400 group-hover:text-red-400 group-hover:translate-x-1 transition-transform relative z-10"/>
+                        </Link>
+                    </div>
+                </div>
+
             <div
-                className="bg-gradient-to-b from-gray-100/50 dark:from-gray-800/50 to-gray-200/50 dark:to-gray-900/50 py-16 border-t border-gray-300 dark:border-gray-700/50">
+                className="bg-gradient-to-b from-black via-slate-950 to-black py-16 border-t border-red-900/30">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-10">
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                            La Nuit en Chiffres
+                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                            Les Murmures de la Nuit
                         </h2>
-                        <p className="text-gray-600 dark:text-gray-400">
-                            L&apos;activité de notre village
+                        <p className="text-gray-500 text-sm tracking-widest uppercase">
+                            Statistiques du Carnage
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                         <div
-                            className="bg-white dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 rounded-xl p-6 border border-gray-300 dark:border-gray-700 hover:border-red-500/50 transition-all duration-300">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
-                                    <Skull className="w-5 h-5 text-red-600 dark:text-red-400"/>
+                            className="relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-red-900/30 hover:border-red-700/60 transition-all duration-300 hover:shadow-2xl hover:shadow-red-900/20 group">
+                            <div className="absolute top-0 right-0 w-20 h-20 bg-red-700/10 rounded-full blur-2xl group-hover:bg-red-600/20 transition-all duration-300"></div>
+                            <div className="flex items-center gap-3 mb-4 relative z-10">
+                                <div className="p-2 rounded-lg bg-red-900/30 border border-red-700/50">
+                                    <Skull className="w-5 h-5 text-red-500"/>
                                 </div>
-                                <span className="text-gray-600 dark:text-gray-400 text-sm">Parties nocturnes</span>
+                                <span className="text-gray-400 text-sm uppercase font-bold tracking-wider">Parties Actives</span>
                             </div>
-                            <div className="text-3xl font-bold mb-1 text-gray-900 dark:text-white">
+                            <div className="text-4xl font-black mb-1 text-red-500 relative z-10">
                                 {loading ? (
-                                    <div className="h-8 w-16 bg-gray-300 dark:bg-gray-700 rounded animate-pulse"></div>
+                                    <div className="h-8 w-16 bg-gray-700 rounded animate-pulse"></div>
                                 ) : (
                                     gameCount
                                 )}
                             </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                                En ce moment même
+                            <div className="text-xs text-gray-500 uppercase tracking-widest relative z-10">
+                                Meutes en chasse
                             </div>
                         </div>
 
                         <div
-                            className="bg-white dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 rounded-xl p-6 border border-gray-300 dark:border-gray-700 hover:border-green-500/50 transition-all duration-300">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                                    <Users className="w-5 h-5 text-green-600 dark:text-green-400"/>
+                            className="relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-purple-900/30 hover:border-purple-700/60 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-900/20 group">
+                            <div className="absolute top-0 right-0 w-20 h-20 bg-purple-700/10 rounded-full blur-2xl group-hover:bg-purple-600/20 transition-all duration-300"></div>
+                            <div className="flex items-center gap-3 mb-4 relative z-10">
+                                <div className="p-2 rounded-lg bg-purple-900/30 border border-purple-700/50">
+                                    <Users className="w-5 h-5 text-purple-500"/>
                                 </div>
-                                <span className="text-gray-600 dark:text-gray-400 text-sm">Âmes errantes</span>
+                                <span className="text-gray-400 text-sm uppercase font-bold tracking-wider">Proies</span>
                             </div>
-                            <div className="text-3xl font-bold mb-1 text-gray-900 dark:text-white">
+                            <div className="text-4xl font-black mb-1 text-purple-500 relative z-10">
                                 {loading ? (
-                                    <div className="h-8 w-16 bg-gray-300 dark:bg-gray-700 rounded animate-pulse"></div>
+                                    <div className="h-8 w-16 bg-gray-700 rounded animate-pulse"></div>
                                 ) : (
                                     playersOnline
                                 )}
                             </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                                Dans l&apos;obscurité
+                            <div className="text-xs text-gray-500 uppercase tracking-widest relative z-10">
+                                En silence
                             </div>
                         </div>
 
                         <div
-                            className="bg-white dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 rounded-xl p-6 border border-gray-300 dark:border-gray-700 hover:border-yellow-500/50 transition-all duration-300">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/30">
-                                    <Trophy className="w-5 h-5 text-yellow-600 dark:text-yellow-400"/>
+                            className="relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-orange-900/30 hover:border-orange-700/60 transition-all duration-300 hover:shadow-2xl hover:shadow-orange-900/20 group">
+                            <div className="absolute top-0 right-0 w-20 h-20 bg-orange-700/10 rounded-full blur-2xl group-hover:bg-orange-600/20 transition-all duration-300"></div>
+                            <div className="flex items-center gap-3 mb-4 relative z-10">
+                                <div className="p-2 rounded-lg bg-orange-900/30 border border-orange-700/50">
+                                    <Skull className="w-5 h-5 text-orange-500"/>
                                 </div>
-                                <span className="text-gray-600 dark:text-gray-400 text-sm">Nuits passées</span>
+                                <span className="text-gray-400 text-sm uppercase font-bold tracking-wider">Éliminés</span>
                             </div>
-                            <div className="text-3xl font-bold mb-1 text-gray-900 dark:text-white">
+                            <div className="text-4xl font-black mb-1 text-orange-500 relative z-10">
                                 1,247
                             </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                                Parties terminées
+                            <div className="text-xs text-gray-500 uppercase tracking-widest relative z-10">
+                                À jamais
                             </div>
                         </div>
 
                         <div
-                            className="bg-white dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 rounded-xl p-6 border border-gray-300 dark:border-gray-700 hover:border-blue-500/50 transition-all duration-300">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                                    <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400"/>
+                            className="relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-blue-900/30 hover:border-blue-700/60 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-900/20 group">
+                            <div className="absolute top-0 right-0 w-20 h-20 bg-blue-700/10 rounded-full blur-2xl group-hover:bg-blue-600/20 transition-all duration-300"></div>
+                            <div className="flex items-center gap-3 mb-4 relative z-10">
+                                <div className="p-2 rounded-lg bg-blue-900/30 border border-blue-700/50">
+                                    <Clock className="w-5 h-5 text-blue-500"/>
                                 </div>
-                                <span className="text-gray-600 dark:text-gray-400 text-sm">Durée moyenne</span>
+                                <span className="text-gray-400 text-sm uppercase font-bold tracking-wider">Durée</span>
                             </div>
-                            <div className="text-3xl font-bold mb-1 text-gray-900 dark:text-white">
+                            <div className="text-4xl font-black mb-1 text-blue-500 relative z-10">
                                 12 min
                             </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                                Par nuit
+                            <div className="text-xs text-gray-500 uppercase tracking-widest relative z-10">
+                                Par terreur
                             </div>
                         </div>
                     </div>
@@ -328,11 +361,11 @@ const Home = () => {
 
             <div className="container mx-auto px-4 py-16">
                 <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                        L&apos;Expérience Loup-Garou
+                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                        Le Fardeau du Loup
                     </h2>
-                    <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                        Tout ce qui rend nos nuits inoubliables
+                    <p className="text-gray-400 max-w-2xl mx-auto text-sm uppercase tracking-widest">
+                        Ce que tu dois maîtriser pour survivre
                     </p>
                 </div>
 
@@ -340,17 +373,18 @@ const Home = () => {
                     {features.map((feature, index) => (
                         <div
                             key={index}
-                            className={`p-6 rounded-2xl ${feature.bgColor} border border-gray-300 dark:border-gray-700 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1`}
+                            className="relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-gray-800 hover:border-red-700/50 transition-all duration-300 hover:shadow-2xl hover:shadow-red-900/10 group"
                         >
-                            <div className="flex items-start gap-4">
-                                <div className={`p-3 rounded-xl bg-gradient-to-br ${feature.color} flex-shrink-0`}>
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-red-700/10 to-purple-700/10 rounded-full blur-3xl group-hover:from-red-600/20 group-hover:to-purple-600/20 transition-all duration-300"></div>
+                            <div className="relative z-10 flex items-start gap-4">
+                                <div className={`p-3 rounded-xl bg-gradient-to-br ${feature.color} flex-shrink-0 group-hover:shadow-lg transition-all duration-300`}>
                                     <feature.icon className="w-6 h-6 text-white"/>
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
+                                    <h3 className="text-xl font-bold mb-2 text-white group-hover:text-red-400 transition-colors">
                                         {feature.title}
                                     </h3>
-                                    <p className="text-gray-700 dark:text-gray-400">
+                                    <p className="text-gray-400 group-hover:text-gray-300 transition-colors">
                                         {feature.description}
                                     </p>
                                 </div>
@@ -361,14 +395,14 @@ const Home = () => {
             </div>
 
             <div
-                className="bg-gradient-to-b from-gray-100/50 dark:from-gray-900/50 to-gray-200/50 dark:to-gray-800/50 py-16 border-y border-gray-300 dark:border-gray-700/50">
+                className="bg-gradient-to-b from-black via-slate-950 to-black py-16 border-y border-red-900/30">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-10">
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                            Rôles Mystérieux
+                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                            Les Rôles de la Nuit
                         </h2>
-                        <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                            Choisissez votre camp et découvrez vos pouvoirs
+                        <p className="text-gray-500 max-w-2xl mx-auto text-sm uppercase tracking-widest">
+                            Chaque rôle détient un pouvoir différent
                         </p>
                     </div>
 
@@ -376,13 +410,13 @@ const Home = () => {
                         {roles.map((role, index) => (
                             <div
                                 key={index}
-                                className="group relative overflow-hidden rounded-xl p-4 border border-gray-400 dark:border-gray-700 hover:scale-105 transition-all duration-300 cursor-pointer bg-white dark:bg-gray-800"
+                                className="group relative overflow-hidden rounded-xl p-4 border border-gray-800 hover:border-red-700/60 transition-all duration-300 cursor-pointer bg-gradient-to-br from-slate-800 to-slate-900 hover:shadow-xl hover:shadow-red-900/20 hover:scale-105"
                             >
                                 <div
-                                    className={`absolute inset-0 ${role.color} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}></div>
-                                <div className="text-3xl text-center mb-2">{role.icon}</div>
+                                    className={`absolute inset-0 ${role.color} opacity-0 group-hover:opacity-30 transition-opacity duration-300`}></div>
+                                <div className="text-3xl text-center mb-2 group-hover:scale-110 transition-transform">{role.icon}</div>
                                 <div
-                                    className="text-center font-medium text-sm text-gray-900 dark:text-gray-200">{role.name}</div>
+                                    className="text-center font-bold text-sm text-gray-300 group-hover:text-white transition-colors relative z-10">{role.name}</div>
                             </div>
                         ))}
                     </div>
@@ -390,7 +424,7 @@ const Home = () => {
                     <div className="text-center">
                         <Link
                             href="/rules"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-gradient-to-r dark:from-gray-800 dark:to-gray-900 border border-gray-400 dark:border-gray-700 rounded-xl hover:border-red-500 hover:text-red-600 dark:hover:text-red-300 transition-all duration-300 text-gray-900 dark:text-gray-300"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-700 to-red-800 border border-red-600/60 rounded-xl hover:from-red-600 hover:to-red-700 hover:shadow-lg hover:shadow-red-900/50 transition-all duration-300 text-white font-semibold"
                         >
                             <Eye className="w-4 h-4"/>
                             Découvrir tous les rôles
@@ -402,11 +436,11 @@ const Home = () => {
 
             <div className="container mx-auto px-4 py-16">
                 <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                        Prêt pour l&apos;Aventure ?
+                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                        Préparez-vous pour la Chasse
                     </h2>
-                    <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                        Rejoignez la communauté des loups-garous
+                    <p className="text-gray-400 max-w-2xl mx-auto text-sm uppercase tracking-widest">
+                        La nuit tombe, l'heure du carnage approche
                     </p>
                 </div>
 
@@ -417,29 +451,29 @@ const Home = () => {
                             href={action.href}
                             target={action.external ? "_blank" : "_self"}
                             rel={action.external ? "noopener noreferrer" : ""}
-                            className="group relative overflow-hidden rounded-xl border border-gray-400 dark:border-gray-700 p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-white dark:bg-transparent"
+                            className="group relative overflow-hidden rounded-xl border border-gray-800 hover:border-red-700/60 p-6 transition-all duration-300 hover:shadow-2xl hover:shadow-red-900/30 hover:-translate-y-2 bg-gradient-to-br from-slate-800 to-slate-900"
                         >
                             <div
-                                className={`absolute inset-0 ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+                                className={`absolute inset-0 ${action.color} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}></div>
                             <div className="relative z-10">
                                 <div className="flex justify-between items-start mb-4">
-                                    <div className={`${action.color} p-3 rounded-xl`}>
+                                    <div className={`${action.color} p-3 rounded-xl shadow-lg`}>
                                         <action.icon className="w-6 h-6 text-white"/>
                                     </div>
                                     {action.badge && (
                                         <span
-                                            className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full">
+                                            className="text-xs px-2 py-1 bg-gray-900 text-gray-300 rounded-full border border-gray-700">
                       {action.badge}
                     </span>
                                     )}
                                 </div>
-                                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-300 transition-colors">
+                                <h3 className="text-xl font-bold mb-2 text-white group-hover:text-red-300 transition-colors">
                                     {action.title}
                                 </h3>
-                                <p className="text-gray-700 dark:text-gray-400 mb-4">
+                                <p className="text-gray-400 mb-4 group-hover:text-gray-300 transition-colors">
                                     {action.description}
                                 </p>
-                                <div className="flex items-center text-red-600 dark:text-red-400 font-medium">
+                                <div className="flex items-center text-red-400 font-semibold">
                                     <span>Entrer</span>
                                     <ArrowRight
                                         className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"/>
@@ -451,38 +485,39 @@ const Home = () => {
             </div>
 
             <div
-                className="relative overflow-hidden bg-gradient-to-r from-gray-100 via-white to-gray-100 dark:from-gray-900 dark:via-black dark:to-gray-900 py-20 border-t border-gray-300 dark:border-gray-800">
+                className="relative overflow-hidden bg-gradient-to-r from-gray-900 via-black to-gray-900 py-20 border-t border-red-900/30">
                 <div
                     className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
 
+                {/* Loup-garou styisé en arrière-plan */}
+                <div className="absolute inset-0 opacity-10 pointer-events-none">
+                    <div className="absolute top-1/2 -left-20 text-8xl transform -rotate-12 animate-pulse">🐺</div>
+                    <div className="absolute top-1/3 -right-20 text-8xl transform rotate-12 animate-pulse" style={{animationDelay: '1s'}}>🐺</div>
+                </div>
+
                 <div className="container mx-auto px-4 text-center relative z-10">
-                    <div className="text-6xl mb-6">🌕</div>
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                    <div className="text-6xl mb-6 animate-bounce" style={{animationDuration: '2s'}}>🌙</div>
+                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
                         La Lune se lève...
                     </h2>
-                    <p className="text-gray-700 dark:text-gray-300 text-lg max-w-2xl mx-auto mb-8">
-                        Rejoignez des milliers de joueurs dans cette aventure nocturne.
-                        Créez des alliances, déjouez les complots, et survivez jusqu&apos;à l&apos;aube.
+                    <p className="text-gray-300 text-lg max-w-2xl mx-auto mb-8">
+                        L&apos;aube approche. Seuls les plus forts et les plus rusés survivront cette nuit éternelle.
+                        Allez-vous chasser ou être chassé ?
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
                             href="/auth"
-                            className="px-8 py-4 bg-gradient-to-r from-red-600 to-orange-600 font-semibold rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 text-white"
+                            className="px-8 py-4 bg-gradient-to-r from-red-700 via-red-800 to-red-900 font-bold rounded-xl hover:shadow-2xl hover:shadow-red-900/50 hover:scale-105 transition-all duration-300 text-white border border-red-600/60"
                         >
-                            S&apos;inscrire gratuitement
+                            Rejoindre la Meute
                         </Link>
                         <Link
                             href="/game/list"
-                            className="px-8 py-4 bg-transparent border-2 border-gray-600 dark:border-gray-700 font-semibold rounded-xl hover:border-red-600 hover:text-red-600 dark:hover:border-red-500 dark:hover:text-red-300 transition-all duration-300 text-gray-900 dark:text-gray-300"
+                            className="px-8 py-4 bg-transparent border-2 border-red-700 font-bold rounded-xl hover:border-red-500 hover:text-red-300 transition-all duration-300 text-gray-300 hover:shadow-xl hover:shadow-red-900/20"
                         >
-                            Voir les parties
+                            Voir les Proies
                         </Link>
                     </div>
-                </div>
-
-                <div className="absolute bottom-0 left-0 right-0 flex justify-between px-8 opacity-20">
-                    <div className="text-4xl transform rotate-12">🐺</div>
-                    <div className="text-4xl transform -rotate-12">🐺</div>
                 </div>
             </div>
 
